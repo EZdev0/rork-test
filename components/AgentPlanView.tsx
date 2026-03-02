@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, TextInput, ActivityIndicator,
-  Animated, LayoutAnimation, Platform, UIManager, Modal, Pressable,
+  Animated, LayoutAnimation, Platform, UIManager, Modal, Pressable, ScrollView,
 } from 'react-native';
 import {
   Play, Square, Plus, CheckCircle, AlertTriangle, X, Brain,
@@ -430,7 +430,8 @@ const AgentPlanView = React.memo(({ plan, isExecuting, onExecute, onStop, onDism
         )}
       </View>
 
-      <Modal visible={swapModal.visible} transparent animationType="fade">
+      {/* FIX 2: Einfacheres Swap Modal mit Cancel-Button */}
+      <Modal visible={swapModal.visible} transparent animationType="slide">
         <TouchableOpacity
           style={styles.swapOverlay}
           activeOpacity={1}
@@ -439,15 +440,15 @@ const AgentPlanView = React.memo(({ plan, isExecuting, onExecute, onStop, onDism
           <View style={styles.swapModal}>
             <View style={styles.swapModalHeader}>
               <GripVertical size={16} color={IDE.primary} />
-              <Text style={styles.swapModalTitle}>Position tauschen</Text>
-              <TouchableOpacity onPress={handleSwapCancel}>
-                <X size={18} color={IDE.muted} />
+              <Text style={styles.swapModalTitle}>Position {swapModal.fromIndex + 1} verschieben</Text>
+              <TouchableOpacity onPress={handleSwapCancel} style={styles.cancelBtnSmall}>
+                <X size={18} color={IDE.danger} />
               </TouchableOpacity>
             </View>
             <Text style={styles.swapModalHint}>
-              Schritt {swapModal.fromIndex + 1} hierhin verschieben:
+              Wähle eine neue Position:
             </Text>
-            <View style={styles.swapList}>
+            <ScrollView style={styles.swapListScroll} showsVerticalScrollIndicator>
               {tasks.map((task, i) => task ? (
                 <TouchableOpacity
                   key={task.id}
@@ -456,41 +457,42 @@ const AgentPlanView = React.memo(({ plan, isExecuting, onExecute, onStop, onDism
                     i === swapModal.fromIndex && styles.swapItemFrom,
                   ]}
                   onPress={() => handleSwapSelect(i)}
-                  activeOpacity={0.6}
+                  activeOpacity={0.7}
                   disabled={i === swapModal.fromIndex}
                 >
-                  <Animated.View style={[
+                  <View style={[
                     styles.swapItemIndex,
                     i === swapModal.fromIndex && {
-                      backgroundColor: swapHighlightAnim.interpolate({
-                        inputRange: [0, 1],
-                        outputRange: [IDE.primary + '30', IDE.primary + '60'],
-                      }),
+                      backgroundColor: IDE.primary + '40',
                     },
                   ]}>
                     <Text style={[
                       styles.swapItemIndexText,
                       i === swapModal.fromIndex && { color: IDE.primary },
                     ]}>{i + 1}</Text>
-                  </Animated.View>
+                  </View>
                   <Text
                     style={[
                       styles.swapItemText,
                       i === swapModal.fromIndex && styles.swapItemTextFrom,
                     ]}
-                    numberOfLines={1}
+                    numberOfLines={2}
                   >
                     {task.title}
                   </Text>
-                  {i === swapModal.fromIndex && (
-                    <Text style={styles.swapItemCurrent}>Aktuell</Text>
-                  )}
-                  {i !== swapModal.fromIndex && (
-                    <ArrowDown size={12} color={IDE.muted} style={{ transform: [{ rotate: i < swapModal.fromIndex ? '180deg' : '0deg' }] }} />
+                  {i === swapModal.fromIndex ? (
+                    <View style={styles.currentBadgeSimple}>
+                      <Text style={styles.currentBadgeText}>Aktuell</Text>
+                    </View>
+                  ) : (
+                    <ArrowDown size={14} color={IDE.muted} style={{ transform: [{ rotate: i < swapModal.fromIndex ? '180deg' : '0deg' }] }} />
                   )}
                 </TouchableOpacity>
               ) : null)}
-            </View>
+            </ScrollView>
+            <TouchableOpacity onPress={handleSwapCancel} style={styles.cancelButtonFullWidth}>
+              <Text style={styles.cancelButtonText}>Abbrechen</Text>
+            </TouchableOpacity>
           </View>
         </TouchableOpacity>
       </Modal>
@@ -929,19 +931,29 @@ const styles = StyleSheet.create({
   },
   swapOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    justifyContent: 'center' as const,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'flex-end' as const,
     alignItems: 'center' as const,
-    padding: 24,
   },
-  swapModal: {
+  swapModalBackdrop: {
+    position: 'absolute' as const,
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  swapModalContent: {
     backgroundColor: IDE.surface,
-    borderRadius: 16,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
     borderWidth: 1,
     borderColor: IDE.border,
-    width: '100%',
-    maxWidth: 360,
+    width: '92%',
+    maxHeight: '80%',
     overflow: 'hidden' as const,
+    paddingBottom: 16,
   },
   swapModalHeader: {
     flexDirection: 'row' as const,
@@ -950,6 +962,52 @@ const styles = StyleSheet.create({
     padding: 14,
     borderBottomWidth: 1,
     borderBottomColor: IDE.border,
+  },
+  cancelBtnSmall: {
+    padding: 4,
+    borderRadius: 12,
+    backgroundColor: IDE.danger + '15',
+  },
+  swapListScroll: {
+    padding: 8,
+    gap: 4,
+    maxHeight: 300,
+  },
+  currentBadgeSimple: {
+    backgroundColor: IDE.primary + '15',
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+    borderRadius: 4,
+  },
+  cancelButtonFullWidth: {
+    margin: 12,
+    paddingVertical: 12,
+    borderRadius: 8,
+    backgroundColor: IDE.bg,
+    borderWidth: 1,
+    borderColor: IDE.border,
+    alignItems: 'center' as const,
+  },
+  cancelButtonText: {
+    fontSize: 14,
+    fontWeight: '700' as const,
+    color: IDE.text,
+  },
+  swapModal: {
+    backgroundColor: IDE.surface,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: IDE.border,
+    width: '95%',
+    maxWidth: 400,
+    overflow: 'hidden' as const,
+  },
+  currentBadgeText: {
+    fontSize: 9,
+    fontWeight: '700' as const,
+    color: IDE.primary,
+    textTransform: 'uppercase' as const,
+    letterSpacing: 0.3,
   },
   swapModalTitle: {
     flex: 1,

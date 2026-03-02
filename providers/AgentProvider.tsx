@@ -261,21 +261,42 @@ export const [AgentProvider, useAgent] = createContextHook(() => {
         case 'web_search': {
           if (!args?.query) return { result: 'FEHLER: Suchbegriff fehlt.' };
           try {
-            const resp = await fetch('https://api.duckduckgo.com/?q=' + encodeURIComponent(args.query) + '&format=json&no_redirect=1&no_html=1');
-            if (!resp.ok) return { result: 'Web-Suche fehlgeschlagen (Status ' + resp.status + ').' };
+            // DuckDuckGo mit besserem Error-Handling und Timeout
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 8000);
+            
+            const resp = await fetch(
+              'https://api.duckduckgo.com/?q=' + encodeURIComponent(args.query) + '&format=json&no_redirect=1&no_html=1',
+              { signal: controller.signal }
+            );
+            clearTimeout(timeoutId);
+            
+            if (!resp.ok) {
+              console.log('[Web-Search] DDG failed, status:', resp.status);
+              return { result: 'ℹ️ Keine Web-Ergebnisse für "' + args.query + '" gefunden. Versuche alternative Formulierung.' };
+            }
+            
             const data = await resp.json();
             let results = '';
-            if (data?.Abstract) results += 'Zusammenfassung: ' + data.Abstract + '\n\n';
-            if (data?.RelatedTopics) {
-              const topics = (data.RelatedTopics || []).slice(0, 8);
+            
+            if (data?.Abstract) {
+              results += '**Zusammenfassung:**\n' + data.Abstract + '\n\n';
+            }
+            
+            if (data?.RelatedTopics && Array.isArray(data.RelatedTopics)) {
+              const topics = data.RelatedTopics.slice(0, 8);
               for (const t of topics) {
-                if (t?.Text) results += '• ' + t.Text + '\n';
-                if (t?.FirstURL) results += '  URL: ' + t.FirstURL + '\n';
+                if (t?.Text) {
+                  results += '• ' + t.Text + '\n';
+                  if (t?.FirstURL) results += '  _Quelle: ' + t.FirstURL + '_\n';
+                }
               }
             }
-            return { result: results || 'Keine Ergebnisse gefunden für: ' + args.query };
+            
+            return { result: results || 'ℹ️ Keine konkreten Ergebnisse für: ' + args.query };
           } catch (e: any) {
-            return { result: 'FEHLER bei Web-Suche: ' + (e?.message || 'Netzwerkfehler') };
+            console.log('[Web-Search] Error:', e.message);
+            return { result: '⚠️ Web-Suche nicht verfügbar (Netzwerkfehler). Beschreibe was du finden möchtest.' };
           }
         }
         case 'web_fetch': {
@@ -350,6 +371,17 @@ export const [AgentProvider, useAgent] = createContextHook(() => {
       );
 
       const parsedTasks = parsePlanFromAI(response.content);
+
+      // FIX 1: Thinking-Task automatisch einfügen wenn komplexer Plan (>2 Tasks)
+      const hasThinkingTask = parsedTasks.some(t => t.taskType === 'thinking' || t.taskType === 'brainstorm');
+      if (!hasThinkingTask && parsedTasks.length > 2) {
+        parsedTasks.unshift({
+          title: '🧠 Analyse des Auftrags',
+          description: 'Verstehe die Anforderungen, analysiere die Projektstruktur und plane die Umsetzung systematisch. Welche Dateien müssen gelesen/erstellt/geändert werden?',
+          taskType: 'thinking' as any,
+        });
+        console.log('[Agent] Auto-inserted thinking task for complex plan');
+      }
 
       const plan: AgentPlan = {
         id: genId(),
@@ -938,6 +970,12 @@ export const [AgentProvider, useAgent] = createContextHook(() => {
           completedAt: Date.now(),
         };
       });
+
+      // FIX 3B: User-Info Extraction nach Job-Abschluss (wenn Lernmodus aktiv)
+      if (settings.betaAgentLearning) {
+        const allMessages = pTasks.flatMap(t => t.subAgentMessages || []);
+        await extractUserInfoIfEnabled(allMessages);
+      }
     } catch (e: any) {
       console.log('[Agent] Plan execution error:', e);
       updatePlan(planId, p => ({ ...p, status: 'error' }));
@@ -994,6 +1032,51 @@ export const [AgentProvider, useAgent] = createContextHook(() => {
       }
     }
   }, [updatePlan, updateTaskInPlan, executeSubAgent]);
+
+  // FIX 3: User-Info Auto-Extraction im Lernmodus
+  const extractUserInfoIfEnabled = useCallback(async (messages: ChatMessage[]) => {
+    if (!settings.betaAgentLearning) return;
+    
+    const lastUserMessages = messages
+      .filter(m => m.role === 'user')
+      .slice(-5);
+    
+    const userContent = lastUserMessages.map(m => m.content).join('\n');
+    if (!userContent.trim()) return;
+    
+    // Prüfe auf persönliche Informationen (Name, Rolle, etc.)
+    const nameMatch = userContent.match(/\bich (?:heiße|bin)\s+(?:der |die )?([A-Z][a-zäöüß]+)/i);
+    const roleMatch = userContent.match(/\b(?:ich bin|als|beruf(?:lich)?|entwickler|programmierer)\s+([^.,\n!]+)/i);
+    const companyMatch = userContent.match(/\b(?:arbeite bei|firma|unternehmen|in\s+firma)\s+([A-Z][a-zA-Zäöüß\s]+)/i);
+    
+    let userInfoUpdated = false;
+    let newUserInfo = userMd || '';
+    
+    if (nameMatch && !newUserInfo.toLowerCase().includes('name')) {
+      newUserInfo += '\n\n## Name\nDer Nutzer heißt **' + nameMatch[1] + '**.';
+      userInfoUpdated = true;
+      console.log('[Agent] Extracted name:', nameMatch[1]);
+    }
+    
+    if (roleMatch && !newUserInfo.toLowerCase().includes('rolle') && !newUserInfo.toLowerCase().includes('beruf')) {
+      const roleText = roleMatch[0].trim();
+      newUserInfo += '\n\n## Rolle\n' + roleText.charAt(0).toUpperCase() + roleText.slice(1) + '.';
+      userInfoUpdated = true;
+      console.log('[Agent] Extracted role:', roleText);
+    }
+    
+    if (companyMatch && !newUserInfo.toLowerCase().includes('firma') && !newUserInfo.toLowerCase().includes('unternehmen')) {
+      newUserInfo += '\n\n## Firma\nNutzer arbeitet bei **' + companyMatch[1].trim() + '**.';
+      userInfoUpdated = true;
+      console.log('[Agent] Extracted company:', companyMatch[1]);
+    }
+    
+    if (userInfoUpdated && newUserInfo.trim()) {
+      setUserMd(newUserInfo);
+      addMemo('User-Info aktualisiert: ' + (nameMatch ? 'Name=' + nameMatch[1] : '') + (roleMatch ? ', Rolle=' + roleMatch[0].slice(0, 30) : ''));
+      console.log('[Agent] USER.MD updated successfully');
+    }
+  }, [settings.betaAgentLearning, userMd, setUserMd, addMemo]);
 
   const visiblePlans = plans.filter(p => !p.dismissed);
 
