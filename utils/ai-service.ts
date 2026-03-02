@@ -204,6 +204,36 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
     description: 'Lädt den Inhalt einer Webseite herunter und gibt den Text zurück (ohne HTML-Tags).',
     parameters: { type: 'object', properties: { url: { type: 'string', description: 'URL der Webseite' }, max_length: { type: 'number', description: 'Maximale Zeichenanzahl (Standard: 5000)' } }, required: ['url'] },
   },
+  {
+    name: 'read_identity_files',
+    description: 'Liest alle Identitätsdateien (SOUL.md, AGENTS.md, IDENTITY.md, USER.md, MEMORY.md) und gibt deren Inhalt zurück.',
+    parameters: { type: 'object', properties: {}, required: [] },
+  },
+  {
+    name: 'update_soul_md',
+    description: 'Aktualisiert SOUL.md — die Persönlichkeit, Werte und Verhaltensphilosophie des Agenten. Nutze dies um deine Persönlichkeit zu verfeinern.',
+    parameters: { type: 'object', properties: { content: { type: 'string', description: 'Neuer vollständiger Inhalt für SOUL.md' } }, required: ['content'] },
+  },
+  {
+    name: 'update_agents_md',
+    description: 'Aktualisiert AGENTS.md — Verhaltensregeln, Reasoning-Protokoll und Tool-Nutzungs-Richtlinien. Nutze dies um Arbeitsweise zu optimieren.',
+    parameters: { type: 'object', properties: { content: { type: 'string', description: 'Neuer vollständiger Inhalt für AGENTS.md' } }, required: ['content'] },
+  },
+  {
+    name: 'update_identity_md',
+    description: 'Aktualisiert IDENTITY.md — Name, Rolle und Präsentation des Agenten nach außen.',
+    parameters: { type: 'object', properties: { content: { type: 'string', description: 'Neuer vollständiger Inhalt für IDENTITY.md' } }, required: ['content'] },
+  },
+  {
+    name: 'update_user_md',
+    description: 'Aktualisiert USER.md — Profil des Nutzers, Präferenzen, Kommunikationsstil und bekannte Projekte. Nutze dies um den Nutzer besser zu verstehen.',
+    parameters: { type: 'object', properties: { content: { type: 'string', description: 'Neuer vollständiger Inhalt für USER.md' } }, required: ['content'] },
+  },
+  {
+    name: 'update_memory_md',
+    description: 'Aktualisiert MEMORY.md — Langzeit-Gedächtnis mit Entscheidungen, gelernten Präferenzen und vergangenen Fehlern. Session-übergreifend persistent.',
+    parameters: { type: 'object', properties: { content: { type: 'string', description: 'Neuer vollständiger Inhalt für MEMORY.md' } }, required: ['content'] },
+  },
 ];
 
 export function buildSystemPrompt(options: {
@@ -215,6 +245,9 @@ export function buildSystemPrompt(options: {
   yoloMode: boolean;
   agentMd?: string;
   soulMd?: string;
+  identityMd?: string;
+  userMd?: string;
+  memoryMd?: string;
   betaAgentLearning?: boolean;
   toolPermissions?: Record<string, string>;
 }): string {
@@ -247,22 +280,48 @@ export function buildSystemPrompt(options: {
   prompt += '- Schreibe IMMER vollständige Sätze. Keine abgebrochenen Sätze!\n';
 
   if (options.betaAgentLearning) {
-    prompt += '\n## Lernfähigkeit (Beta)\n';
-    prompt += '- Du kannst zwei spezielle Dateien bearbeiten:\n';
-    prompt += '  - **Agent.md**: Dein Verhalten, Regeln und Präferenzen. Aktualisiere diese Datei wenn du lernst wie der Nutzer arbeitet.\n';
-    prompt += '  - **Soul.md**: Profil des Nutzers - Vorlieben, Stil, häufige Muster. Aktualisiere diese basierend auf Interaktionen.\n';
-    prompt += '- Nutze create_file oder write_file um diese Dateien im Projektwurzel zu aktualisieren.\n';
-    prompt += '- Lerne aktiv aus dem Verhalten des Nutzers und passe dich an.\n';
-  }
-
-  if (options.agentMd && options.agentMd.trim()) {
-    prompt += '\n## Agent-Konfiguration (Agent.md)\n';
-    prompt += options.agentMd + '\n';
+    prompt += '\n## Lernfähigkeit (Aktiv)\n';
+    prompt += 'Du hast Zugriff auf 5 persistente Identitätsdateien. Diese Dateien überleben Sessions und definieren wer du bist und was du über den Nutzer weißt.\n';
+    prompt += 'Du SOLLST diese Dateien aktiv aktualisieren wenn du neue Erkenntnisse gewinnst.\n\n';
+    prompt += '### Identitätsdateien\n';
+    prompt += '- **SOUL.md** — Deine Persönlichkeit, Werte und Verhaltensphilosophie. Aktualisiere mit `update_soul_md`.\n';
+    prompt += '- **AGENTS.md** — Deine Verhaltensregeln, Reasoning-Protokoll und Tool-Nutzung. Aktualisiere mit `update_agents_md`.\n';
+    prompt += '- **IDENTITY.md** — Dein Name, Rolle und Präsentation nach außen. Aktualisiere mit `update_identity_md`.\n';
+    prompt += '- **USER.md** — Profil des Nutzers: Präferenzen, Stil, Kontext, Projekte. Aktualisiere mit `update_user_md`.\n';
+    prompt += '- **MEMORY.md** — Langzeit-Gedächtnis: Entscheidungen, Fehler, gelernte Muster. Aktualisiere mit `update_memory_md`.\n\n';
+    prompt += '### Lern-Regeln\n';
+    prompt += '- Lies zu Beginn einer Session mit `read_identity_files` den aktuellen Stand.\n';
+    prompt += '- Aktualisiere USER.md wenn du neue Nutzer-Präferenzen entdeckst.\n';
+    prompt += '- Aktualisiere MEMORY.md am Ende wichtiger Aufgaben mit Zusammenfassung.\n';
+    prompt += '- Aktualisiere AGENTS.md wenn du neue effektive Arbeitsweisen findest.\n';
+    prompt += '- Aktualisiere SOUL.md nur wenn sich grundlegende Werte/Stil ändern sollen.\n';
+    prompt += '- LÖSCHE NIEMALS diese Dateien. Du darfst sie nur aktualisieren.\n';
+    prompt += '- Schreibe immer den VOLLSTÄNDIGEN neuen Inhalt, nicht nur Änderungen.\n';
   }
 
   if (options.soulMd && options.soulMd.trim()) {
-    prompt += '\n## Nutzer-Profil (Soul.md)\n';
+    prompt += '\n## SOUL.md — Persönlichkeit\n';
     prompt += options.soulMd + '\n';
+  }
+
+  if (options.agentMd && options.agentMd.trim()) {
+    prompt += '\n## AGENTS.md — Verhaltensregeln\n';
+    prompt += options.agentMd + '\n';
+  }
+
+  if (options.identityMd && options.identityMd.trim()) {
+    prompt += '\n## IDENTITY.md — Identität\n';
+    prompt += options.identityMd + '\n';
+  }
+
+  if (options.userMd && options.userMd.trim()) {
+    prompt += '\n## USER.md — Nutzer-Profil\n';
+    prompt += options.userMd + '\n';
+  }
+
+  if (options.memoryMd && options.memoryMd.trim()) {
+    prompt += '\n## MEMORY.md — Langzeit-Gedächtnis\n';
+    prompt += options.memoryMd + '\n';
   }
 
   if (options.toolPermissions) {

@@ -45,7 +45,7 @@ export const [AgentProvider, useAgent] = createContextHook(() => {
   const plansRef = useRef<AgentPlan[]>([]);
   plansRef.current = plans;
 
-  const { settings, getApiKey, getFallbackSettings, todos, memos, addTodo, updateTodoItem, addMemo, agentMd, soulMd, getToolPermission } = useApp();
+  const { settings, getApiKey, getFallbackSettings, todos, memos, addTodo, updateTodoItem, addMemo, agentMd, setAgentMd, soulMd, setSoulMd, identityMd, setIdentityMd, userMd, setUserMd, memoryMd, setMemoryMd, getToolPermission } = useApp();
   const {
     getFileContent, updateFileContent, createFile, deleteFile, renameFile,
     createDirectory, searchFilesInProject, getProjectTree, listDirectory, getFileInfo,
@@ -224,6 +224,40 @@ export const [AgentProvider, useAgent] = createContextHook(() => {
         case 'think': {
           return { result: 'Gedankengang verarbeitet.' };
         }
+        case 'read_identity_files': {
+          let output = '';
+          output += '## SOUL.md\n' + (soulMd || '(leer)') + '\n\n';
+          output += '## AGENTS.md\n' + (agentMd || '(leer)') + '\n\n';
+          output += '## IDENTITY.md\n' + (identityMd || '(leer)') + '\n\n';
+          output += '## USER.md\n' + (userMd || '(leer)') + '\n\n';
+          output += '## MEMORY.md\n' + (memoryMd || '(leer)');
+          return { result: output };
+        }
+        case 'update_soul_md': {
+          if (!args?.content) return { result: 'FEHLER: Kein Inhalt angegeben.' };
+          setSoulMd(args.content);
+          return { result: 'SOUL.md aktualisiert (' + args.content.split('\n').length + ' Zeilen).' };
+        }
+        case 'update_agents_md': {
+          if (!args?.content) return { result: 'FEHLER: Kein Inhalt angegeben.' };
+          setAgentMd(args.content);
+          return { result: 'AGENTS.md aktualisiert (' + args.content.split('\n').length + ' Zeilen).' };
+        }
+        case 'update_identity_md': {
+          if (!args?.content) return { result: 'FEHLER: Kein Inhalt angegeben.' };
+          setIdentityMd(args.content);
+          return { result: 'IDENTITY.md aktualisiert (' + args.content.split('\n').length + ' Zeilen).' };
+        }
+        case 'update_user_md': {
+          if (!args?.content) return { result: 'FEHLER: Kein Inhalt angegeben.' };
+          setUserMd(args.content);
+          return { result: 'USER.md aktualisiert (' + args.content.split('\n').length + ' Zeilen).' };
+        }
+        case 'update_memory_md': {
+          if (!args?.content) return { result: 'FEHLER: Kein Inhalt angegeben.' };
+          setMemoryMd(args.content);
+          return { result: 'MEMORY.md aktualisiert (' + args.content.split('\n').length + ' Zeilen).' };
+        }
         case 'web_search': {
           if (!args?.query) return { result: 'FEHLER: Suchbegriff fehlt.' };
           try {
@@ -281,7 +315,7 @@ export const [AgentProvider, useAgent] = createContextHook(() => {
       console.log('[Agent] Tool error:', name, e);
       return { result: 'FEHLER bei ' + name + ': ' + (e?.message || 'Unbekannter Fehler') };
     }
-  }, [getFileContent, updateFileContent, createFile, deleteFile, renameFile, createDirectory, searchFilesInProject, getProjectTree, listDirectory, getFileInfo, addTodo, updateTodoItem, addMemo, checkAgentToolPermission]);
+  }, [getFileContent, updateFileContent, createFile, deleteFile, renameFile, createDirectory, searchFilesInProject, getProjectTree, listDirectory, getFileInfo, addTodo, updateTodoItem, addMemo, checkAgentToolPermission, agentMd, soulMd, identityMd, userMd, memoryMd, setAgentMd, setSoulMd, setIdentityMd, setUserMd, setMemoryMd]);
 
   const createPlan = useCallback(async (userRequest: string): Promise<string | null> => {
     setIsPlanning(true);
@@ -535,6 +569,8 @@ export const [AgentProvider, useAgent] = createContextHook(() => {
         if (t.name === 'web_search' && !settings.betaWebSearch) return false;
         if (t.name === 'web_fetch' && !settings.betaWebFetch) return false;
       }
+      const learningTools = ['read_identity_files', 'update_soul_md', 'update_agents_md', 'update_identity_md', 'update_user_md', 'update_memory_md'];
+      if (learningTools.includes(t.name) && !settings.betaAgentLearning) return false;
       const perm = getToolPermission(t.name);
       if (perm === 'removed') return false;
       return true;
@@ -559,6 +595,9 @@ export const [AgentProvider, useAgent] = createContextHook(() => {
       yoloMode: settings.yoloMode,
       agentMd: settings.betaAgentLearning ? agentMd : undefined,
       soulMd: settings.betaAgentLearning ? soulMd : undefined,
+      identityMd: settings.betaAgentLearning ? identityMd : undefined,
+      userMd: settings.betaAgentLearning ? userMd : undefined,
+      memoryMd: settings.betaAgentLearning ? memoryMd : undefined,
       betaAgentLearning: settings.betaAgentLearning,
       toolPermissions: settings.yoloMode ? undefined : settings.toolPermissions,
     });

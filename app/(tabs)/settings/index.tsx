@@ -7,6 +7,7 @@ import {
   Key, Eye, EyeOff, ChevronDown, ChevronUp, ExternalLink,
   Minus, Plus, Zap, Globe, Shield, RefreshCw, FlaskConical,
   Info, Check, Sparkles, Star, Copy, CircleCheck, Circle,
+  Brain, FileText,
 } from 'lucide-react-native';
 import * as Clipboard from 'expo-clipboard';
 import { IDE } from '@/constants/colors';
@@ -80,13 +81,15 @@ const KEY_PLACEHOLDER: Record<string, string> = {
 };
 
 export default function SettingsScreen() {
-  const { settings, updateSettings } = useApp();
+  const { settings, updateSettings, agentMd, setAgentMd, soulMd, setSoulMd, identityMd, setIdentityMd, userMd, setUserMd, memoryMd, setMemoryMd } = useApp();
 
   const [showKeys, setShowKeys] = useState<Record<string, boolean>>({});
   const [showProviderPicker, setShowProviderPicker] = useState<boolean>(false);
   const [showModelPicker, setShowModelPicker] = useState<boolean>(false);
   const [activeSection, setActiveSection] = useState<'main' | 'beta'>('main');
   const [expandedProviderInfo, setExpandedProviderInfo] = useState<string | null>(null);
+  const [editingIdentityFile, setEditingIdentityFile] = useState<string | null>(null);
+  const [identityEditContent, setIdentityEditContent] = useState<string>('');
 
   const currentProvider = useMemo(
     () => AI_PROVIDERS.find(p => p.id === settings.selectedProvider) ?? AI_PROVIDERS[0],
@@ -633,7 +636,7 @@ export default function SettingsScreen() {
             <View style={styles.settingRow}>
               <View style={styles.settingLabelRow}>
                 <Star size={14} color={IDE.warning} />
-                <Text style={styles.settingLabel}>KI-Lernen (Agent.md / Soul.md)</Text>
+                <Text style={styles.settingLabel}>KI-Lernen</Text>
               </View>
               <Switch
                 value={settings.betaAgentLearning}
@@ -643,8 +646,99 @@ export default function SettingsScreen() {
               />
             </View>
             <Text style={styles.settingHint}>
-              KI kann Agent.md (Verhalten) und Soul.md (Nutzer-Profil) bearbeiten um dazuzulernen.
+              KI lernt über 5 Identitätsdateien: SOUL.md, AGENTS.md, IDENTITY.md, USER.md, MEMORY.md
             </Text>
+
+            {settings.betaAgentLearning && (
+              <View style={styles.identityFilesSection}>
+                <View style={styles.identityFilesHeader}>
+                  <Brain size={14} color={IDE.primary} />
+                  <Text style={styles.identityFilesTitle}>Identitätsdateien</Text>
+                </View>
+                <Text style={styles.identityFilesDesc}>
+                  Diese Dateien definieren die Persönlichkeit und das Wissen deines KI-Agenten. Sie sind nie löschbar, nur editierbar.
+                </Text>
+
+                {([
+                  { key: 'soul', label: 'SOUL.md', desc: 'Persönlichkeit & Werte', value: soulMd, setter: setSoulMd },
+                  { key: 'agents', label: 'AGENTS.md', desc: 'Verhaltensregeln & Protokoll', value: agentMd, setter: setAgentMd },
+                  { key: 'identity', label: 'IDENTITY.md', desc: 'Name, Rolle & Präsentation', value: identityMd, setter: setIdentityMd },
+                  { key: 'user', label: 'USER.md', desc: 'Nutzer-Profil & Präferenzen', value: userMd, setter: setUserMd },
+                  { key: 'memory', label: 'MEMORY.md', desc: 'Langzeit-Gedächtnis', value: memoryMd, setter: setMemoryMd },
+                ] as const).map(file => (
+                  <View key={file.key} style={styles.identityFileCard}>
+                    <TouchableOpacity
+                      style={styles.identityFileHeader}
+                      onPress={() => {
+                        if (editingIdentityFile === file.key) {
+                          setEditingIdentityFile(null);
+                        } else {
+                          setEditingIdentityFile(file.key);
+                          setIdentityEditContent(file.value || '');
+                        }
+                      }}
+                      activeOpacity={0.7}
+                    >
+                      <View style={styles.identityFileLeft}>
+                        <FileText size={13} color={IDE.primary} />
+                        <View>
+                          <Text style={styles.identityFileName}>{file.label}</Text>
+                          <Text style={styles.identityFileDesc}>{file.desc}</Text>
+                        </View>
+                      </View>
+                      <View style={styles.identityFileRight}>
+                        <View style={[styles.identityFileBadge, file.value ? styles.identityFileBadgeActive : styles.identityFileBadgeEmpty]}>
+                          <Text style={[styles.identityFileBadgeText, file.value ? styles.identityFileBadgeTextActive : styles.identityFileBadgeTextEmpty]}>
+                            {file.value ? (file.value.split('\n').length + ' Zeilen') : 'Leer'}
+                          </Text>
+                        </View>
+                        {editingIdentityFile === file.key ? (
+                          <ChevronUp size={14} color={IDE.muted} />
+                        ) : (
+                          <ChevronDown size={14} color={IDE.muted} />
+                        )}
+                      </View>
+                    </TouchableOpacity>
+
+                    {editingIdentityFile === file.key && (
+                      <View style={styles.identityFileEditor}>
+                        <TextInput
+                          style={styles.identityFileInput}
+                          value={identityEditContent}
+                          onChangeText={setIdentityEditContent}
+                          placeholder={'Inhalt für ' + file.label + ' eingeben...'}
+                          placeholderTextColor={IDE.muted}
+                          multiline
+                          textAlignVertical="top"
+                          autoCapitalize="none"
+                          autoCorrect={false}
+                        />
+                        <View style={styles.identityFileActions}>
+                          <TouchableOpacity
+                            style={styles.identityFileCancelBtn}
+                            onPress={() => setEditingIdentityFile(null)}
+                            activeOpacity={0.7}
+                          >
+                            <Text style={styles.identityFileCancelText}>Abbrechen</Text>
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            style={styles.identityFileSaveBtn}
+                            onPress={() => {
+                              file.setter(identityEditContent);
+                              setEditingIdentityFile(null);
+                            }}
+                            activeOpacity={0.7}
+                          >
+                            <Check size={13} color="#fff" />
+                            <Text style={styles.identityFileSaveText}>Speichern</Text>
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+                    )}
+                  </View>
+                ))}
+              </View>
+            )}
 
             <View style={styles.settingRow}>
               <View style={styles.settingLabelRow}>
@@ -1307,4 +1401,133 @@ const styles = StyleSheet.create({
   footer: { alignItems: 'center' as const, paddingVertical: 24 },
   footerText: { fontSize: 13, color: IDE.muted, fontWeight: '600' as const },
   footerSubtext: { fontSize: 11, color: IDE.muted, marginTop: 2 },
+
+  identityFilesSection: {
+    marginTop: 12,
+    marginBottom: 8,
+  },
+  identityFilesHeader: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    gap: 8,
+    marginBottom: 6,
+  },
+  identityFilesTitle: {
+    fontSize: 13,
+    fontWeight: '700' as const,
+    color: IDE.text,
+  },
+  identityFilesDesc: {
+    fontSize: 11,
+    color: IDE.muted,
+    marginBottom: 10,
+    lineHeight: 16,
+  },
+  identityFileCard: {
+    backgroundColor: IDE.surface,
+    borderWidth: 1,
+    borderColor: IDE.border,
+    borderRadius: 8,
+    marginBottom: 6,
+    overflow: 'hidden' as const,
+  },
+  identityFileHeader: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    justifyContent: 'space-between' as const,
+    padding: 10,
+  },
+  identityFileLeft: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    gap: 8,
+    flex: 1,
+  },
+  identityFileName: {
+    fontSize: 13,
+    fontWeight: '600' as const,
+    color: IDE.text,
+    fontFamily: 'monospace',
+  },
+  identityFileDesc: {
+    fontSize: 10,
+    color: IDE.muted,
+    marginTop: 1,
+  },
+  identityFileRight: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    gap: 6,
+  },
+  identityFileBadge: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  identityFileBadgeActive: {
+    backgroundColor: IDE.accent + '20',
+  },
+  identityFileBadgeEmpty: {
+    backgroundColor: IDE.border,
+  },
+  identityFileBadgeText: {
+    fontSize: 9,
+    fontWeight: '600' as const,
+  },
+  identityFileBadgeTextActive: {
+    color: IDE.accent,
+  },
+  identityFileBadgeTextEmpty: {
+    color: IDE.muted,
+  },
+  identityFileEditor: {
+    borderTopWidth: 1,
+    borderTopColor: IDE.border,
+    padding: 10,
+  },
+  identityFileInput: {
+    backgroundColor: IDE.bg,
+    borderWidth: 1,
+    borderColor: IDE.border,
+    borderRadius: 6,
+    padding: 10,
+    fontSize: 12,
+    color: IDE.text,
+    fontFamily: 'monospace',
+    minHeight: 120,
+    maxHeight: 300,
+  },
+  identityFileActions: {
+    flexDirection: 'row' as const,
+    justifyContent: 'flex-end' as const,
+    gap: 8,
+    marginTop: 8,
+  },
+  identityFileCancelBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
+    backgroundColor: IDE.surface,
+    borderWidth: 1,
+    borderColor: IDE.border,
+  },
+  identityFileCancelText: {
+    fontSize: 12,
+    color: IDE.muted,
+    fontWeight: '500' as const,
+  },
+  identityFileSaveBtn: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    gap: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
+    backgroundColor: IDE.primary,
+  },
+  identityFileSaveText: {
+    fontSize: 12,
+    color: '#fff',
+    fontWeight: '600' as const,
+  },
 });

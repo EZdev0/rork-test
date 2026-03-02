@@ -156,10 +156,16 @@ export const [AppProvider, useApp] = createContextHook(() => {
 
   const [agentMd, setAgentMdState] = useState<string>('');
   const [soulMd, setSoulMdState] = useState<string>('');
+  const [identityMd, setIdentityMdState] = useState<string>('');
+  const [userMd, setUserMdState] = useState<string>('');
+  const [memoryMd, setMemoryMdState] = useState<string>('');
 
   useEffect(() => {
     AsyncStorage.getItem('ide_agent_md').then(v => { if (v) setAgentMdState(v); }).catch(console.log);
     AsyncStorage.getItem('ide_soul_md').then(v => { if (v) setSoulMdState(v); }).catch(console.log);
+    AsyncStorage.getItem('ide_identity_md').then(v => { if (v) setIdentityMdState(v); }).catch(console.log);
+    AsyncStorage.getItem('ide_user_md').then(v => { if (v) setUserMdState(v); }).catch(console.log);
+    AsyncStorage.getItem('ide_memory_md').then(v => { if (v) setMemoryMdState(v); }).catch(console.log);
   }, []);
 
   const setAgentMd = useCallback((content: string) => {
@@ -172,6 +178,21 @@ export const [AppProvider, useApp] = createContextHook(() => {
     AsyncStorage.setItem('ide_soul_md', content).catch(console.log);
   }, []);
 
+  const setIdentityMd = useCallback((content: string) => {
+    setIdentityMdState(content);
+    AsyncStorage.setItem('ide_identity_md', content).catch(console.log);
+  }, []);
+
+  const setUserMd = useCallback((content: string) => {
+    setUserMdState(content);
+    AsyncStorage.setItem('ide_user_md', content).catch(console.log);
+  }, []);
+
+  const setMemoryMd = useCallback((content: string) => {
+    setMemoryMdState(content);
+    AsyncStorage.setItem('ide_memory_md', content).catch(console.log);
+  }, []);
+
   return {
     settings, updateSettings, isLoaded,
     todos, addTodo, updateTodoItem, deleteTodo, clearAllTodos,
@@ -179,5 +200,6 @@ export const [AppProvider, useApp] = createContextHook(() => {
     getApiKey, getFallbackSettings,
     getToolPermission, setToolPermission,
     agentMd, setAgentMd, soulMd, setSoulMd,
+    identityMd, setIdentityMd, userMd, setUserMd, memoryMd, setMemoryMd,
   };
 });

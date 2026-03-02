@@ -25,7 +25,7 @@ export const [ChatProvider, useChat] = createContextHook(() => {
   manualMessagesRef.current = manualMessages;
   const rorkContextSentRef = useRef<boolean>(false);
 
-  const { settings, getApiKey, getFallbackSettings, todos, memos, addTodo, updateTodoItem, addMemo, agentMd, soulMd, getToolPermission } = useApp();
+  const { settings, getApiKey, getFallbackSettings, todos, memos, addTodo, updateTodoItem, addMemo, agentMd, setAgentMd, soulMd, setSoulMd, identityMd, setIdentityMd, userMd, setUserMd, memoryMd, setMemoryMd, getToolPermission } = useApp();
   const settingsRef = useRef(settings);
   settingsRef.current = settings;
   const {
@@ -504,6 +504,40 @@ export const [ChatProvider, useChat] = createContextHook(() => {
         }
         case 'think':
           return { result: 'Gedankengang verarbeitet.' };
+        case 'read_identity_files': {
+          let output = '';
+          output += '## SOUL.md\n' + (soulMd || '(leer)') + '\n\n';
+          output += '## AGENTS.md\n' + (agentMd || '(leer)') + '\n\n';
+          output += '## IDENTITY.md\n' + (identityMd || '(leer)') + '\n\n';
+          output += '## USER.md\n' + (userMd || '(leer)') + '\n\n';
+          output += '## MEMORY.md\n' + (memoryMd || '(leer)');
+          return { result: output };
+        }
+        case 'update_soul_md': {
+          if (!args?.content) return { result: 'FEHLER: Kein Inhalt angegeben.' };
+          setSoulMd(args.content);
+          return { result: 'SOUL.md aktualisiert (' + args.content.split('\n').length + ' Zeilen).' };
+        }
+        case 'update_agents_md': {
+          if (!args?.content) return { result: 'FEHLER: Kein Inhalt angegeben.' };
+          setAgentMd(args.content);
+          return { result: 'AGENTS.md aktualisiert (' + args.content.split('\n').length + ' Zeilen).' };
+        }
+        case 'update_identity_md': {
+          if (!args?.content) return { result: 'FEHLER: Kein Inhalt angegeben.' };
+          setIdentityMd(args.content);
+          return { result: 'IDENTITY.md aktualisiert (' + args.content.split('\n').length + ' Zeilen).' };
+        }
+        case 'update_user_md': {
+          if (!args?.content) return { result: 'FEHLER: Kein Inhalt angegeben.' };
+          setUserMd(args.content);
+          return { result: 'USER.md aktualisiert (' + args.content.split('\n').length + ' Zeilen).' };
+        }
+        case 'update_memory_md': {
+          if (!args?.content) return { result: 'FEHLER: Kein Inhalt angegeben.' };
+          setMemoryMd(args.content);
+          return { result: 'MEMORY.md aktualisiert (' + args.content.split('\n').length + ' Zeilen).' };
+        }
         case 'web_search': {
           if (!args?.query) return { result: 'FEHLER: Suchbegriff fehlt.' };
           try {
@@ -542,7 +576,7 @@ export const [ChatProvider, useChat] = createContextHook(() => {
       console.log('[Chat] Tool error:', name, e);
       return { result: 'FEHLER bei ' + name + ': ' + (e?.message || 'Unbekannt') };
     }
-  }, [getFileContent, updateFileContent, createFile, deleteFile, renameFile, createDirectory, searchFilesInProject, getProjectTree, listDirectory, getFileInfo, addTodo, updateTodoItem, addMemo, checkToolPermission]);
+  }, [getFileContent, updateFileContent, createFile, deleteFile, renameFile, createDirectory, searchFilesInProject, getProjectTree, listDirectory, getFileInfo, addTodo, updateTodoItem, addMemo, checkToolPermission, agentMd, soulMd, identityMd, userMd, memoryMd, setAgentMd, setSoulMd, setIdentityMd, setUserMd, setMemoryMd]);
 
   const sendMessage = useCallback(async (userText: string, attachedFiles: string[] = []) => {
     if (!userText.trim() && attachedFiles.length === 0) return;
@@ -622,6 +656,9 @@ export const [ChatProvider, useChat] = createContextHook(() => {
         mentionedFiles, yoloMode: settings.yoloMode,
         agentMd: settings.betaAgentLearning ? agentMd : undefined,
         soulMd: settings.betaAgentLearning ? soulMd : undefined,
+        identityMd: settings.betaAgentLearning ? identityMd : undefined,
+        userMd: settings.betaAgentLearning ? userMd : undefined,
+        memoryMd: settings.betaAgentLearning ? memoryMd : undefined,
         betaAgentLearning: settings.betaAgentLearning,
         toolPermissions: settings.toolPermissions,
       });
@@ -637,6 +674,8 @@ export const [ChatProvider, useChat] = createContextHook(() => {
           if (t.name === 'web_search' && !settings.betaWebSearch) return false;
           if (t.name === 'web_fetch' && !settings.betaWebFetch) return false;
         }
+        const learningTools = ['read_identity_files', 'update_soul_md', 'update_agents_md', 'update_identity_md', 'update_user_md', 'update_memory_md'];
+        if (learningTools.includes(t.name) && !settings.betaAgentLearning) return false;
         const perm = getToolPermission(t.name);
         if (perm === 'removed') return false;
         return true;
@@ -727,7 +766,7 @@ export const [ChatProvider, useChat] = createContextHook(() => {
       setIsThinking(false);
       setThinkingPhase('');
     }
-  }, [isRorkProvider, settings, getApiKey, getFallbackSettings, getFileContent, getProjectTree, memos, todos, executeManualTool, rorkAgent, agentMd, soulMd]);
+  }, [isRorkProvider, settings, getApiKey, getFallbackSettings, getFileContent, getProjectTree, memos, todos, executeManualTool, rorkAgent, agentMd, soulMd, identityMd, userMd, memoryMd]);
 
   const stopGeneration = useCallback(() => {
     abortRef.current = true;
@@ -768,18 +807,54 @@ export const [ChatProvider, useChat] = createContextHook(() => {
     const currentMsgs = isRorkProvider ? convertRorkMessages : manualMessagesRef.current;
     if (currentMsgs.length < 4) return null;
 
-    const summary = currentMsgs
+    // Build raw transcript for AI summarization
+    const transcript = currentMsgs
       .filter(m => m.role !== 'tool')
       .map(m => {
         const prefix = m.role === 'user' ? 'Benutzer' : 'KI';
         const toolInfo = m.toolCalls?.length
-          ? ' [Tools: ' + m.toolCalls.map(t => t.name).join(', ') + ']' : '';
-        return prefix + ': ' + (m.content || '').slice(0, 200) + toolInfo;
+          ? ' [Tools: ' + m.toolCalls.map(t => t.name + (t.status === 'error' ? '(FEHLER)' : '')).join(', ') + ']' : '';
+        return prefix + ': ' + (m.content || '').slice(0, 300) + toolInfo;
       })
       .join('\n');
 
-    return summary;
-  }, [isRorkProvider, convertRorkMessages]);
+    // Try AI-powered compression
+    try {
+      const apiKey = getApiKey();
+      if (apiKey || settings.selectedProvider === 'rork') {
+        const compressPrompt = 'Fasse die folgende Konversation in max. 500 Worten zusammen. '
+          + 'Behalte: Alle wichtigen Entscheidungen, erstellte/geänderte Dateien, offene Aufgaben, Nutzerpräferenzen. '
+          + 'Entferne: Wiederholungen, Tool-Details, Zwischenschritte. '
+          + 'Antworte NUR mit der Zusammenfassung, kein anderer Text.\n\n'
+          + transcript.slice(0, 8000);
+
+        const compressMsg: ChatMessage[] = [{
+          id: genId(), role: 'user', content: compressPrompt, timestamp: Date.now(),
+        }];
+
+        const fallbackSettings = settings.autoFallback ? getFallbackSettings() : undefined;
+        const response = await callAI(
+          settings.selectedProvider as AIProviderType,
+          apiKey,
+          settings.selectedModel,
+          compressMsg,
+          [],
+          'Du bist ein Zusammenfassungs-Assistent. Fasse Konversationen präzise zusammen. Antworte auf Deutsch.',
+          settings.customEndpoint || undefined,
+          fallbackSettings,
+        );
+
+        if (response.content && response.content.trim().length > 50) {
+          return response.content.trim();
+        }
+      }
+    } catch (e: any) {
+      console.log('[Chat] AI compression failed, using fallback:', e?.message);
+    }
+
+    // Fallback: structured concatenation
+    return transcript.slice(0, 3000);
+  }, [isRorkProvider, convertRorkMessages, settings, getApiKey, getFallbackSettings]);
 
   const applyChatCompression = useCallback((summary: string) => {
     if (isRorkProvider) {

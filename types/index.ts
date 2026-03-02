@@ -260,6 +260,12 @@ export const TOOL_REGISTRY: ToolRegistryItem[] = [
   { name: 'think', displayName: 'think', description: 'Erweitertes Denken für komplexe Probleme.', category: 'system', parameters: [{ name: 'thought', type: 'string', description: 'Gedankengang' }], isBeta: false, defaultPermission: 'always' },
   { name: 'web_search', displayName: 'web_search', description: 'Web-Suche nach Informationen und Dokumentation.', category: 'web', parameters: [{ name: 'query', type: 'string', description: 'Suchbegriff' }], isBeta: true, defaultPermission: 'ask' },
   { name: 'web_fetch', displayName: 'web_fetch', description: 'Lädt den Inhalt einer Webseite herunter.', category: 'web', parameters: [{ name: 'url', type: 'string', description: 'URL der Webseite' }, { name: 'max_length', type: 'number', description: 'Max. Zeichen' }], isBeta: true, defaultPermission: 'ask' },
+  { name: 'read_identity_files', displayName: 'read_identity_files', description: 'Liest alle Identitätsdateien (SOUL.md, AGENTS.md, IDENTITY.md, USER.md, MEMORY.md).', category: 'learning', parameters: [], isBeta: true, defaultPermission: 'always' },
+  { name: 'update_soul_md', displayName: 'update_soul_md', description: 'Aktualisiert SOUL.md (Persönlichkeit, Werte, Verhaltensphilosophie des Agenten).', category: 'learning', parameters: [{ name: 'content', type: 'string', description: 'Neuer Inhalt für SOUL.md' }], isBeta: true, defaultPermission: 'always' },
+  { name: 'update_agents_md', displayName: 'update_agents_md', description: 'Aktualisiert AGENTS.md (Verhaltensregeln, Reasoning-Protokoll, Tool-Nutzung).', category: 'learning', parameters: [{ name: 'content', type: 'string', description: 'Neuer Inhalt für AGENTS.md' }], isBeta: true, defaultPermission: 'always' },
+  { name: 'update_identity_md', displayName: 'update_identity_md', description: 'Aktualisiert IDENTITY.md (Name, Rolle, Präsentation des Agenten).', category: 'learning', parameters: [{ name: 'content', type: 'string', description: 'Neuer Inhalt für IDENTITY.md' }], isBeta: true, defaultPermission: 'always' },
+  { name: 'update_user_md', displayName: 'update_user_md', description: 'Aktualisiert USER.md (Nutzer-Profil, Präferenzen, Kommunikationsstil, Projekte).', category: 'learning', parameters: [{ name: 'content', type: 'string', description: 'Neuer Inhalt für USER.md' }], isBeta: true, defaultPermission: 'always' },
+  { name: 'update_memory_md', displayName: 'update_memory_md', description: 'Aktualisiert MEMORY.md (Langzeit-Gedächtnis, Entscheidungen, gelernte Präferenzen, Fehler).', category: 'learning', parameters: [{ name: 'content', type: 'string', description: 'Neuer Inhalt für MEMORY.md' }], isBeta: true, defaultPermission: 'always' },
   { name: 'verify_file', displayName: 'verify_file', description: 'Überprüft ob eine Datei existiert und korrekt ist.', category: 'analysis', parameters: [{ name: 'path', type: 'string', description: 'Dateipfad' }], isBeta: false, defaultPermission: 'always' },
   { name: 'task_complete', displayName: 'task_complete', description: 'Markiert eine Agent-Aufgabe als abgeschlossen.', category: 'planning', parameters: [{ name: 'summary', type: 'string', description: 'Zusammenfassung' }], isBeta: false, defaultPermission: 'always' },
 ];
@@ -269,6 +275,7 @@ export const TOOL_CATEGORIES: { id: string; label: string; icon: string }[] = [
   { id: 'analysis', label: 'Analyse', icon: '🔍' },
   { id: 'planning', label: 'Planung', icon: '📋' },
   { id: 'memory', label: 'Gedächtnis', icon: '💾' },
+  { id: 'learning', label: 'Lernen (Beta)', icon: '🧠' },
   { id: 'web', label: 'Web (Beta)', icon: '🌐' },
   { id: 'system', label: 'System', icon: '⚙️' },
 ];
