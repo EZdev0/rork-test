@@ -351,8 +351,8 @@ export default function ChatScreen() {
           {!hasApiKey && (
             <View style={styles.warningBanner}>
               <Text style={styles.warningText}>
-                ⚠️ Kein API-Schlüssel konfiguriert.{'\n'}
-                Gehe zu Einstellungen → API-Schlüssel.{'\n\n'}
+                ⚠️ Kein API-Schlüssel konfiguriert.{"\n"}
+                Gehe zu Einstellungen → API-Schlüssel.{"\n\n"}
                 💡 Wähle "Studio KI" als Anbieter für kostenlose Nutzung!
               </Text>
             </View>

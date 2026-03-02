@@ -3,8 +3,9 @@
   "main": "expo-router/entry",
   "version": "1.0.0",
   "scripts": {
-    "start": "bunx rork start -p z4baphwr1dneh3hj3x7o1 --tunnel",
-    "start-web": "bunx rork start -p z4baphwr1dneh3hj3x7o1 --web --tunnel",
+    "start": "expo start",
+    "start-web": "expo start --web",
+    "start-tunnel": "bunx rork start -p z4baphwr1dneh3hj3x7o1 --tunnel",
     "start-web-dev": "DEBUG=expo* bunx rork start -p z4baphwr1dneh3hj3x7o1 --web --tunnel",
     "lint": "expo lint"
   },
@@ -36,7 +37,9 @@
     "expo-system-ui": "~6.0.9",
     "expo-web-browser": "~15.0.10",
     "jszip": "^3.10.1",
-    "lucide-react-native": "^0.475.0",
+    "lucide-react-native": "^0.523.0",
+    "patch-package": "^8.0.1",
+    "postinstall-postinstall": "^2.1.0",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-native": "0.81.5",

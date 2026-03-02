@@ -4,8 +4,7 @@ import { Copy, Bot, User, CheckSquare, Square, ChevronDown, ChevronUp } from 'lu
 import * as Clipboard from 'expo-clipboard';
 import { IDE } from '@/constants/colors';
 import { ChatMessage } from '@/types';
-import { highlightLine } from '@/utils/syntax';
-import { parseMarkdownSegments } from '@/utils/syntax';
+import { highlightLine, parseMarkdownSegments } from '@/utils/syntax';
 import { useApp } from '@/providers/AppProvider';
 import ToolCallView from './ToolCallView';
 import ThinkingBlock from './ThinkingBlock';
@@ -61,6 +60,11 @@ const ChatBubble = React.memo(({ message }: Props) => {
     return { total, completed, pending };
   }, [message.todos, appTodos]);
 
+  const hasThinking = !!message.thinking;
+  const hasTodos = !!(message.todos && message.todos.length > 0 && todoStats);
+  const hasToolCalls = visibleToolCalls.length > 0;
+  const hasCopyButton = !isUser && message.content && message.content.length > 0;
+
   return (
     <View style={[styles.container, isUser ? styles.userContainer : styles.aiContainer]}>
       {!isUser && (
@@ -82,7 +86,7 @@ const ChatBubble = React.memo(({ message }: Props) => {
       )}
 
       <View style={[styles.bubble, isUser ? styles.userBubble : styles.aiBubble]}>
-        {!isUser && message.thinking ? (
+        {hasThinking && message.thinking ? (
           <ThinkingBlock thinking={message.thinking} />
         ) : null}
 
@@ -96,30 +100,30 @@ const ChatBubble = React.memo(({ message }: Props) => {
           )
         ))}
 
-        {!isUser && message.todos && message.todos.length > 0 && todoStats && (
+        {hasTodos && (
           <View style={styles.inlineTodos}>
             <View style={styles.inlineTodosHeader}>
               <Text style={styles.inlineTodosTitle}>📋 Todos</Text>
               <View style={styles.todoBadgesRow}>
-                {todoStats.pending > 0 && (
+                {todoStats!.pending > 0 && (
                   <View style={styles.todoPendingBadge}>
-                    <Text style={styles.todoPendingText}>{todoStats.pending} offen</Text>
+                    <Text style={styles.todoPendingText}>{todoStats!.pending} offen</Text>
                   </View>
                 )}
                 <View style={styles.todoCountBadge}>
-                  <Text style={styles.todoCountText}>{todoStats.completed}/{todoStats.total}</Text>
+                  <Text style={styles.todoCountText}>{todoStats!.completed}/{todoStats!.total}</Text>
                 </View>
               </View>
             </View>
-            {todoStats.total > 0 && (
+            {todoStats!.total > 0 && (
               <View style={styles.todoProgressBar}>
                 <View style={[
                   styles.todoProgressFill,
-                  { flex: todoStats.completed / todoStats.total },
+                  { flex: todoStats!.completed / todoStats!.total },
                 ]} />
               </View>
             )}
-            {message.todos.map(todo => {
+            {message.todos!.map(todo => {
               const liveTodo = appTodos.find(t => t.id === todo.id);
               const isCompleted = liveTodo ? liveTodo.completed : todo.completed;
               const todoText = liveTodo ? liveTodo.text : todo.text;
@@ -144,11 +148,11 @@ const ChatBubble = React.memo(({ message }: Props) => {
           </View>
         )}
 
-        {visibleToolCalls.length > 0 && (
+        {hasToolCalls && (
           <CollapsedToolCalls toolCalls={visibleToolCalls} />
         )}
 
-        {!isUser && message.content && message.content.length > 0 && (
+        {hasCopyButton && (
           <TouchableOpacity
             style={styles.copyMsgBtn}
             onPress={handleCopyMessage}

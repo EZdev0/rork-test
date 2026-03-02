@@ -234,7 +234,7 @@ export interface ToolRegistryItem {
   name: string;
   displayName: string;
   description: string;
-  category: 'filesystem' | 'planning' | 'analysis' | 'web' | 'memory' | 'system';
+  category: 'filesystem' | 'planning' | 'analysis' | 'web' | 'memory' | 'system' | 'learning';
   parameters: { name: string; type: string; description: string }[];
   isBeta: boolean;
   defaultPermission: ToolPermission;
