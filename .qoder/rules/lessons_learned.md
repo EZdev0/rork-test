@@ -1,6 +1,6 @@
 ---
 trigger: model_decision
-description: 
+description: Soll IMMER geprüft werden und aktualisiert werden , wenn KI was vom User lernt , es sollll es dann beser verstehen , und auf Wünsche lernen und auch aus Fehlern!!! 
 ---
 
 # 🧠 QCoder System-Gedächtnis
