@@ -14,10 +14,13 @@ interface Props {
 }
 
 const ChatBubble = React.memo(({ message }: Props) => {
-  if (message.role === 'tool') return null;
-
   const isUser = message.role === 'user';
-  const { todos: appTodos, updateTodoItem } = useApp();
+  const appContext = useApp();
+  const appTodos = appContext.todos;
+  const updateTodoItem = appContext.updateTodoItem;
+
+  // Early return AFTER hooks to satisfy Rules of Hooks
+  if (message.role === 'tool') return null;
 
   const visibleToolCalls = useMemo(
     () => (message.toolCalls ?? []).filter(tc => {

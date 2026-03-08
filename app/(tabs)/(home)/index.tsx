@@ -119,15 +119,17 @@ export default function ProjectsScreen() {
     actions.push({
       text: '✏️ Umbenennen',
       onPress: () => {
-        Alert.prompt
-          ? Alert.prompt('Umbenennen', 'Neuer Name:', (newName) => {
-              if (newName && newName.trim()) {
-                const parts = path.split('/');
-                parts[parts.length - 1] = newName.trim();
-                renameFile(path, parts.join('/'));
-              }
-            }, 'plain-text', node.name)
-          : handleRenameAlert(node, path);
+        if (Alert.prompt) {
+          Alert.prompt('Umbenennen', 'Neuer Name:', (newName) => {
+            if (newName && newName.trim()) {
+              const parts = path.split('/');
+              parts[parts.length - 1] = newName.trim();
+              renameFile(path, parts.join('/'));
+            }
+          }, 'plain-text', node.name);
+        } else {
+          handleRenameAlert(node, path);
+        }
       },
     });
 

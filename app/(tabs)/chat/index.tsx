@@ -353,7 +353,7 @@ export default function ChatScreen() {
               <Text style={styles.warningText}>
                 ⚠️ Kein API-Schlüssel konfiguriert.{"\n"}
                 Gehe zu Einstellungen → API-Schlüssel.{"\n\n"}
-                💡 Wähle "Studio KI" als Anbieter für kostenlose Nutzung!
+                💡 Wähle &quot;Studio KI&quot; als Anbieter für kostenlose Nutzung!
               </Text>
             </View>
           )}
