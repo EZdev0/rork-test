@@ -31,6 +31,12 @@ interface SwapModalState {
   targetIndex: number;
 }
 
+interface DeleteConfirmState {
+  visible: boolean;
+  taskIndex: number;
+  taskId: string;
+}
+
 const TOOL_LABELS: Record<string, string> = {
   read_file: 'Datei lesen',
   read_lines: 'Zeilen lesen',
@@ -65,6 +71,7 @@ const AgentPlanView = React.memo(({ plan, isExecuting, onExecute, onStop, onDism
   const [collapsed, setCollapsed] = useState<boolean>(false);
   const [toolsSummaryExpanded, setToolsSummaryExpanded] = useState<boolean>(false);
   const [swapModal, setSwapModal] = useState<SwapModalState>({ visible: false, fromIndex: 0, targetIndex: 0 });
+  const [deleteConfirm, setDeleteConfirm] = useState<DeleteConfirmState>({ visible: false, taskIndex: 0, taskId: '' });
   const swapHighlightAnim = useRef(new Animated.Value(0)).current;
 
   const isEditable = plan?.status === 'review';
@@ -87,15 +94,21 @@ const AgentPlanView = React.memo(({ plan, isExecuting, onExecute, onStop, onDism
     let running = 0;
     let pending = 0;
     let thinking = 0;
+    let brainstorm = 0;
+    let webSearch = 0;
+    let subAgent = 0;
     for (const t of tasks) {
       if (t?.status === 'completed') completed++;
       else if (t?.status === 'error') error++;
       else if (t?.status === 'running') running++;
       else if (t?.status === 'pending') pending++;
       const tt = t?.taskType || 'task';
-      if (tt === 'thinking' || tt === 'brainstorm') thinking++;
+      if (tt === 'thinking') thinking++;
+      else if (tt === 'brainstorm') brainstorm++;
+      else if (tt === 'web_search') webSearch++;
+      else if (tt === 'sub_agent') subAgent++;
     }
-    return { completed, error, running, pending, thinking };
+    return { completed, error, running, pending, thinking, brainstorm, webSearch, subAgent };
   }, [tasks]);
 
   const handleAddTask = useCallback(() => {
@@ -141,6 +154,21 @@ const AgentPlanView = React.memo(({ plan, isExecuting, onExecute, onStop, onDism
     setNewTitle('');
     setNewDesc('');
   }, []);
+
+  const handleDeleteConfirm = useCallback((index: number, taskId: string) => {
+    setDeleteConfirm({ visible: true, taskIndex: index, taskId });
+  }, []);
+
+  const handleDeleteCancel = useCallback(() => {
+    setDeleteConfirm({ visible: false, taskIndex: 0, taskId: '' });
+  }, []);
+
+  const handleDeleteExecute = useCallback(() => {
+    if (deleteConfirm.taskId) {
+      onRemoveTask(deleteConfirm.taskId);
+      setDeleteConfirm({ visible: false, taskIndex: 0, taskId: '' });
+    }
+  }, [deleteConfirm.taskId, onRemoveTask]);
 
   const handleMoveUp = useCallback((index: number) => {
     if (index > 0 && onReorderTasks) {
@@ -301,6 +329,7 @@ const AgentPlanView = React.memo(({ plan, isExecuting, onExecute, onStop, onDism
                   onMoveUp={handleMoveUp}
                   onMoveDown={handleMoveDown}
                   onLongPress={handleLongPressStart}
+                  onDeleteConfirm={handleDeleteConfirm}
                 />
               ) : null)}
             </View>
@@ -514,6 +543,41 @@ const AgentPlanView = React.memo(({ plan, isExecuting, onExecute, onStop, onDism
         </TouchableOpacity>
       </Modal>
 
+      {/* Lösch-Bestätigung Modal */}
+      <Modal visible={deleteConfirm.visible} transparent animationType="fade">
+        <TouchableOpacity
+          style={styles.deleteOverlay}
+          activeOpacity={1}
+          onPress={handleDeleteCancel}
+        >
+          <View style={styles.deleteModal}>
+            <View style={styles.deleteModalHeader}>
+              <AlertTriangle size={20} color={IDE.warning} />
+              <Text style={styles.deleteModalTitle}>Task löschen?</Text>
+            </View>
+            <Text style={styles.deleteModalText}>
+              Bist du sicher, dass du diesen Task entfernen möchtest? Dieser Schritt kann nicht rückgängig gemacht werden.
+            </Text>
+            <View style={styles.deleteModalButtons}>
+              <TouchableOpacity
+                onPress={handleDeleteCancel}
+                style={[styles.deleteBtn, styles.deleteBtnCancel]}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.deleteBtnCancelText}>Abbrechen</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={handleDeleteExecute}
+                style={[styles.deleteBtn, styles.deleteBtnConfirm]}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.deleteBtnConfirmText}>Löschen</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
       {isDone && plan?.finalResponse && (
         <View style={styles.finalResponseContainer}>
           <View style={styles.finalResponseHeader}>
@@ -656,9 +720,10 @@ interface TaskRowProps {
   onMoveUp: (index: number) => void;
   onMoveDown: (index: number) => void;
   onLongPress: (index: number) => void;
+  onDeleteConfirm?: (index: number, taskId: string) => void;
 }
 
-const TaskRow = React.memo(({ task, index, totalCount, isEditable, canReorder, onUpdateTask, onRemoveTask, onRetryTask, onMoveUp, onMoveDown, onLongPress }: TaskRowProps) => {
+const TaskRow = React.memo(({ task, index, totalCount, isEditable, canReorder, onUpdateTask, onRemoveTask, onRetryTask, onMoveUp, onMoveDown, onLongPress, onDeleteConfirm }: TaskRowProps) => {
   const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isLongPressRef = useRef<boolean>(false);
   const scaleAnim = useRef(new Animated.Value(1)).current;
@@ -726,7 +791,7 @@ const TaskRow = React.memo(({ task, index, totalCount, isEditable, canReorder, o
             index={index}
             editable={isEditable}
             onUpdate={(title, desc) => onUpdateTask(task.id, title, desc)}
-            onRemove={() => onRemoveTask(task.id)}
+            onRemove={() => onDeleteConfirm ? onDeleteConfirm(index, task.id) : onRemoveTask(task.id)}
             onRetry={() => onRetryTask(task.id)}
           />
         </View>
@@ -1405,5 +1470,66 @@ const styles = StyleSheet.create({
   strikethroughText: {
     textDecorationLine: 'line-through' as const,
     color: IDE.muted,
+  },
+  // Delete Confirm Modal Styles
+  deleteOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  deleteModal: {
+    width: '85%',
+    backgroundColor: IDE.surface,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: IDE.warning + '40',
+    padding: 16,
+  },
+  deleteModalHeader: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    gap: 10,
+    marginBottom: 12,
+  },
+  deleteModalTitle: {
+    fontSize: 16,
+    fontWeight: '700' as const,
+    color: IDE.warning,
+    flex: 1,
+  },
+  deleteModalText: {
+    fontSize: 14,
+    color: IDE.text,
+    lineHeight: 20,
+    marginBottom: 16,
+  },
+  deleteModalButtons: {
+    flexDirection: 'row' as const,
+    gap: 10,
+  },
+  deleteBtn: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 8,
+    alignItems: 'center' as const,
+  },
+  deleteBtnCancel: {
+    backgroundColor: IDE.bg,
+    borderWidth: 1,
+    borderColor: IDE.border,
+  },
+  deleteBtnCancelText: {
+    fontSize: 14,
+    fontWeight: '600' as const,
+    color: IDE.text,
+  },
+  deleteBtnConfirm: {
+    backgroundColor: IDE.warning,
+  },
+  deleteBtnConfirmText: {
+    fontSize: 14,
+    fontWeight: '600' as const,
+    color: '#fff',
   },
 });

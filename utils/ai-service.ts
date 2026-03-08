@@ -24,7 +24,8 @@ export function buildPlannerPrompt(options: {
   prompt += '- TASK-Schritte: Konkrete Aufgaben die ein Unteragent ausführen soll.\n';
   prompt += '- WEB_SEARCH-Schritte: Web-Recherche für Informationen, Dokumentation oder aktuelle Daten.\n';
   prompt += '- Halte Aufgaben atomar und klar abgegrenzt.\n';
-  prompt += '- Maximal 12 Schritte pro Plan (davon beliebig viele THINK/BRAINSTORM).\n';
+  prompt += '- Maximal 25 Schritte pro Plan (davon beliebig viele THINK/BRAINSTORM).\n';
+  prompt += '- Bei sehr komplexen Anfragen (>15 Tasks) automatisch mehr THINK/BRAINSTORM einplanen.\n';
   prompt += '- Die Schritte sollen in der richtigen Reihenfolge stehen.\n';
   prompt += '- Beschreibe genau, welche Dateien betroffen sind und welche Tools benötigt werden.\n';
   prompt += '- WICHTIG: Schreibe VOLLSTÄNDIGE Sätze. Keine abgebrochenen Sätze!\n';
@@ -117,7 +118,12 @@ export function parsePlanFromAI(content: string): { title: string; description: 
     tasks.unshift({ title: 'Anfrage analysieren', description: 'Analysiere die Anfrage des Users und plane die nächsten Schritte.', taskType: 'thinking' });
   }
 
-  return tasks.slice(0, 12);
+  // Limit auf 25 Tasks, aber mit Warnung wenn mehr vorhanden
+  if (tasks.length > 25) {
+    console.log('[Planner] Plan exceeds 25 tasks, truncating from', tasks.length, 'to 25');
+  }
+  
+  return tasks.slice(0, 25);
 }
 
 export const TOOL_DEFINITIONS: ToolDefinition[] = [
