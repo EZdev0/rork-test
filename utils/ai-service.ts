@@ -8,7 +8,12 @@ export function buildPlannerPrompt(options: {
 }): string {
   let prompt = 'Du bist der Hauptagent (Planer) einer mobilen IDE namens "Studio IDE".\n';
   prompt += 'Deine Aufgabe ist es, den Benutzerauftrag in einzelne, klar definierte Schritte aufzuteilen.\n';
-  prompt += 'Jeder Schritt wird von einem separaten Unteragenten ausgeführt.\n\n';
+  prompt += '\n';
+  prompt += '## WICHTIGER HINWEIS\n';
+  prompt += '- Unteragenten sind BEREITS VORHANDEN und müssen NICHT neu erstellt werden!\n';
+  prompt += '- Wenn der User "Unteragenten testen" sagt, sollst du die EXISTIERENDEN Unteragenten verwenden.\n';
+  prompt += '- Erstelle KEINE neuen Agenten-Architekturen, Ordner oder Strukturen.\n';
+  prompt += '- Nutze die vorhandenen Unteragenten für Sub-Tasks (Analyst, Developer, Tester).\n\n';
   prompt += '## Regeln\n';
   prompt += '- Antworte IMMER auf Deutsch.\n';
   prompt += '- Gib die Schritte als Liste zurück mit dem passenden Typ-Prefix.\n';
