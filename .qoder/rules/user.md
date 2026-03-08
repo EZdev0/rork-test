@@ -1,6 +1,6 @@
 ---
 trigger: model_decision
-description: 
+description: HIER muss die KI , vom User lernen , es MUSS verstehen , was Wünsche Bedürfnisse sind und mehr!!! SOLL IMMER auf User eingehen , also KEINE Falschen Sachen machen!!! Diese Datei MUSS verwaltet werden , so wie der Rest von den Rules!!!!
 ---
 # Nutzerpräferenzen (QCoder Master-Config)
 - **Kommunikation:** Extrem kurz, prägnant, analytisch. Kein Marketing-Text, keine Entschuldigungen. Nur pure Logik und technische Details.
