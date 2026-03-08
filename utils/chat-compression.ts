@@ -90,7 +90,7 @@ export function analyzeChat(messages: ChatMessage[]): ChatAnalysis {
 
   for (const message of messages) {
     const content = message.content.toLowerCase();
-    const type = message.type || 'user';
+    const isUser = message.role === 'user';
 
     // Begrüßungen erkennen
     if (isGreeting(content)) {
@@ -99,8 +99,8 @@ export function analyzeChat(messages: ChatMessage[]): ChatAnalysis {
       continue;
     }
 
-    // Code-Snippets erkennen
-    if (containsCode(content) || type === 'code') {
+    // Code-Snippets erkennen (meist von Assistant)
+    if (containsCode(content)) {
       analysis.codeSnippets.push(message);
       analysis.importantMessages.push(message);
       continue;
@@ -130,13 +130,13 @@ export function analyzeChat(messages: ChatMessage[]): ChatAnalysis {
     contentHash.set(hash, messages.indexOf(message));
 
     // User-Fragen immer wichtig
-    if (type === 'user' && content.includes('?')) {
+    if (isUser && content.includes('?')) {
       analysis.importantMessages.push(message);
       continue;
     }
 
     // KI-Antworten mit File-Referenzen wichtig
-    if (type === 'assistant' && containsFileReference(content)) {
+    if (!isUser && containsFileReference(content)) {
       analysis.importantMessages.push(message);
       continue;
     }

@@ -8,7 +8,18 @@
 
 import { Platform } from 'react-native';
 import * as FileSystem from 'expo-file-system';
-import { Project, FileTree } from '@/types';
+import { Project } from '@/types';
+
+// Helper für documentDirectory (unterstützt altes und neues API)
+function getDocumentDirectory(): string {
+  // Neues API (expo-file-system >= 13.x)
+  if ('Paths' in FileSystem && FileSystem.Paths && 'document' in FileSystem.Paths) {
+    const paths = FileSystem.Paths as any;
+    return paths.document?.uri || paths.document?.toString() || '';
+  }
+  // Altes API (fallback)
+  return (FileSystem as any).documentDirectory || '';
+}
 
 export interface Memo {
   id: string;
@@ -134,20 +145,19 @@ async function appendToGlobalMemo(memo: Memo): Promise<void> {
       localStorage.setItem('global_memos', JSON.stringify(memos));
     } else {
       // Native: FileSystem nutzen
-      const filePath = `${FileSystem.documentDirectory}${GLOBAL_MEMO_PATH}`;
+      const documentDir = getDocumentDirectory();
+      const filePath = `${documentDir}${GLOBAL_MEMO_PATH}`;
       
       // Datei existiert prüfen
       const fileInfo = await FileSystem.getInfoAsync(filePath);
       
-      if (!fileInfo.exists) {
-        // Datei erstellen mit Header
-        const header = getGlobalMemoHeader();
-        await FileSystem.writeAsStringAsync(filePath, header, { encoding: 'utf8' });
-      }
+      // Memo anhängen: Erst lesen, dann zusammenfügen, dann schreiben
+      const existingContent = fileInfo.exists 
+        ? await FileSystem.readAsStringAsync(filePath)
+        : getGlobalMemoHeader();
       
-      // Memo anhängen
-      const memoContent = `\n\n### [${new Date(memo.createdAt).toISOString().split('T')[0]}] ${memo.title}\n${memo.content}`;
-      await FileSystem.writeAsStringAsync(filePath, memoContent, { encoding: 'utf8', mode: FileSystem.EncodingMode.Append });
+      const memoContent = existingContent + `\n\n### [${new Date(memo.createdAt).toISOString().split('T')[0]}] ${memo.title}\n${memo.content}`;
+      await FileSystem.writeAsStringAsync(filePath, memoContent);
     }
   } catch (error) {
     console.error('[Memo] Failed to append to global memo:', error);
@@ -176,16 +186,20 @@ async function saveLocalMemo(memo: Memo, projectId?: string): Promise<void> {
       localStorage.setItem(key, updated);
     } else {
       // Native: FileSystem
-      const fullPath = `${FileSystem.documentDirectory}${filePath}`;
+      const documentDir = getDocumentDirectory();
+      const fullPath = `${documentDir}${filePath}`;
       const fileInfo = await FileSystem.getInfoAsync(fullPath);
       
       let content = '';
       if (!fileInfo.exists) {
         content = getLocalMemoHeader(projectId);
+        await FileSystem.writeAsStringAsync(fullPath, content);
+      } else {
+        content = await FileSystem.readAsStringAsync(fullPath);
       }
       
       content += `\n\n### [${new Date(memo.createdAt).toISOString().split('T')[0]}] ${memo.title}\n${memo.content}`;
-      await FileSystem.writeAsStringAsync(fullPath, content, { encoding: 'utf8' });
+      await FileSystem.writeAsStringAsync(fullPath, content);
     }
   } catch (error) {
     console.error('[Memo] Failed to save local memo:', error);
@@ -226,7 +240,8 @@ async function loadGlobalMemos(): Promise<Memo[]> {
       const existing = localStorage.getItem('global_memos') || '[]';
       return JSON.parse(existing);
     } else {
-      const filePath = `${FileSystem.documentDirectory}${GLOBAL_MEMO_PATH}`;
+      const documentDir = getDocumentDirectory();
+      const filePath = `${documentDir}${GLOBAL_MEMO_PATH}`;
       const fileInfo = await FileSystem.getInfoAsync(filePath);
       
       if (!fileInfo.exists) {
@@ -253,7 +268,8 @@ async function loadLocalMemos(projectId: string): Promise<Memo[]> {
       return parseMemosFromMarkdown(content);
     } else {
       const fileName = `project_${projectId}.md`;
-      const filePath = `${FileSystem.documentDirectory}${LOCAL_MEMOS_DIR}${fileName}`;
+      const documentDir = getDocumentDirectory();
+      const filePath = `${documentDir}${LOCAL_MEMOS_DIR}${fileName}`;
       const fileInfo = await FileSystem.getInfoAsync(filePath);
       
       if (!fileInfo.exists) {
