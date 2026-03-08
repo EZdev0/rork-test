@@ -257,6 +257,25 @@ async function downloadNative(content: string, filename: string, mimeType: strin
 }
 
 export async function exportProjectAsZip(project: Project): Promise<boolean> {
+  // VALIDIERUNG: Projekt muss existieren
+  if (!project) {
+    console.log('[Download] ERROR: Kein Projekt zum Exportieren vorhanden');
+    if (typeof Alert !== 'undefined') {
+      Alert.alert('Export nicht möglich', 'Kein Projekt ausgewählt. Bitte erstelle oder öffne ein Projekt.');
+    }
+    return false;
+  }
+
+  // VALIDIERUNG: Mindestens eine Datei required
+  const allFiles = flattenFiles(project.files);
+  if (allFiles.length === 0) {
+    console.log('[Download] ERROR: Projekt hat keine Dateien');
+    if (typeof Alert !== 'undefined') {
+      Alert.alert('Export nicht möglich', 'Das Projekt enthält keine Dateien. Bitte erstelle zuerst Dateien.');
+    }
+    return false;
+  }
+
   const filename = `${sanitizeFilename(project.name)}.zip`;
 
   if (Platform.OS === 'web') {
@@ -265,6 +284,9 @@ export async function exportProjectAsZip(project: Project): Promise<boolean> {
       return downloadWebBlob(blob, filename);
     } catch (e) {
       console.log('[Download] ZIP web export error:', e);
+      if (typeof Alert !== 'undefined') {
+        Alert.alert('Export fehlgeschlagen', 'Ein Fehler ist beim Export aufgetreten: ' + (e as Error).message);
+      }
       return false;
     }
   } else {

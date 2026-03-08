@@ -562,17 +562,49 @@ export const [AgentProvider, useAgent] = createContextHook(() => {
       }
 
       try {
-        const thinkPrompt = task.taskType === 'thinking'
-          ? 'Analysiere folgendes Problem und gib einen detaillierten Gedankengang zurück. Erwähne welche Tools (read_file, write_file, search_files, etc.) eingesetzt werden sollten.\n\nThema: ' + task.title + '\n\nBeschreibung: ' + task.description + '\n\nProjektstruktur:\n' + getProjectTree()
-          : 'Brainstorme über folgendes Thema. Untersuche Alternativen, sammle Ideen und validiere den Ansatz.\n\nThema: ' + task.title + '\n\nBeschreibung: ' + task.description + '\n\nProjektstruktur:\n' + getProjectTree();
+        const baseThinkPrompt = task.taskType === 'thinking'
+          ? `Analysiere folgendes Problem EXTREM GRÜNDLICH und TIEFGEHEND. Nimm dir Zeit für eine detaillierte Analyse.
 
-        const thinkMsgs: ChatMessage[] = [{ id: genId(), role: 'user', content: thinkPrompt, timestamp: Date.now() }];
+Thema: ${task.title}
+
+Beschreibung: ${task.description}
+
+Projektstruktur:\n${getProjectTree()}
+
+WICHTIG:
+- Analysiere das Problem in mehreren Schichten (Oberflächlich → Tief)
+- Betrachte ALLE relevanten Aspekte
+- Denke an Edge Cases, Fehlerbehandlung, Performance
+- Überlege welche Files betroffen sein könnten
+- Plane die Implementierung Schritt-für-Schritt
+- Validiere deinen Ansatz kritisch
+
+Gib einen sehr detaillierten Gedankengang zurück.`
+          : `Brainstorme über folgendes Thema. Untersuche MULTIPLE Alternativen und Ansätze.
+
+Thema: ${task.title}
+
+Beschreibung: ${task.description}
+
+Projektstruktur:\n${getProjectTree()}
+
+WICHTIG:
+- Generiere MINDESTENS 3 verschiedene Lösungsansätze
+- Vergleiche Vor- und Nachteile jedes Ansatzes
+- Bewerte Komplexität, Wartbarkeit, Performance
+- Denke auch an unkonventionelle Lösungen
+- Sammle kreative Ideen
+- Validiere jede Alternative kritisch
+
+Untersuche alle Optionen gründlich.`;
+
+        const thinkMsgs: ChatMessage[] = [{ id: genId(), role: 'user', content: baseThinkPrompt, timestamp: Date.now() }];
         const readOnlyTools = TOOL_DEFINITIONS.filter(t => ['read_file', 'read_lines', 'list_directory', 'search_files', 'get_project_tree', 'get_file_info', 'think'].includes(t.name));
         const fallbackSettings = settings.autoFallback ? getFallbackSettings() : undefined;
 
         const response = await callAI(
           settings.selectedProvider as AIProviderType, apiKey, settings.selectedModel,
-          thinkMsgs, readOnlyTools, 'Antworte auf Deutsch. Sei analytisch und gründlich. Nutze nur Lese-Tools zur Analyse.',
+          thinkMsgs, readOnlyTools, 'Antworte auf Deutsch. Sei SEHR analytisch, gründlich und tiefgehend. Denke langsam und systematisch. Nutze nur Lese-Tools zur Analyse.',
           settings.customEndpoint || undefined, fallbackSettings,
         );
 
