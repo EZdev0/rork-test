@@ -1,6 +1,6 @@
 ---
-trigger: model_decision
-description: 
+trigger: always_on
+alwaysApply: true
 ---
 # QCoder Agenten-Architektur & Master-Regeln (PURE LOGIC)
 
