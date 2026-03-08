@@ -80,6 +80,7 @@ export interface AppSettings {
   betaWebFetch: boolean;
   betaAgentLearning: boolean;
   betaSuperAgent: boolean;
+  agentMode: boolean;
   toolPermissions: Record<string, ToolPermission>;
 }
 
@@ -307,6 +308,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   betaWebFetch: false,
   betaAgentLearning: false,
   betaSuperAgent: false,
+  agentMode: false,
   toolPermissions: {},
 };
 

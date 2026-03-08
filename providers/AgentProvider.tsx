@@ -41,6 +41,7 @@ export const [AgentProvider, useAgent] = createContextHook(() => {
   const [isPlanning, setIsPlanning] = useState<boolean>(false);
   const [isExecuting, setIsExecuting] = useState<boolean>(false);
   const [pendingToolApproval, setPendingToolApproval] = useState<PendingToolApproval | null>(null);
+  const [clarificationQuestions, setClarificationQuestions] = useState<{question: string; answer: string}[]>([]);
   const abortRef = useRef<boolean>(false);
   const plansRef = useRef<AgentPlan[]>([]);
   plansRef.current = plans;
@@ -382,6 +383,58 @@ export const [AgentProvider, useAgent] = createContextHook(() => {
     try {
       const apiKey = getApiKey();
       if (!apiKey) throw new Error('Kein API-Schlüssel konfiguriert.');
+
+      // PRÜFEN: SuperAgent + AgentMode -> Fragen-Phase
+      if (settings.betaSuperAgent && settings.agentMode) {
+        console.log('[Agent] SuperAgent + AgentMode: Starting clarification phase');
+        // KI generiert zunächst Klärungsfragen
+        const questionPrompt = 'Du bist ein erfahrener Projektplaner. Bevor du einen Plan erstellst, stelle KLÄRUNGSFRAGEN um die Anforderungen genau zu verstehen.\n\n' +
+          'User-Anfrage: ' + userRequest + '\n\n' +
+          'Stelle 2-5 präzise Fragen die dir helfen den besten Plan zu erstellen.\n' +
+          'Denke an:\n' +
+          '- Welche Dateien sind betroffen?\n' +
+          '- Was ist das genaue Ziel?\n' +
+          '- Gibt es spezielle Anforderungen?\n' +
+          '- Technologie-Entscheidungen?\n\n' +
+          'Antworte auf Deutsch.';
+        
+        const fallbackSettings = settings.autoFallback ? getFallbackSettings() : undefined;
+        const questionMessages: ChatMessage[] = [{
+          id: genId(), role: 'user', content: questionPrompt, timestamp: Date.now(),
+        }];
+        
+        try {
+          const questionsResponse = await callAI(
+            settings.selectedProvider as AIProviderType,
+            apiKey,
+            settings.selectedModel,
+            questionMessages,
+            [],
+            'Antworte auf Deutsch. Stelle klare, präzise Fragen.',
+            settings.customEndpoint || undefined,
+            fallbackSettings,
+          );
+          
+          // Fragen extrahieren und speichern
+          const questionsText = questionsResponse.content || '';
+          const extractedQuestions = questionsText
+            .split(/\n|\d+\.|[-*•]/)
+            .map(q => q.trim())
+            .filter(q => q.length > 5 && q.includes('?'))
+            .slice(0, 5);
+          
+          if (extractedQuestions.length > 0) {
+            setClarificationQuestions(extractedQuestions.map(q => ({ question: q, answer: '' })));
+            console.log('[Agent] Clarification questions:', extractedQuestions);
+            // HIER: UI müsste Fragen anzeigen und User-Antworten sammeln
+            // Für jetzt brechen wir ab und warten auf User-Input
+            return null;
+          }
+        } catch (e) {
+          console.log('[Agent] Error generating questions:', e);
+          // Fallback: Normaler Plan ohne Fragen
+        }
+      }
 
       const plannerPrompt = buildPlannerPrompt({
         projectTree: getProjectTree(),

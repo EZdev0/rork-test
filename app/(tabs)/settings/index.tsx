@@ -755,6 +755,22 @@ export default function SettingsScreen() {
             <Text style={styles.settingHint}>
               Hauptagent kann autonom Tasks erstellen und Unteragenten steuern.
             </Text>
+
+            <View style={styles.settingRow}>
+              <View style={styles.settingLabelRow}>
+                <Brain size={14} color={IDE.primary} />
+                <Text style={styles.settingLabel}>Agenten-Modus</Text>
+              </View>
+              <Switch
+                value={settings.agentMode}
+                onValueChange={(v) => updateSettings({ agentMode: v })}
+                trackColor={{ false: IDE.border, true: IDE.primary + '60' }}
+                thumbColor={settings.agentMode ? IDE.primary : IDE.muted}
+              />
+            </View>
+            <Text style={styles.settingHint}>
+              Zeige Todo-Grafik vor Ausführung. Zusammen mit Super-Agent: Interaktive Fragen-Phase.
+            </Text>
           </View>
 
           <View style={styles.section}>
