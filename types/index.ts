@@ -98,7 +98,7 @@ export interface MemoEntry {
 
 export type AgentTaskStatus = 'draft' | 'pending' | 'running' | 'completed' | 'error' | 'cancelled';
 
-export type AgentTaskType = 'task' | 'thinking' | 'brainstorm' | 'question' | 'web_search';
+export type AgentTaskType = 'task' | 'thinking' | 'brainstorm' | 'question' | 'web_search' | 'sub_agent';
 
 export interface AgentTask {
   id: string;
@@ -115,6 +115,10 @@ export interface AgentTask {
   startedAt?: number;
   completedAt?: number;
   error?: string;
+  // NEU: Für Unteragenten-Kommunikation
+  isSubAgentTask?: boolean;
+  parentTaskId?: string;
+  agentRole?: 'analyst' | 'developer' | 'tester' | 'researcher';
 }
 
 export interface AgentToolUsage {
@@ -268,6 +272,7 @@ export const TOOL_REGISTRY: ToolRegistryItem[] = [
   { name: 'update_memory_md', displayName: 'update_memory_md', description: 'Aktualisiert MEMORY.md (Langzeit-Gedächtnis, Entscheidungen, gelernte Präferenzen, Fehler).', category: 'learning', parameters: [{ name: 'content', type: 'string', description: 'Neuer Inhalt für MEMORY.md' }], isBeta: true, defaultPermission: 'always' },
   { name: 'verify_file', displayName: 'verify_file', description: 'Überprüft ob eine Datei existiert und korrekt ist.', category: 'analysis', parameters: [{ name: 'path', type: 'string', description: 'Dateipfad' }], isBeta: false, defaultPermission: 'always' },
   { name: 'task_complete', displayName: 'task_complete', description: 'Markiert eine Agent-Aufgabe als abgeschlossen.', category: 'planning', parameters: [{ name: 'summary', type: 'string', description: 'Zusammenfassung' }], isBeta: false, defaultPermission: 'always' },
+  { name: 'sub_agent', displayName: 'sub_agent', description: 'Delegiert Aufgabe an einen spezialisierten Unteragenten (Analyst, Developer, Tester, Researcher).', category: 'system', parameters: [{ name: 'role', type: 'string', description: 'Rolle des Unteragenten' }, { name: 'task', type: 'string', description: 'Aufgabenbeschreibung' }], isBeta: true, defaultPermission: 'ask' },
 ];
 
 export const TOOL_CATEGORIES: { id: string; label: string; icon: string }[] = [

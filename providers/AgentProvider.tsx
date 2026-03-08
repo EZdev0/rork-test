@@ -261,7 +261,6 @@ export const [AgentProvider, useAgent] = createContextHook(() => {
         case 'web_search': {
           if (!args?.query) return { result: 'FEHLER: Suchbegriff fehlt.' };
           try {
-            // DuckDuckGo mit besserem Error-Handling und Timeout
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 8000);
             
@@ -271,32 +270,72 @@ export const [AgentProvider, useAgent] = createContextHook(() => {
             );
             clearTimeout(timeoutId);
             
-            if (!resp.ok) {
-              console.log('[Web-Search] DDG failed, status:', resp.status);
-              return { result: 'ℹ️ Keine Web-Ergebnisse für "' + args.query + '" gefunden. Versuche alternative Formulierung.' };
-            }
-            
-            const data = await resp.json();
             let results = '';
             
-            if (data?.Abstract) {
-              results += '**Zusammenfassung:**\n' + data.Abstract + '\n\n';
-            }
-            
-            if (data?.RelatedTopics && Array.isArray(data.RelatedTopics)) {
-              const topics = data.RelatedTopics.slice(0, 8);
-              for (const t of topics) {
-                if (t?.Text) {
-                  results += '• ' + t.Text + '\n';
-                  if (t?.FirstURL) results += '  _Quelle: ' + t.FirstURL + '_\n';
+            if (resp.ok) {
+              const data = await resp.json();
+              
+              // Abstract (Hauptergebnis)
+              if (data?.Abstract) {
+                results += '**Zusammenfassung:**\n' + data.Abstract + '\n\n';
+                if (data?.AbstractURL) results += '_Quelle: ' + data.AbstractURL + '_\n\n';
+              }
+              
+              // Related Topics
+              if (data?.RelatedTopics && Array.isArray(data.RelatedTopics)) {
+                const topics = data.RelatedTopics.slice(0, 8);
+                if (topics.length > 0) {
+                  results += '**Gefundene Themen:**\n';
+                  for (const t of topics) {
+                    if (t?.Text) {
+                      results += '• ' + t.Text + '\n';
+                      if (t?.FirstURL) results += '  _Quelle: ' + t.FirstURL + '_\n';
+                    }
+                  }
+                  results += '\n';
+                }
+              }
+              
+              // Results Array
+              if (data?.Results && Array.isArray(data.Results)) {
+                const res = data.Results.slice(0, 5);
+                if (res.length > 0) {
+                  results += '**Ergebnisse:**\n';
+                  for (const r of res) {
+                    if (r?.Text && r?.FirstURL) {
+                      results += '• ' + r.Text + '\n  _' + r.FirstURL + '_\n';
+                    }
+                  }
                 }
               }
             }
             
-            return { result: results || 'ℹ️ Keine konkreten Ergebnisse für: ' + args.query };
+            // Wenn keine Ergebnisse, hilfreiche Fallback-Nachricht
+            if (!results.trim()) {
+              console.log('[Web-Search] No results for:', args.query);
+              return { 
+                result: 'ℹ️ Keine direkten Web-Ergebnisse für "' + args.query + '" gefunden.\n\n' +
+                        '**Mögliche Gründe:**\n' +
+                        '• Sehr spezifische oder technische Anfrage\n' +
+                        '• Begriff wird anders geschrieben\n' +
+                        '• Aktuelles Thema noch nicht indexiert\n\n' +
+                        '**Versuche:**\n' +
+                        '• Andere Formulierung der Suche\n' +
+                        '• Englisch statt Deutsch\n' +
+                        '• Allgemeinere Begriffe'
+              };
+            }
+            
+            return { result: results };
           } catch (e: any) {
             console.log('[Web-Search] Error:', e.message);
-            return { result: '⚠️ Web-Suche nicht verfügbar (Netzwerkfehler). Beschreibe was du finden möchtest.' };
+            return { 
+              result: '⚠️ Web-Suche derzeit nicht verfügbar (Netzwerkfehler).\n\n' +
+                      '**Beschreibe was du finden möchtest:**\n' +
+                      '• Welches Thema?\n' +
+                      '• Welche Informationen brauchst du?\n' +
+                      '• Gibt es alternative Quellen?'
+            };
           }
         }
         case 'web_fetch': {

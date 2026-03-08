@@ -135,6 +135,13 @@ const AgentPlanView = React.memo(({ plan, isExecuting, onExecute, onStop, onDism
     setNewDesc('');
   }, []);
 
+  const handleQuickAddSubAgent = useCallback(() => {
+    setAddType('sub_agent');
+    setShowAddTask(true);
+    setNewTitle('');
+    setNewDesc('');
+  }, []);
+
   const handleMoveUp = useCallback((index: number) => {
     if (index > 0 && onReorderTasks) {
       LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -301,7 +308,7 @@ const AgentPlanView = React.memo(({ plan, isExecuting, onExecute, onStop, onDism
             {isEditable && showAddTask && (
               <View style={styles.addTaskForm}>
                 <View style={styles.addTypeRow}>
-                  {(['task', 'thinking', 'brainstorm', 'web_search'] as AgentTaskType[]).map(type => (
+                  {(['task', 'thinking', 'brainstorm', 'web_search', 'sub_agent'] as AgentTaskType[]).map(type => (
                     <TouchableOpacity
                       key={type}
                       style={[styles.addTypeBtn, addType === type && styles.addTypeBtnActive]}
@@ -311,11 +318,13 @@ const AgentPlanView = React.memo(({ plan, isExecuting, onExecute, onStop, onDism
                       {type === 'thinking' ? <Brain size={12} color={addType === type ? IDE.keyword : IDE.muted} /> :
                        type === 'brainstorm' ? <Lightbulb size={12} color={addType === type ? IDE.warning : IDE.muted} /> :
                        type === 'web_search' ? <Globe size={12} color={addType === type ? '#2196F3' : IDE.muted} /> :
+                       type === 'sub_agent' ? <Zap size={12} color={addType === type ? IDE.accent : IDE.muted} /> :
                        <Play size={12} color={addType === type ? IDE.primary : IDE.muted} />}
                       <Text style={[styles.addTypeBtnText, addType === type && {
-                        color: type === 'thinking' ? IDE.keyword : type === 'brainstorm' ? IDE.warning : type === 'web_search' ? '#2196F3' : IDE.primary,
+                        color: type === 'thinking' ? IDE.keyword : type === 'brainstorm' ? IDE.warning : type === 'web_search' ? '#2196F3' : type === 'sub_agent' ? IDE.accent : IDE.primary,
+                        fontWeight: '700' as const,
                       }]}>
-                        {type === 'thinking' ? 'Analyse' : type === 'brainstorm' ? 'Brainstorm' : type === 'web_search' ? 'Web-Suche' : 'Aufgabe'}
+                        {type === 'thinking' ? 'Analyse' : type === 'brainstorm' ? 'Brainstorm' : type === 'web_search' ? 'Web' : type === 'sub_agent' ? 'Agent' : 'Task'}
                       </Text>
                     </TouchableOpacity>
                   ))}
@@ -383,6 +392,14 @@ const AgentPlanView = React.memo(({ plan, isExecuting, onExecute, onStop, onDism
                       activeOpacity={0.7}
                     >
                       <Globe size={14} color="#2196F3" />
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      style={[styles.addTaskBtn, styles.addSubAgentBtn]}
+                      onPress={handleQuickAddSubAgent}
+                      activeOpacity={0.7}
+                    >
+                      <Zap size={14} color={IDE.accent} />
                     </TouchableOpacity>
 
                     <TouchableOpacity
@@ -548,10 +565,27 @@ function formatFinalResponse(text: string): React.ReactNode {
   for (let li = 0; li < lines.length; li++) {
     const line = lines[li];
 
+    // HASHTAG-DOKUMENTATION: !####! 📘 Dokumentation
+    const hashtagMatch = line.match(/^!(#{1,6})!\s*(.+)$/);
+    if (hashtagMatch) {
+      const level = hashtagMatch[1].length;
+      const headingText = hashtagMatch[2].trim();
+      const fontSize: number = level === 1 ? 17 : (level === 2 ? 15 : 13);
+      const marginTop: number = li > 0 ? 8 : 0;
+      elements.push(
+        <Text key={'h' + li} style={[styles.finalHeading, { fontSize, marginTop }]}>
+          {formatInlineFinal(headingText)}
+        </Text>
+      );
+      continue;
+    }
+
+    // Normale Headings #, ##, ###
     if (/^#{1,3}\s/.test(line)) {
       const level = line.match(/^(#{1,3})/)![1].length;
       const headingText = line.replace(/^#{1,3}\s+/, '');
-      const fontSize = level === 1 ? 17 : level === 2 ? 15 : 13;
+      const fontSize: number = level === 1 ? 17 : (level === 2 ? 15 : 13);
+      const marginTop: number = li > 0 ? 8 : 0;
       elements.push(
         <Text key={'h' + li} style={[styles.finalHeading, { fontSize, marginTop: li > 0 ? 8 : 0 }]}>
           {formatInlineFinal(headingText)}
@@ -1183,6 +1217,10 @@ const styles = StyleSheet.create({
   },
   addWebSearchBtn: {
     borderColor: '#2196F3' + '40',
+    paddingHorizontal: 6,
+  },
+  addSubAgentBtn: {
+    borderColor: IDE.accent + '40',
     paddingHorizontal: 6,
   },
   addAutoBtn: {

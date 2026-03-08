@@ -20,7 +20,7 @@ export function buildPlannerPrompt(options: {
   prompt += '- WICHTIG: Der ERSTE Schritt muss IMMER ein THINK-Schritt sein, in dem du die Anfrage analysierst.\n';
   prompt += '- Du kannst beliebig viele THINK-Schritte (Gedanken/Analyse) und BRAINSTORM-Schritte einfügen.\n';
   prompt += '- THINK-Schritte: Analysiere das Problem, überlege welche Tools nötig sind, prüfe ob der Ansatz funktioniert.\n';
-  prompt += '- BRAINSTORM-Schritte: Untersuche Alternativen, sammle Ideen, validiere den Plan.\n';
+  prompt += '- BRAINSTORM-Schritte: Untersuche ALTERNATIVEN, sammle MINDESTENS 3 Ideen, validiere den Plan Kритisch.\n';
   prompt += '- TASK-Schritte: Konkrete Aufgaben die ein Unteragent ausführen soll.\n';
   prompt += '- WEB_SEARCH-Schritte: Web-Recherche für Informationen, Dokumentation oder aktuelle Daten.\n';
   prompt += '- Halte Aufgaben atomar und klar abgegrenzt.\n';
@@ -30,6 +30,13 @@ export function buildPlannerPrompt(options: {
   prompt += '- WICHTIG: Schreibe VOLLSTÄNDIGE Sätze. Keine abgebrochenen Sätze!\n';
   prompt += '- Wenn eine Aufgabe von einer anderen abhängt, erwähne das.\n';
   prompt += '- Erwähne in THINK-Schritten welche Tools (read_file, write_file, etc.) eingesetzt werden sollen.\n\n';
+  prompt += '## BRAINSTORMING-REGELN\n';
+  prompt += '- Brainstorming muss GRÜNDLICH sein, nicht oberflächlich!\n';
+  prompt += '- Generiere MINDESTENS 3 verschiedene Lösungsansätze.\n';
+  prompt += '- Vergleiche Vor- und Nachteile jedes Ansatzes.\n';
+  prompt += '- Bewerte Komplexität, Wartbarkeit, Performance.\n';
+  prompt += '- Denke auch an unkonventionelle Lösungen.\n';
+  prompt += '- Erst wenn ALLE Optionen geprüft sind, ist Brainstorming abgeschlossen.\n\n';
 
   prompt += '## Projektstruktur\n```\n' + (options.projectTree || '(Leeres Projekt)') + '\n```\n';
 
