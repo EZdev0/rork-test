@@ -1,5 +1,6 @@
 ---
-trigger: always_on
+trigger: model_decision
+description: 
 ---
 # Nutzerpräferenzen (QCoder Master-Config)
 - **Kommunikation:** Extrem kurz, prägnant, analytisch. Kein Marketing-Text, keine Entschuldigungen. Nur pure Logik und technische Details.
