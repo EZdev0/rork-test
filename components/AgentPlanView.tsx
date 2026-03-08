@@ -6,7 +6,7 @@ import {
 import {
   Play, Square, Plus, CheckCircle, AlertTriangle, X, Brain,
   ChevronDown, ChevronUp, Zap, Lightbulb, Sparkles, Wrench, Globe,
-  ArrowUp, ArrowDown, GripVertical,
+  ArrowUp, ArrowDown, GripVertical, MessageSquare,
 } from 'lucide-react-native';
 import { IDE } from '@/constants/colors';
 import { AgentPlan, AgentTask, AgentTaskType, AgentToolUsage } from '@/types';
@@ -23,6 +23,8 @@ interface Props {
   onAddTask: (title: string, description: string, taskType?: AgentTaskType) => void;
   onRetryTask: (taskId: string) => void;
   onReorderTasks?: (fromIndex: number, toIndex: number) => void;
+  clarificationQuestions?: ClarificationQuestion[];
+  onAnswerQuestions?: (answers: ClarificationQuestion[]) => void;
 }
 
 interface SwapModalState {
@@ -35,6 +37,11 @@ interface DeleteConfirmState {
   visible: boolean;
   taskIndex: number;
   taskId: string;
+}
+
+interface ClarificationQuestion {
+  question: string;
+  answer: string;
 }
 
 const TOOL_LABELS: Record<string, string> = {
@@ -63,7 +70,7 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
-const AgentPlanView = React.memo(({ plan, isExecuting, onExecute, onStop, onDismiss, onUpdateTask, onRemoveTask, onAddTask, onRetryTask, onReorderTasks }: Props) => {
+const AgentPlanView = React.memo(({ plan, isExecuting, onExecute, onStop, onDismiss, onUpdateTask, onRemoveTask, onAddTask, onRetryTask, onReorderTasks, clarificationQuestions, onAnswerQuestions }: Props) => {
   const [showAddTask, setShowAddTask] = useState<boolean>(false);
   const [addType, setAddType] = useState<AgentTaskType>('task');
   const [newTitle, setNewTitle] = useState<string>('');
@@ -72,6 +79,7 @@ const AgentPlanView = React.memo(({ plan, isExecuting, onExecute, onStop, onDism
   const [toolsSummaryExpanded, setToolsSummaryExpanded] = useState<boolean>(false);
   const [swapModal, setSwapModal] = useState<SwapModalState>({ visible: false, fromIndex: 0, targetIndex: 0 });
   const [deleteConfirm, setDeleteConfirm] = useState<DeleteConfirmState>({ visible: false, taskIndex: 0, taskId: '' });
+  const [localQuestions, setLocalQuestions] = useState<ClarificationQuestion[]>(clarificationQuestions || []);
   const swapHighlightAnim = useRef(new Animated.Value(0)).current;
 
   const isEditable = plan?.status === 'review';
@@ -169,6 +177,18 @@ const AgentPlanView = React.memo(({ plan, isExecuting, onExecute, onStop, onDism
       setDeleteConfirm({ visible: false, taskIndex: 0, taskId: '' });
     }
   }, [deleteConfirm.taskId, onRemoveTask]);
+
+  const handleAnswerQuestion = useCallback((index: number, answer: string) => {
+    const updated = [...localQuestions];
+    updated[index] = { ...updated[index], answer };
+    setLocalQuestions(updated);
+  }, [localQuestions]);
+
+  const handleSubmitAnswers = useCallback(() => {
+    if (onAnswerQuestions && localQuestions.length > 0) {
+      onAnswerQuestions(localQuestions);
+    }
+  }, [onAnswerQuestions, localQuestions]);
 
   const handleMoveUp = useCallback((index: number) => {
     if (index > 0 && onReorderTasks) {
@@ -577,6 +597,49 @@ const AgentPlanView = React.memo(({ plan, isExecuting, onExecute, onStop, onDism
           </View>
         </TouchableOpacity>
       </Modal>
+
+      {/* Klärungsfragen Modal */}
+      {localQuestions.length > 0 && (
+        <Modal visible={true} transparent animationType="slide">
+          <View style={styles.questionsOverlay}>
+            <View style={styles.questionsContainer}>
+              <View style={styles.questionsHeader}>
+                <MessageSquare size={24} color={IDE.primary} />
+                <Text style={styles.questionsTitle}>Klärungsfragen</Text>
+              </View>
+              <Text style={styles.questionsSubtitle}>
+                Bevor ich den Plan erstelle, beantworte bitte diese Fragen:
+              </Text>
+              <ScrollView style={styles.questionsScroll} showsVerticalScrollIndicator={false}>
+                {localQuestions.map((q, idx) => (
+                  <View key={idx} style={styles.questionItem}>
+                    <View style={styles.questionNumberBadge}>
+                      <Text style={styles.questionNumberText}>{idx + 1}</Text>
+                    </View>
+                    <Text style={styles.questionText}>{q.question}</Text>
+                    <TextInput
+                      style={styles.answerInput}
+                      placeholder="Deine Antwort..."
+                      placeholderTextColor={IDE.muted}
+                      value={q.answer}
+                      onChangeText={(text) => handleAnswerQuestion(idx, text)}
+                      multiline
+                      numberOfLines={3}
+                    />
+                  </View>
+                ))}
+              </ScrollView>
+              <TouchableOpacity
+                onPress={handleSubmitAnswers}
+                style={styles.submitAnswersButton}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.submitAnswersButtonText}>Antworten & Plan erstellen</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+      )}
 
       {isDone && plan?.finalResponse && (
         <View style={styles.finalResponseContainer}>
@@ -1530,6 +1593,96 @@ const styles = StyleSheet.create({
   deleteBtnConfirmText: {
     fontSize: 14,
     fontWeight: '600' as const,
+    color: '#fff',
+  },
+  // Clarification Questions Modal Styles
+  questionsOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'flex-end',
+  },
+  questionsContainer: {
+    backgroundColor: IDE.surface,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+    borderWidth: 1,
+    borderColor: IDE.border,
+    maxHeight: '85%',
+    overflow: 'hidden' as const,
+  },
+  questionsHeader: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    gap: 10,
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: IDE.border,
+  },
+  questionsTitle: {
+    fontSize: 18,
+    fontWeight: '700' as const,
+    color: IDE.text,
+    flex: 1,
+  },
+  questionsSubtitle: {
+    fontSize: 13,
+    color: IDE.muted,
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 8,
+  },
+  questionsScroll: {
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+  },
+  questionItem: {
+    marginBottom: 16,
+  },
+  questionNumberBadge: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: IDE.primary + '20',
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+    marginBottom: 8,
+  },
+  questionNumberText: {
+    fontSize: 12,
+    fontWeight: '700' as const,
+    color: IDE.primary,
+  },
+  questionText: {
+    fontSize: 14,
+    fontWeight: '600' as const,
+    color: IDE.text,
+    marginBottom: 8,
+    lineHeight: 20,
+  },
+  answerInput: {
+    backgroundColor: IDE.bg,
+    borderWidth: 1,
+    borderColor: IDE.border,
+    borderRadius: 8,
+    padding: 10,
+    fontSize: 13,
+    color: IDE.text,
+    minHeight: 60,
+    textAlignVertical: 'top' as const,
+  },
+  submitAnswersButton: {
+    margin: 16,
+    marginTop: 8,
+    paddingVertical: 14,
+    borderRadius: 10,
+    backgroundColor: IDE.primary,
+    alignItems: 'center' as const,
+  },
+  submitAnswersButtonText: {
+    fontSize: 15,
+    fontWeight: '700' as const,
     color: '#fff',
   },
 });

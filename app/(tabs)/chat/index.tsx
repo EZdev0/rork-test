@@ -26,6 +26,7 @@ export default function ChatScreen() {
     createPlan, executePlan, stopExecution, dismissPlan,
     updateTaskDetails, addTaskToPlan, removeTaskFromPlan, reorderTasksInPlan, retryTask,
     plans, pendingToolApproval, approveAgentTool,
+    clarificationQuestions, setClarificationQuestions,
   } = useAgent();
   const { allFilePaths, currentProject } = useProject();
   const { settings } = useApp();
@@ -152,6 +153,21 @@ export default function ChatScreen() {
   const handleReorderTasks = useCallback((fromIndex: number, toIndex: number) => {
     if (activePlan) reorderTasksInPlan(activePlan.id, fromIndex, toIndex);
   }, [activePlan, reorderTasksInPlan]);
+
+  const handleAnswerQuestions = useCallback(async (answers: {question: string; answer: string}[]) => {
+    console.log('[Chat] Questions answered:', answers);
+    // Questions zurücksetzen damit Modal schließt
+    setClarificationQuestions([]);
+    // Plan mit Antworten als Kontext neu erstellen
+    if (activePlan) {
+      // User hat Fragen beantwortet, jetzt wird der finale Plan erstellt
+      dismissPlan(activePlan.id);
+    }
+    // KI erneut aufrufen mit Antworten für finalen Plan
+    const enhancedRequest = input + '\n\n## Klärungsfragen beantwortet:\n' + 
+      answers.map((qa, i) => `${i + 1}. ${qa.question}\n   Antwort: ${qa.answer}`).join('\n');
+    await createPlan(enhancedRequest);
+  }, [activePlan, dismissPlan, createPlan, setClarificationQuestions, input]);
 
   const handleOpenFilePicker = useCallback(() => {
     setShowAttachMenu(false);
@@ -309,6 +325,8 @@ export default function ChatScreen() {
       onAddTask={handleAddTask}
       onRetryTask={handleRetryTask}
       onReorderTasks={handleReorderTasks}
+      clarificationQuestions={clarificationQuestions || []}
+      onAnswerQuestions={handleAnswerQuestions}
     />
   ) : null;
 

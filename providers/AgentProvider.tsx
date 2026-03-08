@@ -1210,5 +1210,6 @@ Untersuche alle Optionen gründlich.`;
     updateTaskDetails, addTaskToPlan, removeTaskFromPlan, reorderTasksInPlan, retryTask,
     setActivePlanId,
     pendingToolApproval, approveAgentTool,
+    clarificationQuestions, setClarificationQuestions,
   };
 });
