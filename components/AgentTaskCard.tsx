@@ -4,7 +4,7 @@ import {
 } from 'react-native';
 import {
   Check, X, Loader2, Clock, Play, Pencil, Trash2, ChevronDown, ChevronRight,
-  FileText, FilePlus, FileX, RefreshCw, AlertCircle, Brain, Lightbulb, Wrench, Globe, ExternalLink,
+  FileText, FilePlus, FileX, RefreshCw, AlertCircle, Brain, Lightbulb, Wrench, Globe, ExternalLink, Zap,
 } from 'lucide-react-native';
 import { IDE } from '@/constants/colors';
 import { AgentTask, AgentTaskStatus, AgentTaskType, ToolCall } from '@/types';
@@ -34,6 +34,7 @@ const TYPE_CONFIG: Record<AgentTaskType, { icon: typeof Brain; color: string; la
   brainstorm: { icon: Lightbulb, color: IDE.warning, label: 'Brainstorm' },
   question: { icon: Wrench, color: IDE.accent, label: 'Frage' },
   web_search: { icon: Globe, color: '#2196F3', label: 'Web-Suche' },
+  sub_agent: { icon: Zap, color: IDE.accent, label: 'Unteragent' },
 };
 
 const TOOL_LABELS: Record<string, string> = {
