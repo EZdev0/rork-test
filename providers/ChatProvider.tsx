@@ -253,10 +253,10 @@ export const [ChatProvider, useChat] = createContextHook(() => {
     if (msgs.length === 0) return;
 
     const lastMsg = msgs[msgs.length - 1];
-    if (!lastMsg || lastMsg.role !== 'assistant' || !lastMsg.parts) return;
+    if (!lastMsg || lastMsg.role !== 'assistant' || !lastMsg.parts || !Array.isArray(lastMsg.parts)) return;
 
     const hasUnresolved = lastMsg.parts.some((p: any) =>
-      p.type === 'tool' && p.state !== 'output-available' && p.state !== 'output-error'
+      p && p.type === 'tool' && p.state !== 'output-available' && p.state !== 'output-error'
     );
 
     if (!hasUnresolved) {
@@ -276,15 +276,16 @@ export const [ChatProvider, useChat] = createContextHook(() => {
   const convertRorkMessages = useMemo((): ChatMessage[] => {
     if (!isRorkProvider) return [];
     const msgs = rorkAgent.messages ?? [];
+    if (!Array.isArray(msgs)) return [];
     const result: ChatMessage[] = [];
 
     for (const msg of msgs) {
-      if (!msg?.parts) continue;
+      if (!msg || !msg.parts || !Array.isArray(msg.parts)) continue;
 
-      const textParts = (msg.parts ?? []).filter((p: any) => p.type === 'text');
-      const toolParts = (msg.parts ?? []).filter((p: any) => p.type === 'tool');
+      const textParts = (msg.parts ?? []).filter((p: any) => p && p.type === 'text');
+      const toolParts = (msg.parts ?? []).filter((p: any) => p && p.type === 'tool');
 
-      let textContent = textParts.map((p: any) => p.text || '').join('');
+      let textContent = textParts.map((p: any) => (p && typeof p.text === 'string' ? p.text : '')).join('');
 
       if (msg.role === 'user') {
         const contextEnd = textContent.indexOf('\n---\n');
@@ -295,41 +296,63 @@ export const [ChatProvider, useChat] = createContextHook(() => {
 
       const { thinking, cleanContent } = parseThinkingFromContent(textContent);
 
-      let thinkingContent = thinking;
+      let thinkingContent = thinking || '';
       for (const tp of toolParts) {
-        if ((tp as any).toolName === 'think') {
+        if (tp && (tp as any).toolName === 'think') {
           const thought = (tp as any).input?.thought;
-          if (thought) {
+          if (typeof thought === 'string') {
             thinkingContent += (thinkingContent ? '\n\n' : '') + thought;
           }
         }
       }
 
-      const nonThinkTools = toolParts.filter((p: any) => (p as any).toolName !== 'think');
-      const toolCalls: ToolCall[] = nonThinkTools.map((p: any) => ({
-        id: (p as any).toolCallId || genId(),
-        name: (p as any).toolName || '',
-        arguments: (p as any).input || {},
-        result: (p as any).state === 'output-available'
-          ? (typeof (p as any).output === 'string' ? (p as any).output : JSON.stringify((p as any).output ?? ''))
-          : (p as any).state === 'output-error'
-            ? ('FEHLER: ' + ((p as any).errorText || 'Unbekannt'))
-            : undefined,
-        status: ((p as any).state === 'output-available' ? 'completed'
-          : (p as any).state === 'output-error' ? 'error'
-          : 'running') as ToolCall['status'],
-      }));
+      const nonThinkTools = toolParts.filter((p: any) => p && (p as any).toolName !== 'think');
+      const toolCalls: ToolCall[] = nonThinkTools
+        .map((p: any) => {
+          if (!p) return null;
+          const toolName = typeof (p as any).toolName === 'string' ? (p as any).toolName : '';
+          if (!toolName) return null;
+          
+          const toolCallId = typeof (p as any).toolCallId === 'string' ? (p as any).toolCallId : genId();
+          const input = (p as any).input && typeof (p as any).input === 'object' ? (p as any).input : {};
+          const state = (p as any).state;
+          const output = (p as any).output;
+          const errorText = (p as any).errorText;
+
+          let result: string | undefined = undefined;
+          let status: ToolCall['status'] = 'running';
+
+          if (state === 'output-available') {
+            result = typeof output === 'string' ? output : JSON.stringify(output ?? '');
+            status = 'completed';
+          } else if (state === 'output-error') {
+            result = 'FEHLER: ' + (typeof errorText === 'string' ? errorText : 'Unbekannt');
+            status = 'error';
+          }
+
+          return {
+            id: toolCallId,
+            name: toolName,
+            arguments: input,
+            result,
+            status,
+          } as ToolCall;
+        })
+        .filter((tc): tc is ToolCall => tc !== null);
 
       const inlineTodos: InlineTodo[] = [];
       for (const tp of toolParts) {
-        if ((tp as any).toolName === 'create_todo' && (tp as any).state === 'output-available') {
+        if (tp && (tp as any).toolName === 'create_todo' && (tp as any).state === 'output-available') {
           try {
             const out = typeof (tp as any).output === 'string' ? JSON.parse((tp as any).output) : (tp as any).output;
-            if (out?.id) {
-              inlineTodos.push({ id: out.id, text: out.text || (tp as any).input?.text || '', completed: false });
+            if (out && typeof out === 'object' && out.id) {
+              const todoText = typeof out.text === 'string' ? out.text : (typeof (tp as any).input?.text === 'string' ? (tp as any).input.text : '');
+              if (todoText) {
+                inlineTodos.push({ id: out.id, text: todoText, completed: false });
+              }
             }
           } catch {
-            const text = (tp as any).input?.text || '';
+            const text = typeof (tp as any).input?.text === 'string' ? (tp as any).input.text : '';
             if (text) inlineTodos.push({ id: genId(), text, completed: false });
           }
         }
@@ -338,9 +361,9 @@ export const [ChatProvider, useChat] = createContextHook(() => {
       if (msg.role === 'user' && !cleanContent.trim() && toolParts.length === 0) continue;
 
       result.push({
-        id: msg.id || genId(),
+        id: typeof msg.id === 'string' ? msg.id : genId(),
         role: msg.role === 'user' ? 'user' : 'assistant',
-        content: cleanContent,
+        content: cleanContent || '',
         toolCalls: toolCalls.length > 0 ? toolCalls : undefined,
         thinking: thinkingContent || undefined,
         todos: inlineTodos.length > 0 ? inlineTodos : undefined,

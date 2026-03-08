@@ -384,7 +384,7 @@ export const [AgentProvider, useAgent] = createContextHook(() => {
       const apiKey = getApiKey();
       if (!apiKey) throw new Error('Kein API-Schlüssel konfiguriert.');
 
-      // PRÜFEN: SuperAgent + AgentMode -> Fragen-Phase
+      // PRÜFEN: SuperAgent + AgentMode -> Fragen-Phase (mit Null Safety)
       if (settings.betaSuperAgent && settings.agentMode) {
         console.log('[Agent] SuperAgent + AgentMode: Starting clarification phase');
         // KI generiert zunächst Klärungsfragen
@@ -400,7 +400,7 @@ export const [AgentProvider, useAgent] = createContextHook(() => {
         
         const fallbackSettings = settings.autoFallback ? getFallbackSettings() : undefined;
         const questionMessages: ChatMessage[] = [{
-          id: genId(), role: 'user', content: questionPrompt, timestamp: Date.now(),
+          id: genId(), role: 'user', content: typeof userRequest === 'string' ? userRequest : '', timestamp: Date.now(),
         }];
         
         try {
@@ -415,20 +415,28 @@ export const [AgentProvider, useAgent] = createContextHook(() => {
             fallbackSettings,
           );
           
-          // Fragen extrahieren und speichern
-          const questionsText = questionsResponse.content || '';
+          // Fragen extrahieren und speichern - mit Null Safety
+          const questionsText = typeof questionsResponse.content === 'string' ? questionsResponse.content : '';
+          if (!questionsText.trim()) throw new Error('Keine Fragen erhalten');
+          
           const extractedQuestions = questionsText
             .split(/\n|\d+\.|[-*•]/)
-            .map(q => q.trim())
-            .filter(q => q.length > 5 && q.includes('?'))
+            .map((q: string) => q.trim())
+            .filter((q: string) => typeof q === 'string' && q.length > 5 && q.includes('?'))
             .slice(0, 5);
           
           if (extractedQuestions.length > 0) {
-            setClarificationQuestions(extractedQuestions.map(q => ({ question: q, answer: '' })));
-            console.log('[Agent] Clarification questions:', extractedQuestions);
-            // HIER: UI müsste Fragen anzeigen und User-Antworten sammeln
-            // Für jetzt brechen wir ab und warten auf User-Input
-            return null;
+            const validQuestions = extractedQuestions
+              .filter((q: string) => q && q.length > 0 && q.length < 500)
+              .map((q: string) => ({ question: q, answer: '' }));
+            
+            if (validQuestions.length > 0) {
+              setClarificationQuestions(validQuestions);
+              console.log('[Agent] Clarification questions:', validQuestions.map(q => q.question));
+              // HIER: UI müsste Fragen anzeigen und User-Antworten sammeln
+              // Für jetzt brechen wir ab und warten auf User-Input
+              return null;
+            }
           }
         } catch (e) {
           console.log('[Agent] Error generating questions:', e);
@@ -462,10 +470,14 @@ export const [AgentProvider, useAgent] = createContextHook(() => {
         fallbackSettings,
       );
 
+      // parsePlanFromAI Ergebnis validieren
       const parsedTasks = parsePlanFromAI(response.content);
+      if (!parsedTasks || !Array.isArray(parsedTasks) || parsedTasks.length === 0) {
+        throw new Error('Ungültige Plan-Antwort von KI erhalten');
+      }
 
-      // FIX 1: Thinking-Task automatisch einfügen wenn komplexer Plan (>2 Tasks)
-      const hasThinkingTask = parsedTasks.some(t => t.taskType === 'thinking' || t.taskType === 'brainstorm');
+      // FIX 1: Thinking-Task automatisch einfügen wenn komplexer Plan (>2 Tasks) - mit Validation
+      const hasThinkingTask = parsedTasks.some(t => t && (t.taskType === 'thinking' || t.taskType === 'brainstorm'));
       if (!hasThinkingTask && parsedTasks.length > 2) {
         parsedTasks.unshift({
           title: '🧠 Analyse des Auftrags',
@@ -477,18 +489,20 @@ export const [AgentProvider, useAgent] = createContextHook(() => {
 
       const plan: AgentPlan = {
         id: genId(),
-        userRequest,
-        tasks: parsedTasks.map((t, i) => ({
-          id: genId() + '_t' + i,
-          title: t.title,
-          description: t.description,
-          taskType: (t.taskType || 'task') as AgentTaskType,
-          status: 'draft' as AgentTaskStatus,
-          subAgentMessages: [],
-          filesCreated: [],
-          filesModified: [],
-          filesDeleted: [],
-        })),
+        userRequest: typeof userRequest === 'string' ? userRequest : '',
+        tasks: parsedTasks
+          .filter((t) => t !== null && t !== undefined && typeof t.title === 'string' && t.title.trim().length > 0)
+          .map((t, i) => ({
+            id: genId() + '_t' + i,
+            title: t.title.trim().slice(0, 200),
+            description: typeof t.description === 'string' ? t.description.trim().slice(0, 1000) : '',
+            taskType: ((t.taskType as AgentTaskType) || 'task'),
+            status: 'draft' as AgentTaskStatus,
+            subAgentMessages: [],
+            filesCreated: [],
+            filesModified: [],
+            filesDeleted: [],
+          })),
         status: 'review',
         createdAt: Date.now(),
       };
@@ -1157,47 +1171,65 @@ Untersuche alle Optionen gründlich.`;
     }
   }, [updatePlan, updateTaskInPlan, executeSubAgent]);
 
-  // FIX 3: User-Info Auto-Extraction im Lernmodus
+  // FIX 3: User-Info Auto-Extraction im Lernmodus (mit Null Safety)
   const extractUserInfoIfEnabled = useCallback(async (messages: ChatMessage[]) => {
     if (!settings.betaAgentLearning) return;
     
     const lastUserMessages = messages
+      .filter((m): m is ChatMessage => m !== null && m !== undefined)
       .filter(m => m.role === 'user')
       .slice(-5);
     
-    const userContent = lastUserMessages.map(m => m.content).join('\n');
+    const userContent = lastUserMessages.map(m => typeof m.content === 'string' ? m.content : '').join('\n');
     if (!userContent.trim()) return;
     
-    // Prüfe auf persönliche Informationen (Name, Rolle, etc.)
+    // Prüfe auf persönliche Informationen (Name, Rolle, etc.) - mit Null Safety
     const nameMatch = userContent.match(/\bich (?:heiße|bin)\s+(?:der |die )?([A-Z][a-zäöüß]+)/i);
     const roleMatch = userContent.match(/\b(?:ich bin|als|beruf(?:lich)?|entwickler|programmierer)\s+([^.,\n!]+)/i);
     const companyMatch = userContent.match(/\b(?:arbeite bei|firma|unternehmen|in\s+firma)\s+([A-Z][a-zA-Zäöüß\s]+)/i);
     
     let userInfoUpdated = false;
-    let newUserInfo = userMd || '';
+    let newUserInfo = typeof userMd === 'string' ? userMd : '';
     
-    if (nameMatch && !newUserInfo.toLowerCase().includes('name')) {
-      newUserInfo += '\n\n## Name\nDer Nutzer heißt **' + nameMatch[1] + '**.';
-      userInfoUpdated = true;
-      console.log('[Agent] Extracted name:', nameMatch[1]);
+    // Name extrahieren - nur wenn nicht bereits vorhanden und Match existiert
+    if (nameMatch && nameMatch[1] && !newUserInfo.toLowerCase().includes('name')) {
+      const extractedName = nameMatch[1].trim();
+      if (extractedName.length > 0 && extractedName.length < 50) {
+        newUserInfo += '\n\n## Name\nDer Nutzer heißt **' + extractedName + '**.';
+        userInfoUpdated = true;
+        console.log('[Agent] Extracted name:', extractedName);
+      }
     }
     
-    if (roleMatch && !newUserInfo.toLowerCase().includes('rolle') && !newUserInfo.toLowerCase().includes('beruf')) {
+    // Rolle extrahieren - nur wenn nicht bereits vorhanden und Match existiert
+    if (roleMatch && roleMatch[0] && !newUserInfo.toLowerCase().includes('rolle') && !newUserInfo.toLowerCase().includes('beruf')) {
       const roleText = roleMatch[0].trim();
-      newUserInfo += '\n\n## Rolle\n' + roleText.charAt(0).toUpperCase() + roleText.slice(1) + '.';
-      userInfoUpdated = true;
-      console.log('[Agent] Extracted role:', roleText);
+      if (roleText.length > 5 && roleText.length < 200) {
+        const capitalizedRole = roleText.charAt(0).toUpperCase() + roleText.slice(1);
+        newUserInfo += '\n\n## Rolle\n' + capitalizedRole + '.';
+        userInfoUpdated = true;
+        console.log('[Agent] Extracted role:', roleText);
+      }
     }
     
-    if (companyMatch && !newUserInfo.toLowerCase().includes('firma') && !newUserInfo.toLowerCase().includes('unternehmen')) {
-      newUserInfo += '\n\n## Firma\nNutzer arbeitet bei **' + companyMatch[1].trim() + '**.';
-      userInfoUpdated = true;
-      console.log('[Agent] Extracted company:', companyMatch[1]);
+    // Firma extrahieren - nur wenn nicht bereits vorhanden und Match existiert
+    if (companyMatch && companyMatch[1] && !newUserInfo.toLowerCase().includes('firma') && !newUserInfo.toLowerCase().includes('unternehmen')) {
+      const extractedCompany = companyMatch[1].trim();
+      if (extractedCompany.length > 2 && extractedCompany.length < 100) {
+        newUserInfo += '\n\n## Firma\nNutzer arbeitet bei **' + extractedCompany + '**.';
+        userInfoUpdated = true;
+        console.log('[Agent] Extracted company:', extractedCompany);
+      }
     }
     
-    if (userInfoUpdated && newUserInfo.trim()) {
+    // Nur aktualisieren wenn valide Infos vorhanden
+    if (userInfoUpdated && newUserInfo.trim().length > 0) {
       setUserMd(newUserInfo);
-      addMemo('User-Info aktualisiert: ' + (nameMatch ? 'Name=' + nameMatch[1] : '') + (roleMatch ? ', Rolle=' + roleMatch[0].slice(0, 30) : ''));
+      const memoParts = [];
+      if (nameMatch && nameMatch[1]) memoParts.push('Name=' + nameMatch[1]);
+      if (roleMatch && roleMatch[0]) memoParts.push('Rolle=' + roleMatch[0].slice(0, 30));
+      if (companyMatch && companyMatch[1]) memoParts.push('Firma=' + companyMatch[1]);
+      addMemo('User-Info aktualisiert: ' + memoParts.join(', '));
       console.log('[Agent] USER.MD updated successfully');
     }
   }, [settings.betaAgentLearning, userMd, setUserMd, addMemo]);
