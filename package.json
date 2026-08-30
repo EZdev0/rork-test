@@ -63,6 +63,6 @@
   },
   "private": true,
   "overrides": {
-    "undici@<7.29.0": "7.29.0"
+    "undici": "7.24.1"
   }
 }
