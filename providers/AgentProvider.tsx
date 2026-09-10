@@ -746,6 +746,13 @@ Untersuche alle Optionen gründlich.`;
       return true;
     });
 
+    // Add sub_agent explicitly if yoloMode is active or permission allows
+    if (!filteredBaseTools.find(t => t.name === 'sub_agent') && (settings.yoloMode || getToolPermission('sub_agent') !== 'removed')) {
+      const subAgentTool = TOOL_DEFINITIONS.find(t => t.name === 'sub_agent');
+      if (subAgentTool) filteredBaseTools.push(subAgentTool);
+    }
+
+
     const subAgentTools = [...filteredBaseTools, {
       name: 'task_complete',
       description: 'Rufe dieses Tool auf wenn die Aufgabe abgeschlossen ist. Gib eine Zusammenfassung an.',
@@ -763,11 +770,11 @@ Untersuche alle Optionen gründlich.`;
       todos,
       mentionedFiles: [],
       yoloMode: settings.yoloMode,
-      agentMd: settings.betaAgentLearning ? agentMd : undefined,
-      soulMd: settings.betaAgentLearning ? soulMd : undefined,
-      identityMd: settings.betaAgentLearning ? identityMd : undefined,
-      userMd: settings.betaAgentLearning ? userMd : undefined,
-      memoryMd: settings.betaAgentLearning ? memoryMd : undefined,
+      agentMd: settings.betaAgentLearning ? (getFileContent('.agents/AGENT.md') || agentMd) : undefined,
+      soulMd: settings.betaAgentLearning ? (getFileContent('.agents/SOUL.md') || soulMd) : undefined,
+      identityMd: settings.betaAgentLearning ? (getFileContent('.agents/IDENTITY.md') || identityMd) : undefined,
+      userMd: settings.betaAgentLearning ? (getFileContent('.agents/USER.md') || userMd) : undefined,
+      memoryMd: settings.betaAgentLearning ? (getFileContent('.agents/MEMORY.md') || memoryMd) : undefined,
       betaAgentLearning: settings.betaAgentLearning,
       toolPermissions: settings.yoloMode ? undefined : settings.toolPermissions,
     });
