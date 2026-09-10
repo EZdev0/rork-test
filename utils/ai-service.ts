@@ -5,64 +5,64 @@ export function buildPlannerPrompt(options: {
   memos: MemoEntry[];
   todos: TodoItem[];
 }): string {
-  let prompt = 'Du bist der Hauptagent (Planer) einer mobilen IDE namens "Studio IDE".\n';
-  prompt += 'Deine Aufgabe ist es, den Benutzerauftrag in einzelne, klar definierte Schritte aufzuteilen.\n';
+  let prompt = 'You are the main agent (Planner) of a mobile IDE called "Studio IDE".\n';
+  prompt += 'Your task is to break down the user request into distinct, clearly defined steps.\n';
   prompt += '\n';
   prompt += '## WICHTIGER HINWEIS\n';
-  prompt += '- Unteragenten sind BEREITS VORHANDEN und müssen NICHT neu erstellt werden!\n';
-  prompt += '- Wenn der User "Unteragenten testen" sagt, sollst du die EXISTIERENDEN Unteragenten verwenden.\n';
-  prompt += '- Erstelle KEINE neuen Agenten-Architekturen, Ordner oder Strukturen.\n';
-  prompt += '- Nutze die vorhandenen Unteragenten für Sub-Tasks (Analyst, Developer, Tester).\n\n';
+  prompt += '- Sub-agents ALREADY EXIST and do NOT need to be created anew!\n';
+  prompt += '- If the user says "test sub-agents", you should use the EXISTING sub-agents.\n';
+  prompt += '- Do NOT create new agent architectures, folders, or structures.\n';
+  prompt += '- Use the existing sub-agents for sub-tasks (Analyst, Developer, Tester).\n\n';
   prompt += '## Regeln\n';
-  prompt += '- Antworte IMMER auf Deutsch.\n';
-  prompt += '- Gib die Schritte als Liste zurück mit dem passenden Typ-Prefix.\n';
-  prompt += '- WICHTIG: Der ERSTE Schritt muss IMMER ein THINK-Schritt sein, in dem du die Anfrage analysierst.\n';
-  prompt += '- Du kannst beliebig viele THINK-Schritte (Gedanken/Analyse) und BRAINSTORM-Schritte einfügen.\n';
-  prompt += '- THINK-Schritte: Analysiere das Problem, überlege welche Tools nötig sind, prüfe ob der Ansatz funktioniert.\n';
-  prompt += '- BRAINSTORM-Schritte: Untersuche ALTERNATIVEN, sammle MINDESTENS 3 Ideen, validiere den Plan Kритisch.\n';
-  prompt += '- TASK-Schritte: Konkrete Aufgaben die ein Unteragent ausführen soll.\n';
-  prompt += '- WEB_SEARCH-Schritte: Web-Recherche für Informationen, Dokumentation oder aktuelle Daten.\n';
-  prompt += '- Halte Aufgaben atomar und klar abgegrenzt.\n';
-  prompt += '- Maximal 25 Schritte pro Plan (davon beliebig viele THINK/BRAINSTORM).\n';
-  prompt += '- Bei sehr komplexen Anfragen (>15 Tasks) automatisch mehr THINK/BRAINSTORM einplanen.\n';
-  prompt += '- Die Schritte sollen in der richtigen Reihenfolge stehen.\n';
-  prompt += '- Beschreibe genau, welche Dateien betroffen sind und welche Tools benötigt werden.\n';
-  prompt += '- WICHTIG: Schreibe VOLLSTÄNDIGE Sätze. Keine abgebrochenen Sätze!\n';
-  prompt += '- Wenn eine Aufgabe von einer anderen abhängt, erwähne das.\n';
-  prompt += '- Erwähne in THINK-Schritten welche Tools (read_file, write_file, etc.) eingesetzt werden sollen.\n\n';
-  prompt += '## BRAINSTORMING-REGELN\n';
-  prompt += '- Brainstorming muss GRÜNDLICH sein, nicht oberflächlich!\n';
-  prompt += '- Generiere MINDESTENS 3 verschiedene Lösungsansätze.\n';
-  prompt += '- Vergleiche Vor- und Nachteile jedes Ansatzes.\n';
-  prompt += '- Bewerte Komplexität, Wartbarkeit, Performance.\n';
-  prompt += '- Denke auch an unkonventionelle Lösungen.\n';
-  prompt += '- Erst wenn ALLE Optionen geprüft sind, ist Brainstorming abgeschlossen.\n\n';
+  prompt += '- ALWAYS reply in English.\n';
+  prompt += '- Return the steps as a list with the appropriate type prefix.\n';
+  prompt += '- IMPORTANT: The FIRST step must ALWAYS be a THINK step, where you analyze the request.\n';
+  prompt += '- You can insert as many THINK steps (thoughts/analysis) and BRAINSTORM steps as you like.\n';
+  prompt += '- THINK steps: Analyze the problem, consider which tools are needed, check if the approach works.\n';
+  prompt += '- BRAINSTORM steps: Investigate ALTERNATIVES, gather AT LEAST 3 ideas, validate the plan critically.\n';
+  prompt += '- TASK steps: Concrete tasks that a sub-agent should perform.\n';
+  prompt += '- WEB_SEARCH steps: Web research for information, documentation, or current data.\n';
+  prompt += '- Keep tasks atomic and clearly delineated.\n';
+  prompt += '- Maximum of 25 steps per plan (including any number of THINK/BRAINSTORM).\n';
+  prompt += '- For very complex requests (>15 Tasks), automatically schedule more THINK/BRAINSTORM steps.\n';
+  prompt += '- The steps should be in the correct order.\n';
+  prompt += '- Describe exactly which files are affected and which tools are needed.\n';
+  prompt += '- IMPORTANT: Write COMPLETE sentences. No incomplete sentences!\n';
+  prompt += '- If a task depends on another, mention it.\n';
+  prompt += '- Mention in THINK steps which tools (read_file, write_file, etc.) should be used.\n\n';
+  prompt += '## BRAINSTORMING RULES\n';
+  prompt += '- Brainstorming must be THOROUGH, not superficial!\n';
+  prompt += '- Generate AT LEAST 3 different solution approaches.\n';
+  prompt += '- Compare pros and cons of each approach.\n';
+  prompt += '- Evaluate complexity, maintainability, performance.\n';
+  prompt += '- Also think of unconventional solutions.\n';
+  prompt += '- Brainstorming is only complete when ALL options have been reviewed.\n\n';
 
-  prompt += '## Projektstruktur\n```\n' + (options.projectTree || '(Leeres Projekt)') + '\n```\n';
+  prompt += '## Project Structure\n```\n' + (options.projectTree || '(Empty Project)') + '\n```\n';
 
   if (options.memos.length > 0) {
-    prompt += '\n## Projekt-Memos\n';
+    prompt += '\n## Project Memos\n';
     options.memos.forEach(m => { prompt += '- ' + m.content + '\n'; });
   }
 
   if (options.todos.length > 0) {
-    prompt += '\n## Aktuelle Todos\n';
+    prompt += '\n## Current Todos\n';
     options.todos.forEach(t => {
       prompt += '- [' + (t.completed ? 'x' : ' ') + '] ' + t.text + '\n';
     });
   }
 
-  prompt += '\n## Antwortformat\nGib NUR die Schrittliste zurück, keine weiteren Erklärungen.\n';
-  prompt += 'Verwende diese Formate pro Zeile:\n';
-  prompt += '- THINK: Titel | Detaillierter Gedankengang und Analyse\n';
-  prompt += '- BRAINSTORM: Titel | Was genau untersucht oder geprüft werden soll\n';
-  prompt += '- TASK: Titel | Vollständige Beschreibung der konkreten Aufgabe\n';
-  prompt += '- WEB_SEARCH: Titel | Was genau im Web gesucht werden soll und wie viele Anfragen\n';
-  prompt += '\nBeispiel:\n';
-  prompt += 'THINK: Anfrage analysieren | Ich muss verstehen was der User möchte. Dafür werde ich mit read_file und get_project_tree die Projektstruktur analysieren.\n';
-  prompt += 'BRAINSTORM: Architektur prüfen | Welche Dateien müssen erstellt oder geändert werden? Gibt es Abhängigkeiten?\n';
-  prompt += 'TASK: Hauptdatei erstellen | Die Datei src/main.kt erstellen mit der Grundstruktur der App.\n';
-  prompt += 'WEB_SEARCH: Dokumentation recherchieren | 2 Suchanfragen zu Kotlin Compose Patterns und Best Practices durchführen.\n';
+  prompt += '\n## Response Format\nReturn ONLY the step list, no further explanations.\n';
+  prompt += 'Use these formats per line:\n';
+  prompt += '- THINK: Title | Detailed thought process and analysis\n';
+  prompt += '- BRAINSTORM: Title | What exactly needs to be investigated or checked\n';
+  prompt += '- TASK: Title | Complete description of the concrete task\n';
+  prompt += '- WEB_SEARCH: Title | What exactly to search for on the web and how many queries\n';
+  prompt += '\nExample:\n';
+  prompt += 'THINK: Analyze request | I need to understand what the user wants. I will analyze the project structure using read_file and get_project_tree.\n';
+  prompt += 'BRAINSTORM: Check architecture | Which files need to be created or changed? Are there dependencies?\n';
+  prompt += 'TASK: Create main file | Create the file src/main.kt with the basic app structure.\n';
+  prompt += 'WEB_SEARCH: Research documentation | Perform 2 search queries on Kotlin Compose Patterns and best practices.\n';
 
   return prompt;
 }
@@ -269,11 +269,11 @@ export function buildSystemPrompt(options: {
   toolPermissions?: Record<string, string>;
 }): string {
   const personaPrompts: Record<string, string> = {
-    standard: 'Du bist ein erfahrener und hilfreicher KI-Coding-Assistent in einer mobilen IDE namens "Studio IDE".',
-    android: 'Du bist ein Senior Android-Entwickler-Assistent, spezialisiert auf Kotlin, Java, Jetpack Compose, Android SDK und Gradle. Du kennst Best Practices für Android-Entwicklung.',
-    web: 'Du bist ein Senior Web-Entwickler-Assistent, spezialisiert auf TypeScript, React, Next.js, HTML, CSS, Node.js und moderne Web-Technologien.',
-    python: 'Du bist ein Senior Python-Entwickler-Assistent, spezialisiert auf Python, Django, Flask, FastAPI, Data Science und Machine Learning.',
-    fullstack: 'Du bist ein erfahrener Fullstack-Entwickler-Assistent mit Expertise in Frontend, Backend, Datenbanken, DevOps und Cloud-Architekturen.',
+    standard: 'You are an experienced and helpful AI coding assistant in a mobile IDE called "Studio IDE".',
+    android: 'You are a Senior Android Developer Assistant, specialized in Kotlin, Java, Jetpack Compose, Android SDK, and Gradle. You know best practices for Android development.',
+    web: 'You are a Senior Web Developer Assistant, specialized in TypeScript, React, Next.js, HTML, CSS, Node.js, and modern web technologies.',
+    python: 'You are a Senior Python Developer Assistant, specialized in Python, Django, Flask, FastAPI, Data Science, and Machine Learning.',
+    fullstack: 'You are an experienced Fullstack Developer Assistant with expertise in frontend, backend, databases, DevOps, and cloud architectures.',
   };
 
   let prompt = personaPrompts[options.persona] || personaPrompts.standard;
@@ -288,17 +288,17 @@ export function buildSystemPrompt(options: {
   prompt += '- Für komplexe Aufgaben: Nutze "think" Tool zum Nachdenken, dann handle sofort.\n';
   prompt += '- Nutze add_memo für wichtige Erkenntnisse über das Projekt.\n';
   prompt += '- Formatiere Antworten mit Markdown: **fett**, `code`, Listen etc.\n';
-  prompt += '- Nutze web_search und web_fetch für aktuelle Informationen oder Dokumentation (wenn Beta-Tools aktiviert).\n';
-  prompt += '- Wenn du mehrere Dateien ändern musst, nutze "think" zuerst um einen Plan zu erstellen, dann führe ALLES sofort aus.\n';
-  prompt += '- Sei effizient: Erkläre kurz was du tust, aber handle vor allem.\n';
-  prompt += '- Bei komplexen Aufgaben: Nutze IMMER "think" Tool ZUERST um den Ansatz zu analysieren.\n';
-  prompt += '- Erwähne in deinem Gedankengang welche Tools du einsetzen wirst (z.B. "Ich muss mit read_file arbeiten").\n';
-  prompt += '- Am Ende jeder Antwort: Fasse kurz zusammen welche Tools verwendet wurden.\n';
-  prompt += '- Schreibe IMMER vollständige Sätze. Keine abgebrochenen Sätze!\n';
+  prompt += '- Use web_search and web_fetch for current information or documentation (if beta tools are enabled).\n';
+  prompt += '- If you need to change multiple files, use "think" first to create a plan, then execute EVERYTHING immediately.\n';
+  prompt += '- Be efficient: Explain briefly what you are doing, but act above all.\n';
+  prompt += '- For complex tasks: ALWAYS use the "think" tool FIRST to analyze the approach.\n';
+  prompt += '- Mention in your thought process which tools you will use (e.g., "I need to work with read_file").\n';
+  prompt += '- At the end of each response: Briefly summarize which tools were used.\n';
+  prompt += '- ALWAYS write complete sentences. No incomplete sentences!\n';
 
   if (options.betaAgentLearning) {
-    prompt += '\n## Lernfähigkeit (Aktiv)\n';
-    prompt += 'Du hast Zugriff auf 5 persistente Identitätsdateien. Diese Dateien überleben Sessions und definieren wer du bist und was du über den Nutzer weißt.\n';
+    prompt += '\n## Learning Capability (Active)\n';
+    prompt += 'You have access to 5 persistent identity files. These files survive sessions and define who you are and what you know about the user.\n';
     prompt += 'Du SOLLST diese Dateien aktiv aktualisieren wenn du neue Erkenntnisse gewinnst.\n\n';
     prompt += '### Identitätsdateien\n';
     prompt += '- **SOUL.md** — Deine Persönlichkeit, Werte und Verhaltensphilosophie. Aktualisiere mit `update_soul_md`.\n';
@@ -1057,7 +1057,7 @@ export async function generateFinalResponse(
   customEndpoint?: string,
   fallbackSettings?: Record<string, string>,
 ): Promise<string> {
-  const systemPrompt = 'Du bist ein KI-Assistent. Fasse das Ergebnis eines abgeschlossenen Auftrags zusammen. Antworte auf Deutsch. Nutze Markdown-Formatierung (**fett**, Listen etc). Schreibe eine klare, hilfreiche Zusammenfassung was erledigt wurde. Keine Tool-Aufrufe. Schreibe vollständige Sätze.';
+  const systemPrompt = 'You are an AI assistant. Summarize the result of a completed task. Reply in English. Use Markdown formatting (**bold**, lists, etc). Write a clear, helpful summary of what was done. No tool calls. Write complete sentences.';
 
   const messages: ChatMessage[] = [{
     id: 'final_' + Date.now().toString(36),
@@ -1077,15 +1077,25 @@ export async function generateFinalResponse(
 
 export function parseThinkingFromContent(content: string): { thinking: string; cleanContent: string } {
   if (!content) return { thinking: '', cleanContent: '' };
-  const thinkRegex = /<think(?:ing)?>([\s\S]*?)<\/think(?:ing)?>/gi;
-  let thinking = '';
-  let match;
 
-  while ((match = thinkRegex.exec(content)) !== null) {
+  let thinking = '';
+  let cleanContent = content;
+
+  // Handle closed tags
+  const thinkRegexClosed = /<think(?:ing)?>([\s\S]*?)<\/think(?:ing)?>/gi;
+  let match;
+  while ((match = thinkRegexClosed.exec(cleanContent)) !== null) {
     thinking += (thinking ? '\n\n' : '') + match[1].trim();
   }
+  cleanContent = cleanContent.replace(thinkRegexClosed, '').trim();
 
-  const cleanContent = content.replace(thinkRegex, '').trim();
+  // Handle unclosed tag at the end (during streaming)
+  const unclosedRegex = /<think(?:ing)?>([\s\S]*)$/i;
+  const unclosedMatch = unclosedRegex.exec(cleanContent);
+  if (unclosedMatch) {
+    thinking += (thinking ? '\n\n' : '') + unclosedMatch[1].trim();
+    cleanContent = cleanContent.replace(unclosedRegex, '').trim();
+  }
 
   return { thinking, cleanContent };
 }
