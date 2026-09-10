@@ -797,8 +797,8 @@ const TaskRow = React.memo(({ task, index, totalCount, isEditable, canReorder, o
     longPressTimerRef.current = setTimeout(() => {
       isLongPressRef.current = true;
       Animated.sequence([
-        Animated.timing(scaleAnim, { toValue: 0.96, duration: 100, useNativeDriver: true }),
-        Animated.timing(scaleAnim, { toValue: 1.02, duration: 150, useNativeDriver: true }),
+        Animated.timing(scaleAnim, { toValue: 0.96, duration: 100, useNativeDriver: false }),
+        Animated.timing(scaleAnim, { toValue: 1.02, duration: 150, useNativeDriver: false }),
       ]).start(() => {
         scaleAnim.setValue(1);
         onLongPress(index);

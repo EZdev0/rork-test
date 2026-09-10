@@ -24,8 +24,8 @@ const ThinkingBlock = React.memo(({ thinking, isLive, phase }: Props) => {
     if (isLive) {
       const animation = Animated.loop(
         Animated.sequence([
-          Animated.timing(pulseAnim, { toValue: 1, duration: 800, useNativeDriver: true }),
-          Animated.timing(pulseAnim, { toValue: 0.4, duration: 800, useNativeDriver: true }),
+          Animated.timing(pulseAnim, { toValue: 1, duration: 800, useNativeDriver: false }),
+          Animated.timing(pulseAnim, { toValue: 0.4, duration: 800, useNativeDriver: false }),
         ])
       );
       animation.start();

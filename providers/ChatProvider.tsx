@@ -285,7 +285,12 @@ export const [ChatProvider, useChat] = createContextHook(() => {
   useEffect(() => {
     if (rorkAgent.error) {
       console.log('[Chat] Rork agent error:', rorkAgent.error);
-      setError(typeof rorkAgent.error === 'string' ? rorkAgent.error : (rorkAgent.error as any)?.message || 'Studio KI Fehler');
+      const errMsg = typeof rorkAgent.error === 'string' ? rorkAgent.error : (rorkAgent.error as any)?.message || 'Studio KI Fehler';
+      if (errMsg.toLowerCase().includes('network error') || errMsg.toLowerCase().includes('fetch')) {
+        setError('CORS/Netzwerk-Fehler: Der Browser blockiert die Verbindung zu Studio KI. Bitte wechsle in den Einstellungen zu einem anderen Anbieter (z.B. Groq, Gemini) oder nutze die native App.');
+      } else {
+        setError(errMsg);
+      }
       setRorkLoading(false);
     }
   }, [rorkAgent.error]);
@@ -664,7 +669,7 @@ export const [ChatProvider, useChat] = createContextHook(() => {
         rorkAgent.sendMessage(fullMsg);
       } catch (e: any) {
         console.log('[Chat] Rork send error:', e);
-        setError(e?.message || 'Fehler beim Senden');
+        setError(e?.message?.includes('Network Error') ? 'Netzwerk/CORS-Fehler: Der Rork API Endpunkt verweigert den Zugriff im Web-Browser.' : e?.message || 'Fehler beim Senden');
         setRorkLoading(false);
       }
       return;

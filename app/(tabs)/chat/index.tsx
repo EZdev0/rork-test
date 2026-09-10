@@ -229,7 +229,7 @@ export default function ChatScreen() {
     Animated.timing(agentBadgeAnim, {
       toValue: shouldHide ? 0 : 1,
       duration: 200,
-      useNativeDriver: true,
+      useNativeDriver: false,
     }).start();
   }, [isBusy, hasAttachments, keyboardVisible, agentBadgeAnim]);
 
