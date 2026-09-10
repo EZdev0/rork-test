@@ -4,6 +4,13 @@ import * as SplashScreen from 'expo-splash-screen';
 import React, { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { StatusBar } from 'expo-status-bar';
+import { Platform } from 'react-native';
+
+if (Platform.OS === 'web' && typeof process !== 'undefined' && process.env) {
+  // Proxy Rork SDK requests to avoid CORS in browser
+  process.env['EXPO_PUBLIC_TOOLKIT_URL'] = 'https://corsproxy.io/?' + encodeURIComponent('https://toolkit.rork.com');
+}
+
 import { AppProvider } from '@/providers/AppProvider';
 import { ProjectProvider } from '@/providers/ProjectProvider';
 import { ChatProvider } from '@/providers/ChatProvider';
