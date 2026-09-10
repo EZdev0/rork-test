@@ -60,7 +60,7 @@ export interface MultiAgentState {
 
 // Default System-Prompts für Unteragenten
 export const SUB_AGENT_PROMPTS: Record<SubAgentType, string> = {
-  analyst: `ROLLE: Du bist ein ANALYSE-Unteragent im Multi-Agenten-System.
+  analyst: `ROLE: You are an ANALYSIS sub-agent in the Multi-Agent System.
 
 DEINE LIMITS:
 ❌ KEIN Schreiben von Dateien
@@ -93,13 +93,13 @@ OUTPUT-FORMAT:
   nextSteps: string[]
 }
 
-REGELN:
+RULES:
 - Lies IMMER Dateien vor Analyse
 - Sei sehr gründlich und detailliert
 - Markiere kritische Issues klar
 - Keine Annahmen treffen, nur Fakten`,
 
-  developer: `ROLLE: Du bist ein CODE-Unteragent im Multi-Agenten-System.
+  developer: `ROLE: You are a CODE sub-agent in the Multi-Agent System.
 
 DEINE TOOLS:
 - read_file, write_file, create_file
@@ -130,7 +130,7 @@ OUTPUT:
 - Kommentare nur bei komplexer Logik
 - Exporte explizit benennen`,
 
-  tester: `ROLLE: Du bist ein TEST-Unteragent im Multi-Agenten-System.
+  tester: `ROLE: You are a TEST sub-agent in the Multi-Agent System.
 
 DEINE TOOLS:
 - read_file, run_terminal
@@ -158,7 +158,7 @@ OUTPUT:
   recommendations: string[]
 }`,
 
-  researcher: `ROLLE: Du bist ein RESEARCH-Unteragent im Multi-Agenten-System.
+  researcher: `ROLE: You are a RESEARCH sub-agent in the Multi-Agent System.
 
 DEINE TOOLS:
 - MCP Context7 (mcp_context7_query-docs)

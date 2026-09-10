@@ -612,15 +612,15 @@ export const [ChatProvider, useChat] = createContextHook(() => {
 
       let fullMsg = '';
       if (!rorkContextSentRef.current || (rorkAgent.messages ?? []).length === 0) {
-        fullMsg += 'Du bist ein KI-Coding-Assistent in "Studio IDE". Antworte IMMER auf Deutsch.\n';
-        fullMsg += 'Nutze deine Tools AKTIV und SOFORT. Frage NICHT ob du etwas tun sollst - TU ES EINFACH.\n';
-        fullMsg += 'Lies Dateien IMMER mit read_file BEVOR du sie bearbeitest.\n';
-        fullMsg += 'Formatiere Antworten mit Markdown: **fett**, `code`, Listen.\n';
-        fullMsg += 'Nutze "think" Tool bei komplexen Aufgaben zum Nachdenken.\n';
-        fullMsg += 'Für komplexe Aufgaben: Erst "think" nutzen, dann Plan erstellen, dann alle Schritte ausführen.\n';
-        fullMsg += 'Am Ende jeder Nachricht: Fasse verwendete Tools kurz zusammen.\n';
+        fullMsg += 'You are an AI coding assistant in "Studio IDE". ALWAYS reply in English.\n';
+        fullMsg += 'Use your tools ACTIVELY and IMMEDIATELY. DO NOT ask if you should do something - JUST DO IT.\n';
+        fullMsg += 'ALWAYS read files with read_file BEFORE editing them.\n';
+        fullMsg += 'Format responses with Markdown: **bold**, `code`, lists.\n';
+        fullMsg += 'Use "think" tool for complex tasks to reason.\n';
+        fullMsg += 'For complex tasks: First use "think", then create a plan, then execute all steps.\n';
+        fullMsg += 'At the end of each message: Briefly summarize the tools used.\n';
         if (settings.betaWebSearch || settings.yoloMode) {
-          fullMsg += 'Du hast das Tool "web_search" verfügbar! Nutze es für Web-Recherche und aktuelle Informationen.\n';
+          fullMsg += 'You have the "web_search" tool available! Use it for web research and current information.\n';
         }
         if (settings.betaWebFetch || settings.yoloMode) {
           fullMsg += 'Du hast das Tool "web_fetch" verfügbar! Nutze es um Webseiten-Inhalte zu laden.\n';
@@ -634,10 +634,10 @@ export const [ChatProvider, useChat] = createContextHook(() => {
       }
 
       if (attachedFiles.length > 0) {
-        fullMsg += '\nReferenzierte Dateien:\n';
+        fullMsg += '\nReferenced files:\n';
         for (const path of attachedFiles) {
           const content = getFileContent(path);
-          fullMsg += '### ' + path + '\n```\n' + (content || '(nicht gefunden)') + '\n```\n';
+          fullMsg += '### ' + path + '\n```\n' + (content || '(not found)') + '\n```\n';
         }
       }
 
@@ -817,7 +817,7 @@ export const [ChatProvider, useChat] = createContextHook(() => {
       if (currentMsgs.length > 0) {
         setManualMessages([{
           id: genId(), role: 'assistant',
-          content: '---\n\n**Neuer Chat gestartet.**\n\n---',
+          content: '---\n\n**New chat started.**\n\n---',
           timestamp: Date.now(),
         }]);
       }
@@ -897,7 +897,7 @@ export const [ChatProvider, useChat] = createContextHook(() => {
 
     const summaryMsg: ChatMessage = {
       id: genId(), role: 'user',
-      content: '[Zusammenfassung der bisherigen Konversation]\n\n' + summary,
+      content: '[Summary of the conversation so far]\n\n' + summary,
       timestamp: Date.now(),
     };
 

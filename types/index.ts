@@ -228,7 +228,7 @@ export const AI_PROVIDERS: AIProviderConfig[] = [
 ];
 
 export const PERSONAS: { id: string; name: string; description: string }[] = [
-  { id: 'standard', name: 'Standard', description: 'Allgemeiner Coding-Assistent' },
+  { id: 'standard', name: 'Standard', description: 'General Coding Assistant' },
   { id: 'android', name: 'Android-Experte', description: 'Kotlin, Java, Jetpack Compose' },
   { id: 'web', name: 'Web-Entwickler', description: 'TypeScript, React, HTML/CSS' },
   { id: 'python', name: 'Python-Experte', description: 'Python, Django, Data Science' },
