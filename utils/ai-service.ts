@@ -909,11 +909,18 @@ async function callRork(
 
   try {
     const RORK_URL = 'https://toolkit.rork.com/llm/text';
-    const fetchUrl = typeof window !== 'undefined' ? 'https://corsproxy.io/?' + encodeURIComponent(RORK_URL) : RORK_URL;
+    // Use universal API route proxy if running on Web to bypass CORS, else direct
+    const isWeb = typeof window !== 'undefined';
+    const fetchUrl = isWeb ? '/api/chat' : RORK_URL;
+
+    const bodyPayload = isWeb
+      ? JSON.stringify({ endpoint: RORK_URL, messages: cleanedFormatted })
+      : JSON.stringify({ messages: cleanedFormatted });
+
     const res = await fetch(fetchUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messages: cleanedFormatted })
+      body: bodyPayload
     });
     if (!res.ok) {
       const errText = await res.text().catch(() => '');
