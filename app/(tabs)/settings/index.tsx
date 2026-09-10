@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   TextInput, Switch, Linking, Alert,
@@ -84,6 +84,9 @@ export default function SettingsScreen() {
   const { settings, updateSettings, agentMd, setAgentMd, soulMd, setSoulMd, identityMd, setIdentityMd, userMd, setUserMd, memoryMd, setMemoryMd } = useApp();
 
   const [showKeys, setShowKeys] = useState<Record<string, boolean>>({});
+  const [customModels, setCustomModels] = useState<{ id: string; name: string }[]>([]);
+  const [openRouterModels, setOpenRouterModels] = useState<{ id: string; name: string }[]>([]);
+  const [isLoadingModels, setIsLoadingModels] = useState(false);
   const [showProviderPicker, setShowProviderPicker] = useState<boolean>(false);
   const [showModelPicker, setShowModelPicker] = useState<boolean>(false);
   const [activeSection, setActiveSection] = useState<'main' | 'beta'>('main');
@@ -91,14 +94,59 @@ export default function SettingsScreen() {
   const [editingIdentityFile, setEditingIdentityFile] = useState<string | null>(null);
   const [identityEditContent, setIdentityEditContent] = useState<string>('');
 
-  const currentProvider = useMemo(
-    () => AI_PROVIDERS.find(p => p.id === settings.selectedProvider) ?? AI_PROVIDERS[0],
-    [settings.selectedProvider]
-  );
+  const currentProvider = useMemo(() => {
+    const base = AI_PROVIDERS.find(p => p.id === settings.selectedProvider) ?? AI_PROVIDERS[0];
+    if (settings.selectedProvider === 'custom' && customModels.length > 0) {
+      return { ...base, models: customModels };
+    }
+    if (settings.selectedProvider === 'openrouter' && openRouterModels.length > 0) {
+      return { ...base, models: openRouterModels };
+    }
+    return base;
+  }, [settings.selectedProvider, customModels, openRouterModels]);
   const currentModel = useMemo(
     () => currentProvider?.models?.find(m => m.id === settings.selectedModel) ?? currentProvider?.models?.[0],
     [currentProvider, settings.selectedModel]
   );
+
+  useEffect(() => {
+    let active = true;
+    const fetchModels = async () => {
+      if (settings.selectedProvider === 'openrouter') {
+        if (openRouterModels.length > 0) return;
+        setIsLoadingModels(true);
+        try {
+          const res = await fetch('https://openrouter.ai/api/v1/models');
+          const data = await res.json();
+          if (active && data?.data) {
+            setOpenRouterModels(data.data.map((m: any) => ({ id: m.id, name: m.name })));
+          }
+        } catch (e) {
+          console.log('[Settings] Error fetching OpenRouter models:', e);
+        } finally {
+          if (active) setIsLoadingModels(false);
+        }
+      } else if (settings.selectedProvider === 'custom' && settings.customEndpoint) {
+        setIsLoadingModels(true);
+        try {
+          const url = settings.customEndpoint.replace(/\/v1\/chat\/completions$/, '').replace(/\/$/, '') + '/v1/models';
+          const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+          if (settings.customKey) headers['Authorization'] = 'Bearer ' + settings.customKey;
+          const res = await fetch(url, { headers });
+          const data = await res.json();
+          if (active && data?.data) {
+            setCustomModels(data.data.map((m: any) => ({ id: m.id, name: m.id })));
+          }
+        } catch (e) {
+          console.log('[Settings] Error fetching custom models:', e);
+        } finally {
+          if (active) setIsLoadingModels(false);
+        }
+      }
+    };
+    fetchModels();
+    return () => { active = false; };
+  }, [settings.selectedProvider, settings.customEndpoint, settings.customKey]);
 
   const toggleKeyVisibility = useCallback((key: string) => {
     setShowKeys(prev => ({ ...prev, [key]: !prev[key] }));
@@ -309,7 +357,7 @@ export default function SettingsScreen() {
                 activeOpacity={0.7}
               >
                 <Zap size={13} color={IDE.accent} />
-                <Text style={styles.modelSelectText} numberOfLines={1}>{currentModel?.name ?? 'Modell'}</Text>
+                <Text style={styles.modelSelectText} numberOfLines={1}>{isLoadingModels ? 'Lade...' : (currentModel?.name ?? 'Modell')}</Text>
                 {showModelPicker ? (
                   <ChevronUp size={14} color={IDE.muted} />
                 ) : (

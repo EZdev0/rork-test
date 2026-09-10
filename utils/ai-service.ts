@@ -512,12 +512,13 @@ async function callOpenAI(apiKey: string, model: string, messages: ChatMessage[]
 
   console.log('[AI] Calling OpenAI-compatible:', model, 'endpoint:', endpoint || 'openai', 'messages:', formattedMessages.length);
 
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (apiKey) {
+    headers['Authorization'] = 'Bearer ' + apiKey;
+  }
   const response = await fetch(url, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer ' + apiKey,
-    },
+    headers,
     body: JSON.stringify(body),
     signal,
   });
@@ -884,8 +885,17 @@ async function callRork(
     formatted.unshift({ role: 'user', content: '[Systemanweisung: ' + fullSystemPrompt.slice(0, 4000) + ']' });
   }
 
+  // Ensure strict alternating pattern if required by SDK, or clean empty content
+  const cleanedFormatted: (UserMessage | AssistantMessage)[] = [];
+  for (const msg of formatted) {
+    if (typeof msg.content === 'string' && msg.content.trim() === '') {
+        msg.content = '(empty message)';
+    }
+    cleanedFormatted.push(msg);
+  }
+
   try {
-    const result = await generateText({ messages: formatted });
+    const result = await generateText({ messages: cleanedFormatted });
     const text = result || '';
 
     if (tools && tools.length > 0) {
@@ -941,7 +951,7 @@ export async function callAI(
   customEndpoint?: string,
   fallbackSettings?: Record<string, string>,
 ): Promise<{ content: string; toolCalls: { id: string; name: string; arguments: Record<string, any> }[]; usedFallback?: boolean; fallbackProvider?: string }> {
-  if (!apiKey && provider !== 'rork') {
+  if (!apiKey && provider !== 'rork' && provider !== 'custom') {
     throw new Error('API-Schlüssel fehlt. Bitte in den Einstellungen konfigurieren.\n\nTipp: Wähle "Studio KI" als Anbieter für kostenlose Nutzung ohne Schlüssel!');
   }
 
