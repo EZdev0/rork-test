@@ -262,7 +262,11 @@ export const [ChatProvider, useChat] = createContextHook(() => {
     }),
   }), []);
 
-  const rorkAgent = useRorkAgent({ tools: rorkTools });
+  const rorkAgent = useRorkAgent({
+    tools: rorkTools,
+    // Workaround for CORS if SDK supports custom fetch or endpoint
+    // endpoint: typeof window !== 'undefined' ? 'https://corsproxy.io/?' + encodeURIComponent('https://toolkit.rork.com/agent/chat') : undefined
+  });
 
   useEffect(() => {
     if (!isRorkProvider || !rorkLoading) return;

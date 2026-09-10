@@ -909,7 +909,8 @@ async function callRork(
 
   try {
     const RORK_URL = 'https://toolkit.rork.com/llm/text';
-    const res = await fetch(RORK_URL, {
+    const fetchUrl = typeof window !== 'undefined' ? 'https://corsproxy.io/?' + encodeURIComponent(RORK_URL) : RORK_URL;
+    const res = await fetch(fetchUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ messages: cleanedFormatted })

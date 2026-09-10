@@ -19,9 +19,6 @@ const ChatBubble = React.memo(({ message }: Props) => {
   const appTodos = appContext.todos;
   const updateTodoItem = appContext.updateTodoItem;
 
-  // Early return AFTER hooks to satisfy Rules of Hooks
-  if (message.role === 'tool') return null;
-
   const visibleToolCalls = useMemo(
     () => (message.toolCalls ?? []).filter(tc => {
       if (!tc) return false;
@@ -63,10 +60,13 @@ const ChatBubble = React.memo(({ message }: Props) => {
     return { total, completed, pending };
   }, [message.todos, appTodos]);
 
-
+  const hasThinking = !!message.thinking;
   const hasTodos = !!(message.todos && message.todos.length > 0 && todoStats);
   const hasToolCalls = visibleToolCalls.length > 0;
   const hasCopyButton = !isUser && message.content && message.content.length > 0;
+
+  // Early return AFTER hooks to satisfy Rules of Hooks
+  if (message.role === 'tool') return null;
 
   return (
     <View style={[styles.container, isUser ? styles.userContainer : styles.aiContainer]}>
@@ -89,7 +89,7 @@ const ChatBubble = React.memo(({ message }: Props) => {
       )}
 
       <View style={[styles.bubble, isUser ? styles.userBubble : styles.aiBubble]}>
-        {message.thinking ? (
+        {hasThinking && message.thinking ? (
           <ThinkingBlock thinking={message.thinking} />
         ) : null}
 
@@ -266,24 +266,6 @@ function formatInlineText(text: string): React.ReactNode {
 
     if (line.trim() === '---' || line.trim() === '***') {
       elements.push(<View key={'hr' + li} style={styles.hr} />);
-      continue;
-    }
-
-    if (line.trim().startsWith('|') && line.trim().endsWith('|')) {
-      const cells = line.split('|').filter(c => c !== '');
-      const isHeaderSep = cells.every(c => c.trim().match(/^[\-\:\s]+$/));
-
-      elements.push(
-        <ScrollView horizontal key={'table_' + li} showsHorizontalScrollIndicator={false}>
-          <View style={[styles.tableRow, isHeaderSep && styles.tableRowHeaderSep]}>
-            {cells.map((cell, ci) => (
-              <View key={'td_' + ci} style={styles.tableCell}>
-                <Text style={[styles.tableCellText, isHeaderSep && {color: 'transparent', height: 1}]}>{formatInlineParts(cell.trim())}</Text>
-              </View>
-            ))}
-          </View>
-        </ScrollView>
-      );
       continue;
     }
 
@@ -473,24 +455,6 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: IDE.border,
     marginVertical: 8,
-  },
-  tableRow: {
-    flexDirection: 'row',
-    borderBottomWidth: 1,
-    borderBottomColor: IDE.border,
-  },
-  tableRowHeaderSep: {
-    height: 4,
-  },
-  tableCell: {
-    padding: 8,
-    minWidth: 100,
-    borderRightWidth: 1,
-    borderRightColor: IDE.border,
-  },
-  tableCellText: {
-    color: IDE.textSecondary,
-    fontSize: 14,
   },
   inlineCode: {
     fontFamily: 'monospace',
