@@ -1,5 +1,4 @@
 import { ChatMessage, ToolDefinition, AIProviderType, MemoEntry, TodoItem, AI_PROVIDERS } from '@/types';
-import { generateText } from '@rork-ai/toolkit-sdk';
 
 export function buildPlannerPrompt(options: {
   projectTree: string;
@@ -493,7 +492,18 @@ function formatMessagesForGemini(messages: ChatMessage[]) {
 }
 
 async function callOpenAI(apiKey: string, model: string, messages: ChatMessage[], tools: ToolDefinition[], systemPrompt: string, signal: AbortSignal, endpoint?: string) {
-  const url = endpoint ? endpoint + '/v1/chat/completions' : 'https://api.openai.com/v1/chat/completions';
+  let url = 'https://api.openai.com/v1/chat/completions';
+  if (endpoint) {
+    let cleanEndpoint = endpoint.trim();
+    if (!cleanEndpoint.startsWith('http://') && !cleanEndpoint.startsWith('https://')) {
+      cleanEndpoint = 'https://' + cleanEndpoint;
+    }
+    if (cleanEndpoint.endsWith('/v1/chat/completions')) {
+      url = cleanEndpoint;
+    } else {
+      url = cleanEndpoint.replace(/\/$/, '') + '/v1/chat/completions';
+    }
+  }
   const formattedMessages = formatMessagesForOpenAI(messages, systemPrompt);
 
   const body: any = {
@@ -895,8 +905,18 @@ async function callRork(
   }
 
   try {
-    const result = await generateText({ messages: cleanedFormatted });
-    const text = result || '';
+    const RORK_URL = 'https://toolkit.rork.com/llm/text';
+    const res = await fetch(RORK_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages: cleanedFormatted })
+    });
+    if (!res.ok) {
+      const errText = await res.text().catch(() => '');
+      throw new Error('Rork API Error: ' + res.status + ' ' + errText);
+    }
+    const data = await res.json();
+    const text = data?.completion || '';
 
     if (tools && tools.length > 0) {
       const { toolCalls, cleanContent } = parseToolCallsFromText(text);
