@@ -129,7 +129,11 @@ export default function SettingsScreen() {
       } else if (settings.selectedProvider === 'custom' && settings.customEndpoint) {
         setIsLoadingModels(true);
         try {
-          const url = settings.customEndpoint.replace(/\/v1\/chat\/completions$/, '').replace(/\/$/, '') + '/v1/models';
+          let base = settings.customEndpoint.trim();
+          if (!base.startsWith('http://') && !base.startsWith('https://')) {
+            base = 'https://' + base;
+          }
+          const url = base.replace(/\/v1\/chat\/completions$/, '').replace(/\/$/, '') + '/v1/models';
           const headers: Record<string, string> = { 'Content-Type': 'application/json' };
           if (settings.customKey) headers['Authorization'] = 'Bearer ' + settings.customKey;
           const res = await fetch(url, { headers });
