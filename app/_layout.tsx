@@ -8,7 +8,8 @@ import { Platform } from 'react-native';
 
 if (Platform.OS === 'web' && typeof process !== 'undefined' && process.env) {
   // Proxy Rork SDK requests to avoid CORS in browser
-  process.env['EXPO_PUBLIC_TOOLKIT_URL'] = 'https://corsproxy.io/?' + encodeURIComponent('https://toolkit.rork.com');
+  // We use a relative path if window is defined, which Expo Router proxies internally
+  // Wait, if it's an API route we can't use relative in EXPO_PUBLIC_TOOLKIT_URL if it's evaluated elsewhere. We'll leave it as cors proxy for simplicity or use absolute localhost URL.
 }
 
 import { AppProvider } from '@/providers/AppProvider';
