@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { createRorkTool, useRorkAgent } from '@rork-ai/toolkit-sdk';
 import { ChatMessage, ToolCall, AIProviderType, InlineTodo, PendingToolApproval, TOOL_REGISTRY } from '@/types';
 import { callAI, TOOL_DEFINITIONS, buildSystemPrompt, parseThinkingFromContent } from '@/utils/ai-service';
+import { compressChat } from '@/utils/chat-compression';
 import { useApp } from '@/providers/AppProvider';
 import { useProject } from '@/providers/ProjectProvider';
 
@@ -221,7 +222,23 @@ export const [ChatProvider, useChat] = createContextHook(() => {
         }
       },
     }),
-    web_fetch: createRorkTool({
+
+      sub_agent: createRorkTool({
+        description: 'Delegiert Aufgabe an einen spezialisierten Unteragenten (Analyst, Developer, Tester, Researcher).',
+        zodSchema: z.object({ role: z.string().describe('Rolle des Unteragenten'), task: z.string().describe('Aufgabenbeschreibung') }),
+        execute: async (input: { role: string, task: string }) => {
+          return 'FEHLER: Sub-Agenten können im direkten Chat nicht gestartet werden. Bitte nutze den Planer.';
+        }
+      }),
+
+      propose_agent_mode: createRorkTool({
+        description: 'Schlägt dem Nutzer vor, in den Agenten-Modus zu wechseln, weil die Aufgabe zu komplex für den direkten Chat ist.',
+        zodSchema: z.object({ reason: z.string().describe('Begründung') }),
+        execute: async (input: { reason: string }) => {
+          return 'Tipp: Klicke auf den Button "Erstellen!", um den Planer für diese komplexe Aufgabe zu nutzen: ' + input.reason;
+        }
+      }),
+      web_fetch: createRorkTool({
       description: 'Lädt den Inhalt einer Webseite herunter und gibt den Text zurück (ohne HTML-Tags).',
       zodSchema: z.object({ url: z.string().describe('URL der Webseite'), max_length: z.number().optional().describe('Maximale Zeichenanzahl (Standard: 5000)') }),
       execute: async (input: { url: string; max_length?: number }) => {
@@ -617,8 +634,8 @@ export const [ChatProvider, useChat] = createContextHook(() => {
         fullMsg += 'ALWAYS read files with read_file BEFORE editing them.\n';
         fullMsg += 'Format responses with Markdown: **bold**, `code`, lists.\n';
         fullMsg += 'Use "think" tool for complex tasks to reason.\n';
-        fullMsg += 'For complex tasks: First use "think", then create a plan, then execute all steps.\n';
-        fullMsg += 'At the end of each message: Briefly summarize the tools used.\n';
+        fullMsg += 'For complex tasks: First use "think", then create a plan, then execute all steps. If it is too complex for chat, use the "propose_agent_mode" tool.\n';
+                fullMsg += 'CRITICAL: DO NOT claim to have used a tool if you did not explicitly call it. If a tool fails or is unavailable, you MUST report that it failed.\n';
         if (settings.betaWebSearch || settings.yoloMode) {
           fullMsg += 'You have the "web_search" tool available! Use it for web research and current information.\n';
         }
@@ -677,11 +694,11 @@ export const [ChatProvider, useChat] = createContextHook(() => {
       const systemPrompt = buildSystemPrompt({
         persona: settings.persona, projectTree: getProjectTree(), memos, todos,
         mentionedFiles, yoloMode: settings.yoloMode,
-        agentMd: settings.betaAgentLearning ? agentMd : undefined,
-        soulMd: settings.betaAgentLearning ? soulMd : undefined,
-        identityMd: settings.betaAgentLearning ? identityMd : undefined,
-        userMd: settings.betaAgentLearning ? userMd : undefined,
-        memoryMd: settings.betaAgentLearning ? memoryMd : undefined,
+        agentMd: settings.betaAgentLearning ? (getFileContent('.agents/AGENT.md') || agentMd) : undefined,
+        soulMd: settings.betaAgentLearning ? (getFileContent('.agents/SOUL.md') || soulMd) : undefined,
+        identityMd: settings.betaAgentLearning ? (getFileContent('.agents/IDENTITY.md') || identityMd) : undefined,
+        userMd: settings.betaAgentLearning ? (getFileContent('.agents/USER.md') || userMd) : undefined,
+        memoryMd: settings.betaAgentLearning ? (getFileContent('.agents/MEMORY.md') || memoryMd) : undefined,
         betaAgentLearning: settings.betaAgentLearning,
         toolPermissions: settings.toolPermissions,
       });
@@ -703,6 +720,12 @@ export const [ChatProvider, useChat] = createContextHook(() => {
         if (perm === 'removed') return false;
         return true;
       });
+
+      // Add sub_agent explicitly if yoloMode is active or permission allows
+      if (!filteredTools.find(t => t.name === 'sub_agent') && (settings.yoloMode || getToolPermission('sub_agent') !== 'removed')) {
+        const subAgentTool = TOOL_DEFINITIONS.find(t => t.name === 'sub_agent');
+        if (subAgentTool) filteredTools.push(subAgentTool);
+      }
 
       while (iterations < maxIterations && !abortRef.current) {
         iterations++;

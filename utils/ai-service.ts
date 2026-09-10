@@ -222,6 +222,11 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
     parameters: { type: 'object', properties: { url: { type: 'string', description: 'URL der Webseite' }, max_length: { type: 'number', description: 'Maximale Zeichenanzahl (Standard: 5000)' } }, required: ['url'] },
   },
   {
+    name: 'propose_agent_mode',
+    description: 'Schlägt dem Nutzer vor, in den Agenten-Modus zu wechseln, weil die Aufgabe zu komplex für den direkten Chat ist.',
+    parameters: { type: 'object', properties: { reason: { type: 'string', description: 'Begründung, warum der Agenten-Modus besser wäre' } }, required: ['reason'] },
+  },
+  {
     name: 'read_identity_files',
     description: 'Liest alle Identitätsdateien (SOUL.md, AGENTS.md, IDENTITY.md, USER.md, MEMORY.md) und gibt deren Inhalt zurück.',
     parameters: { type: 'object', properties: {}, required: [] },
@@ -276,110 +281,106 @@ export function buildSystemPrompt(options: {
     fullstack: 'You are an experienced Fullstack Developer Assistant with expertise in frontend, backend, databases, DevOps, and cloud architectures.',
   };
 
+
   let prompt = personaPrompts[options.persona] || personaPrompts.standard;
 
   prompt += '\n\n## Kernregeln\n';
-  prompt += '- Antworte IMMER auf Deutsch.\n';
-  prompt += '- Du hast Zugriff auf die unten definierten Tools. Nutze NUR diese Tools.\n';
-  prompt += '- WICHTIG: Du MUSST eine Datei IMMER erst mit read_file lesen, BEVOR du sie mit write_file oder edit_file bearbeitest.\n';
-  prompt += '- Wenn edit_file fehlschlägt (Text nicht gefunden), lies die Datei erneut mit read_file.\n';
-  prompt += '- Erfinde KEINE Tools die nicht existieren. Du hast genau die definierten Tools.\n';
-  prompt += '- HANDLE SOFORT. Frage NICHT ob du etwas tun sollst. Nutze Tools DIREKT.\n';
-  prompt += '- Für komplexe Aufgaben: Nutze "think" Tool zum Nachdenken, dann handle sofort.\n';
-  prompt += '- Nutze add_memo für wichtige Erkenntnisse über das Projekt.\n';
-  prompt += '- Formatiere Antworten mit Markdown: **fett**, `code`, Listen etc.\n';
+  prompt += '- ALWAYS reply in English.\n';
+  prompt += '- You have access to the tools defined below. Use ONLY these tools.\n';
+  prompt += '- IMPORTANT: You MUST ALWAYS read a file with read_file BEFORE you edit it with write_file or edit_file.\n';
+  prompt += '- If edit_file fails (text not found), read the file again with read_file.\n';
+  prompt += '- DO NOT invent tools that do not exist. You only have the defined tools.\n';
+  prompt += '- ACT IMMEDIATELY. DO NOT ask if you should do something. Use tools DIRECTLY.\n';
+  prompt += '- For complex tasks: Use "think" tool to reason, then act immediately.\n';
+  prompt += '- Use add_memo for important insights about the project.\n';
+  prompt += '- Format responses with Markdown: **bold**, `code`, lists etc.\n';
   prompt += '- Use web_search and web_fetch for current information or documentation (if beta tools are enabled).\n';
   prompt += '- If you need to change multiple files, use "think" first to create a plan, then execute EVERYTHING immediately.\n';
   prompt += '- Be efficient: Explain briefly what you are doing, but act above all.\n';
   prompt += '- For complex tasks: ALWAYS use the "think" tool FIRST to analyze the approach.\n';
   prompt += '- Mention in your thought process which tools you will use (e.g., "I need to work with read_file").\n';
-  prompt += '- At the end of each response: Briefly summarize which tools were used.\n';
+
   prompt += '- ALWAYS write complete sentences. No incomplete sentences!\n';
 
   if (options.betaAgentLearning) {
     prompt += '\n## Learning Capability (Active)\n';
     prompt += 'You have access to 5 persistent identity files. These files survive sessions and define who you are and what you know about the user.\n';
-    prompt += 'Du SOLLST diese Dateien aktiv aktualisieren wenn du neue Erkenntnisse gewinnst.\n\n';
-    prompt += '### Identitätsdateien\n';
-    prompt += '- **SOUL.md** — Deine Persönlichkeit, Werte und Verhaltensphilosophie. Aktualisiere mit `update_soul_md`.\n';
-    prompt += '- **AGENTS.md** — Deine Verhaltensregeln, Reasoning-Protokoll und Tool-Nutzung. Aktualisiere mit `update_agents_md`.\n';
-    prompt += '- **IDENTITY.md** — Dein Name, Rolle und Präsentation nach außen. Aktualisiere mit `update_identity_md`.\n';
-    prompt += '- **USER.md** — Profil des Nutzers: Präferenzen, Stil, Kontext, Projekte. Aktualisiere mit `update_user_md`.\n';
-    prompt += '- **MEMORY.md** — Langzeit-Gedächtnis: Entscheidungen, Fehler, gelernte Muster. Aktualisiere mit `update_memory_md`.\n\n';
-    prompt += '### Lern-Regeln\n';
-    prompt += '- Lies zu Beginn einer Session mit `read_identity_files` den aktuellen Stand.\n';
-    prompt += '- Aktualisiere USER.md wenn du neue Nutzer-Präferenzen entdeckst.\n';
-    prompt += '- Aktualisiere MEMORY.md am Ende wichtiger Aufgaben mit Zusammenfassung.\n';
-    prompt += '- Aktualisiere AGENTS.md wenn du neue effektive Arbeitsweisen findest.\n';
-    prompt += '- Aktualisiere SOUL.md nur wenn sich grundlegende Werte/Stil ändern sollen.\n';
-    prompt += '- LÖSCHE NIEMALS diese Dateien. Du darfst sie nur aktualisieren.\n';
-    prompt += '- Schreibe immer den VOLLSTÄNDIGEN neuen Inhalt, nicht nur Änderungen.\n';
+    prompt += 'You MUST actively update these files when you gain new insights.\n\n';
+    prompt += '### Identity Files\n';
+    prompt += '- **SOUL.md** — Your personality, values, and behavioral philosophy. Update with `update_soul_md`.\n';
+    prompt += '- **AGENTS.md** — Your behavioral rules, reasoning protocol, and tool usage. Update with `update_agents_md`.\n';
+    prompt += '- **IDENTITY.md** — Your name, role, and outward presentation. Update with `update_identity_md`.\n';
+    prompt += '- **USER.md** — User profile: preferences, style, context, projects. Update with `update_user_md`.\n';
+    prompt += '- **MEMORY.md** — Long-term memory: decisions, errors, learned patterns. Update with `update_memory_md`.\n\n';
+    prompt += '### Learning Rules\n';
+    prompt += '- Read the current state with `read_identity_files` at the beginning of a session.\n';
+    prompt += '- Update USER.md when you discover new user preferences.\n';
+    prompt += '- Update MEMORY.md at the end of important tasks with a summary.\n';
+    prompt += '- Update AGENTS.md when you find new effective workflows.\n';
+    prompt += '- Update SOUL.md only if fundamental values/style should change.\n';
+    prompt += '- NEVER DELETE these files. You may only update them.\n';
+    prompt += '- Always write the FULL new content, not just changes.\n';
   }
 
   if (options.soulMd && options.soulMd.trim()) {
-    prompt += '\n## SOUL.md — Persönlichkeit\n';
-    prompt += options.soulMd + '\n';
+    prompt += '\n## SOUL.md\n' + options.soulMd.slice(0, 1000) + (options.soulMd.length > 1000 ? "... (use read_identity_files to read more)" : "") + '\n';
   }
 
   if (options.agentMd && options.agentMd.trim()) {
-    prompt += '\n## AGENTS.md — Verhaltensregeln\n';
-    prompt += options.agentMd + '\n';
+    prompt += '\n## AGENTS.md\n' + options.agentMd.slice(0, 1000) + (options.agentMd.length > 1000 ? "... (use read_identity_files to read more)" : "") + '\n';
   }
 
   if (options.identityMd && options.identityMd.trim()) {
-    prompt += '\n## IDENTITY.md — Identität\n';
-    prompt += options.identityMd + '\n';
+    prompt += '\n## IDENTITY.md\n' + options.identityMd.slice(0, 1000) + (options.identityMd.length > 1000 ? "... (use read_identity_files to read more)" : "") + '\n';
   }
 
   if (options.userMd && options.userMd.trim()) {
-    prompt += '\n## USER.md — Nutzer-Profil\n';
-    prompt += options.userMd + '\n';
+    prompt += '\n## USER.md\n' + options.userMd.slice(0, 1000) + (options.userMd.length > 1000 ? "... (use read_identity_files to read more)" : "") + '\n';
   }
 
   if (options.memoryMd && options.memoryMd.trim()) {
-    prompt += '\n## MEMORY.md — Langzeit-Gedächtnis\n';
-    prompt += options.memoryMd + '\n';
+    prompt += '\n## MEMORY.md\n' + options.memoryMd.slice(0, 1000) + (options.memoryMd.length > 1000 ? "... (use read_identity_files to read more)" : "") + '\n';
   }
 
   if (options.toolPermissions) {
     const blocked = Object.entries(options.toolPermissions).filter(([_, v]) => v === 'blocked').map(([k]) => k);
     const removed = Object.entries(options.toolPermissions).filter(([_, v]) => v === 'removed').map(([k]) => k);
     if (blocked.length > 0) {
-      prompt += '\n## Blockierte Tools\n';
-      prompt += 'Folgende Tools sind vom Nutzer blockiert. Informiere den Nutzer wenn du sie brauchst:\n';
-      blocked.forEach(t => { prompt += '- ' + t + ' (blockiert - bitte Nutzer um Freigabe)\n'; });
+      prompt += '\n## Blocked Tools\n';
+      prompt += 'The following tools are blocked by the user. DO NOT use them. If you absolutely need them, ask the user to enable them in settings:\n';
+      blocked.forEach(t => { prompt += '- ' + t + ' (blocked - please ask user for permission)\n'; });
     }
     if (removed.length > 0) {
-      prompt += '\n(Hinweis: Einige Tools sind nicht verfügbar.)\n';
+      prompt += '\n(Note: Some tools are not available.)\n';
     }
   }
 
   if (!options.yoloMode) {
-    prompt += '\n## Bestätigungsmodus\n';
-    prompt += '- Für destruktive Aktionen (Löschen, komplettes Überschreiben): Frage kurz nach.\n';
-    prompt += '- Für Erstellen und Bearbeiten: Handle DIREKT ohne nachzufragen.\n';
+    prompt += '\n## Confirmation Mode\n';
+    prompt += '- For destructive actions (deleting, complete overwrite): Ask for confirmation.\n';
+    prompt += '- For creating and editing: Act DIRECTLY without asking.\n';
   } else {
-    prompt += '\n## YOLO-Modus aktiv\n';
-    prompt += '- Du darfst Dateien ohne Nachfragen erstellen, bearbeiten und löschen.\n';
-    prompt += '- Handle schnell und effizient, aber informiere den Benutzer über Änderungen.\n';
+    prompt += '\n## YOLO Mode Active\n';
+    prompt += '- You may create, edit, and delete files without asking for confirmation.\n';
+    prompt += '- Act quickly and efficiently, but inform the user about changes.\n';
   }
 
-  prompt += '\n## Projektstruktur\n```\n' + (options.projectTree || '(Leeres Projekt)') + '\n```\n';
+  prompt += '\n## Project Structure\n```\n' + (options.projectTree || '(Empty Project)') + '\n```\n';
 
   if (options.memos.length > 0) {
-    prompt += '\n## Projekt-Memos\n';
+    prompt += '\n## Project Memos\n';
     options.memos.forEach(m => { prompt += '- ' + m.content + '\n'; });
   }
 
   if (options.todos.length > 0) {
-    prompt += '\n## Aktuelle Todos\n';
+    prompt += '\n## Current Todos\n';
     options.todos.forEach(t => {
       prompt += '- [' + (t.completed ? 'x' : ' ') + '] (ID: ' + t.id + ') ' + t.text + '\n';
     });
   }
 
   if (options.mentionedFiles.length > 0) {
-    prompt += '\n## Referenzierte Dateien\n';
+    prompt += '\n## Referenced Files\n';
     options.mentionedFiles.forEach(f => {
       prompt += '\n### ' + f.path + '\n```\n' + f.content + '\n```\n';
     });
@@ -781,25 +782,27 @@ function getProviderForFallback(currentProvider: AIProviderType, settings: Recor
 
 function buildToolCallInstructions(tools: ToolDefinition[]): string {
   if (tools.length === 0) return '';
-  let instructions = '\n## Tool-Calling Anweisungen\n';
-  instructions += 'Du kannst Tools aufrufen indem du sie in einem speziellen Format ausgibst.\n';
-  instructions += 'Schreibe Tool-Aufrufe GENAU in diesem Format (JSON in einem tool-Block):\n';
+  let instructions = '\n## Tool-Calling Instructions\n';
+  instructions += 'You can call tools by outputting them in a special format.\n';
+  instructions += 'Write tool calls EXACTLY in this format (JSON in a tool block):\n';
   instructions += '```tool\n{"name": "tool_name", "arguments": {"param1": "value1"}}\n```\n\n';
-  instructions += 'WICHTIG:\n';
-  instructions += '- Schreibe NUR EINEN tool-Block pro Nachricht.\n';
-  instructions += '- Schreibe den tool-Block am ANFANG deiner Antwort, BEVOR du Text schreibst.\n';
-  instructions += '- Nach dem Tool-Aufruf wird dir das Ergebnis zurückgegeben und du kannst weitere Tools aufrufen.\n';
-  instructions += '- Wenn du FERTIG bist, rufe das Tool "task_complete" auf.\n';
-  instructions += '- Nutze Tools AKTIV und SOFORT. Frage NICHT ob du etwas tun sollst.\n\n';
-  instructions += '## Verfügbare Tools\n';
+  instructions += 'IMPORTANT:\n';
+  instructions += '- Write ONLY ONE tool block per message.\n';
+  instructions += '- Write the tool block at the BEGINNING of your response, BEFORE writing text.\n';
+  instructions += '- After calling the tool, the result will be returned to you and you can call more tools.\n';
+  instructions += '- When you are FINISHED, call the "task_complete" tool.\n';
+  instructions += '- Use tools ACTIVELY and IMMEDIATELY. DO NOT ask if you should do something.\n';
+  instructions += '- DO NOT hallucinate or claim you have executed a tool if you did not output the exact ```tool block.\n';
+  instructions += '- DO NOT describe that you are calling a tool unless you actually output the ```tool block.\n\n';
+  instructions += '## Available Tools\n';
   for (const t of tools) {
     const params = t.parameters?.properties
       ? Object.entries(t.parameters.properties).map(([k, v]: [string, any]) => k + ' (' + (v?.type || 'string') + '): ' + (v?.description || '')).join(', ')
       : '';
     const required = t.parameters?.required?.join(', ') || '';
     instructions += '- **' + t.name + '**: ' + t.description + '\n';
-    if (params) instructions += '  Parameter: ' + params + '\n';
-    if (required) instructions += '  Pflicht: ' + required + '\n';
+    if (params) instructions += '  Parameters: ' + params + '\n';
+    if (required) instructions += '  Required: ' + required + '\n';
   }
   return instructions;
 }
@@ -917,6 +920,9 @@ async function callRork(
     }
     const data = await res.json();
     const text = data?.completion || '';
+    if (!text && !data?.completion) {
+      throw new Error('Leere Antwort vom Modell erhalten.');
+    }
 
     if (tools && tools.length > 0) {
       const { toolCalls, cleanContent } = parseToolCallsFromText(text);
@@ -985,6 +991,9 @@ export async function callAI(
     for (let attempt = 0; attempt < maxRetries; attempt++) {
       try {
         const result = await callProviderDirect(provider, apiKey, model, messages, tools, systemPrompt, controller.signal, customEndpoint);
+        if (!result.content && (!result.toolCalls || result.toolCalls.length === 0)) {
+           throw new Error('Leere Antwort vom Modell erhalten (Kein Text, keine Tools).');
+        }
         return result;
       } catch (error: any) {
         lastError = error;

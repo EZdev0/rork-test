@@ -45,7 +45,7 @@ const ThinkingBlock = React.memo(({ thinking, isLive, phase }: Props) => {
 
   const toggle = useCallback(() => setExpanded(p => !p), []);
 
-  const rawContent = thinking || (isLive ? (phase || 'Denkt nach...') : '');
+  const rawContent = thinking || phase || (isLive ? 'Denkt nach...' : 'Keine Gedanken aufgezeichnet.');
   const displayContent = stripMarkdown(rawContent);
   const hasContent = !!displayContent && displayContent.length > 0;
   const lineCount = displayContent ? displayContent.split('\n').length : 0;
@@ -73,7 +73,7 @@ const ThinkingBlock = React.memo(({ thinking, isLive, phase }: Props) => {
         </View>
       </TouchableOpacity>
 
-      {expanded && hasContent ? (
+      {expanded ? (
         <ScrollView
           ref={scrollRef}
           style={styles.contentScroll}
