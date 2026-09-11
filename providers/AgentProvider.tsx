@@ -433,9 +433,8 @@ export const [AgentProvider, useAgent] = createContextHook(() => {
             if (validQuestions.length > 0) {
               setClarificationQuestions(validQuestions);
               console.log('[Agent] Clarification questions:', validQuestions.map(q => q.question));
-              // HIER: UI müsste Fragen anzeigen und User-Antworten sammeln
-              // Für jetzt brechen wir ab und warten auf User-Input
-              return null;
+              // Wir haben Fragen generiert, setzen aber mit der Planerstellung fort
+              // damit der Agent-Modus nicht blockiert (Null-Fehler Vermeidung)
             }
           }
         } catch (e) {
