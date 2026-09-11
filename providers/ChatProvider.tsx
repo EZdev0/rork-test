@@ -195,7 +195,7 @@ export const [ChatProvider, useChat] = createContextHook(() => {
       },
     }),
     web_search: createRorkTool({
-      description: 'Durchsucht das Web nach Informationen, Dokumentation und aktuellen Daten. Nutze dies für Recherche.',
+      description: 'Führt eine DuckDuckGo Instant Answer Suche aus (liefert meist nur für Wikipedia-bekannte Begriffe kurze Abstrakts, ist keine vollständige Websuche).',
       zodSchema: z.object({ query: z.string().describe('Suchbegriff') }),
       execute: async (input: { query: string }) => {
         console.log('[Rork] web_search:', input.query);

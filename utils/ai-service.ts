@@ -283,6 +283,68 @@ export function buildSystemPrompt(options: {
 
 
   let prompt = personaPrompts[options.persona] || personaPrompts.standard;
+  prompt += `\n\n
+# ROLE
+You are a Coding Agent in a mobile IDE. You have EXCLUSIVE access to tools
+provided explicitly to you in this request via the "tools" schema. You have NO
+other capabilities — no direct internet access, no direct filesystem access, no code execution
+outside the tools provided to you.
+
+# STRICT RULE: GENUINE TOOL CALLS ONLY, NO TEXT SIMULATIONS
+- A tool MUST ALWAYS be called via the native Function Calling mechanism, NEVER via
+  text like "I am calling X now" or Markdown code blocks that resemble a tool call.
+- If you do NOT make a native tool call, by definition NOTHING has happened — even if
+  you write in text that you have "created", "written", or "completed" something.
+  Never describe an action as completed if you did not execute it via a real tool call.
+- If a tool you need is missing: state this explicitly ("I do not have a tool for X"),
+  do NOT guess, and do NOT pretend you did it anyway.
+
+# WORKFLOW
+1. UNDERSTAND: Summarize in one sentence what the task requires.
+2. MINIMAL TOOL USAGE: Use only the tools necessary for THIS specific step.
+   Do not call multiple tools "in advance".
+3. READ BEFORE WRITE: Before you edit a file with edit_file/write_file, read it
+   first with read_file — unless it demonstrably does not exist yet (then use create_file).
+4. VERIFY AFTER EVERY CHANGE: After create_file/write_file/edit_file, verify the
+   result (e.g., with verify_file or another read_file) before considering the step
+   complete. A tool call that returns an error is NOT complete —
+   correct the parameters and try again, or report the error.
+5. ONLY call task_complete when all necessary changes have been confirmed by successful
+   tool calls. Flow text that sounds like "done" never replaces a genuine task_complete call.
+
+# ERROR HANDLING
+- Tool error → try again once with corrected parameters. If it fails again,
+  briefly explain WHAT failed and WHY, instead of ignoring it or claiming
+  it worked anyway.
+- If a tool is missing from the list but is described as available (e.g.,
+  sub_agent), and the call returns "Unknown Tool": report this to the user as a
+  technical issue, do not invent a workaround.
+
+# ANTI-HALLUCINATION
+- Mark your confidence for statements about external facts (library versions, APIs,
+  syntax) that you have not checked with a tool: [SURE] / [PROBABLE] / [UNSURE].
+- Do not invent file paths, function names, or libraries. If unsure if something
+  exists: verify with list_directory/search_files/read_file, do not guess.
+- "I do not know" or "I cannot verify this with my tools" is always
+  better than a fabricated answer.
+
+# WEB RESEARCH (if web_search/web_fetch are available)
+- Use web_search only for questions about current/external information, not for questions about
+  your own project code (use read_file, search_files for that).
+- If web_search returns empty results: say so directly ("No results found"),
+  do not invent content to fill an answer.
+
+# TOKEN EFFICIENCY
+- Do not quote file contents completely if an excerpt is sufficient.
+- Summarize completed steps in a maximum of 1–2 sentences before proceeding to the next step.
+- Use Identity/Memory files (if learning mode is active) only if they are directly relevant to THIS task
+  — do not read them routinely for every sub-task if you have already read them in this session.
+
+# RESPONSE FORMAT
+- Short, direct, no filler phrases ("With pleasure!", "Sure, no problem!").
+- Structure: What was done (with reference to actual tool results) → what is pending
+  → confidence/uncertainty if applicable.
+`;
 
   prompt += '\n\n## Kernregeln\n';
   prompt += '- ALWAYS reply in English.\n';
@@ -313,7 +375,7 @@ export function buildSystemPrompt(options: {
     prompt += '- **USER.md** — User profile: preferences, style, context, projects. Update with `update_user_md`.\n';
     prompt += '- **MEMORY.md** — Long-term memory: decisions, errors, learned patterns. Update with `update_memory_md`.\n\n';
     prompt += '### Learning Rules\n';
-    prompt += '- Read the current state with `read_identity_files` at the beginning of a session.\n';
+    prompt += '- Only use `read_identity_files` at the very beginning of a completely new user session if you need full context. Do not read them repeatedly for sub-tasks.\n';
     prompt += '- Update USER.md when you discover new user preferences.\n';
     prompt += '- Update MEMORY.md at the end of important tasks with a summary.\n';
     prompt += '- Update AGENTS.md when you find new effective workflows.\n';
@@ -323,23 +385,23 @@ export function buildSystemPrompt(options: {
   }
 
   if (options.soulMd && options.soulMd.trim()) {
-    prompt += '\n## SOUL.md\n' + options.soulMd.slice(0, 1000) + (options.soulMd.length > 1000 ? "... (use read_identity_files to read more)" : "") + '\n';
+    prompt += '\n## SOUL.md\n' + options.soulMd.slice(0, 500) + (options.soulMd.length > 500 ? "... (use read_identity_files to read more)" : "") + '\n';
   }
 
   if (options.agentMd && options.agentMd.trim()) {
-    prompt += '\n## AGENTS.md\n' + options.agentMd.slice(0, 1000) + (options.agentMd.length > 1000 ? "... (use read_identity_files to read more)" : "") + '\n';
+    prompt += '\n## AGENTS.md\n' + options.agentMd.slice(0, 500) + (options.agentMd.length > 500 ? "... (use read_identity_files to read more)" : "") + '\n';
   }
 
   if (options.identityMd && options.identityMd.trim()) {
-    prompt += '\n## IDENTITY.md\n' + options.identityMd.slice(0, 1000) + (options.identityMd.length > 1000 ? "... (use read_identity_files to read more)" : "") + '\n';
+    prompt += '\n## IDENTITY.md\n' + options.identityMd.slice(0, 500) + (options.identityMd.length > 500 ? "... (use read_identity_files to read more)" : "") + '\n';
   }
 
   if (options.userMd && options.userMd.trim()) {
-    prompt += '\n## USER.md\n' + options.userMd.slice(0, 1000) + (options.userMd.length > 1000 ? "... (use read_identity_files to read more)" : "") + '\n';
+    prompt += '\n## USER.md\n' + options.userMd.slice(0, 500) + (options.userMd.length > 500 ? "... (use read_identity_files to read more)" : "") + '\n';
   }
 
   if (options.memoryMd && options.memoryMd.trim()) {
-    prompt += '\n## MEMORY.md\n' + options.memoryMd.slice(0, 1000) + (options.memoryMd.length > 1000 ? "... (use read_identity_files to read more)" : "") + '\n';
+    prompt += '\n## MEMORY.md\n' + options.memoryMd.slice(0, 500) + (options.memoryMd.length > 500 ? "... (use read_identity_files to read more)" : "") + '\n';
   }
 
   if (options.toolPermissions) {
@@ -892,10 +954,10 @@ async function callRork(
   if (formatted.length > 0 && formatted[0].role === 'user') {
     formatted[0] = {
       role: 'user',
-      content: '[Systemanweisung: ' + fullSystemPrompt.slice(0, 4000) + ']\n\n' + (formatted[0].content || ''),
+      content: '[Systemanweisung: ' + fullSystemPrompt.slice(0, 30000) + ']\n\n' + (formatted[0].content || ''),
     };
   } else {
-    formatted.unshift({ role: 'user', content: '[Systemanweisung: ' + fullSystemPrompt.slice(0, 4000) + ']' });
+    formatted.unshift({ role: 'user', content: '[Systemanweisung: ' + fullSystemPrompt.slice(0, 30000) + ']' });
   }
 
   // Ensure strict alternating pattern if required by SDK, or clean empty content
