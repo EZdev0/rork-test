@@ -582,12 +582,12 @@ export const [AgentProvider, useAgent] = createContextHook(() => {
           parameters: { type: 'object', properties: { summary: { type: 'string', description: 'Zusammenfassung der Recherche-Ergebnisse' } }, required: ['summary'] },
         });
 
-        const searchPrompt = 'Du bist ein Web-Recherche-Agent. Antworte auf Deutsch.\n'
-          + 'Deine Aufgabe: ' + task.title + '\n'
+        const searchPrompt = 'You are a Web Research Agent. Always answer in English.\n'
+          + 'Your task: ' + task.title + '\n'
           + 'Details: ' + task.description + '\n\n'
-          + 'Nutze web_search um Informationen zu finden und web_fetch um Webseiten zu laden.\n'
-          + 'Fasse die Ergebnisse zusammen und rufe task_complete auf wenn du fertig bist.\n'
-          + 'Nutze add_memo um wichtige Erkenntnisse zu speichern.';
+          + 'Use web_search to find information and web_fetch to load web pages.\n'
+          + 'Summarize the results and call task_complete when you are done.\n'
+          + 'Use add_memo to save important insights.';
 
         let messages: ChatMessage[] = [{
           id: genId(), role: 'user',
@@ -745,11 +745,11 @@ Untersuche alle Optionen gründlich.`;
       return true;
     });
 
-    // Add sub_agent explicitly if yoloMode is active or permission allows
-    if (!filteredBaseTools.find(t => t.name === 'sub_agent') && (settings.yoloMode || getToolPermission('sub_agent') !== 'removed')) {
+    // sub_agent tool is removed because it is not implemented in executeTool
+    /* if (!filteredBaseTools.find(t => t.name === 'sub_agent') && (settings.yoloMode || getToolPermission('sub_agent') !== 'removed')) {
       const subAgentTool = TOOL_DEFINITIONS.find(t => t.name === 'sub_agent');
       if (subAgentTool) filteredBaseTools.push(subAgentTool);
-    }
+    } */
 
 
     const subAgentTools = [...filteredBaseTools, {
@@ -826,19 +826,17 @@ Untersuche alle Optionen gründlich.`;
           messages = [...messages, assistantMsg];
           updateTaskInPlan(planId, task.id, t => ({ ...t, subAgentMessages: [...messages] }));
 
-          const contentLower = (response.content || '').toLowerCase();
-          const looksComplete = contentLower.includes('abgeschlossen') || contentLower.includes('fertig') || contentLower.includes('erledigt') || contentLower.includes('erstellt') || contentLower.includes('geschrieben');
-          if (looksComplete || iterations >= 3) {
-            taskDone = true;
+          if (iterations >= 3) {
+            // Task is NOT done just because of text, but we stop looping after 3 iterations to prevent infinite loops.
             break;
           }
 
           const nudgeMsg: ChatMessage = {
             id: genId(), role: 'user', timestamp: Date.now(),
-            content: 'Du hast noch keine Tools aufgerufen. Bitte nutze JETZT die verfügbaren Tools um die Aufgabe auszuführen. '
-              + 'Erstelle Dateien mit create_file, lies sie mit read_file, etc. '
-              + 'Wenn du fertig bist, rufe task_complete auf. '
-              + 'Schreibe Tool-Aufrufe im Format: ```tool\n{"name": "tool_name", "arguments": {...}}\n```',
+            content: 'You have not called any tools yet. Please use the available tools NOW to execute the task. '
+              + 'Create files with create_file, read them with read_file, etc. '
+              + 'When you are done, call task_complete. '
+              + 'Write tool calls in the format: ```tool\n{"name": "tool_name", "arguments": {...}}\n```',
           };
           messages = [...messages, nudgeMsg];
           continue;
@@ -880,11 +878,11 @@ Untersuche alle Optionen gründlich.`;
 
           let toolContent = result;
           if (isError) {
-            toolContent = result + '\n\nHINWEIS: Das Tool ist fehlgeschlagen. Du kannst:\n'
-              + '1. Die Datei erst mit read_file oder list_directory prüfen\n'
-              + '2. Den Befehl mit korrigierten Parametern erneut versuchen\n'
-              + '3. Mit verify_file prüfen ob die Datei existiert\n'
-              + 'Fahre innerhalb dieses Schrittes fort, ohne abzubrechen.';
+            toolContent = result + '\n\nNOTE: The tool failed. You can:\n'
+              + '1. First check the file with read_file or list_directory\n'
+              + '2. Try the command again with corrected parameters\n'
+              + '3. Use verify_file to check if the file exists\n'
+              + 'Continue within this step without aborting.';
           }
 
           toolResultMessages.push({

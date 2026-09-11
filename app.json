@@ -25,7 +25,9 @@
       "package": "app.rork.studio_mobile_ide"
     },
     "web": {
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/favicon.png",
+      "output": "server",
+      "bundler": "metro"
     },
     "plugins": [
       [
