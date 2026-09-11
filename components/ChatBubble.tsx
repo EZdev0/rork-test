@@ -228,6 +228,49 @@ function formatInlineText(text: string): React.ReactNode {
   for (let li = 0; li < lines.length; li++) {
     const line = lines[li];
 
+    if (line.trim().startsWith('|')) {
+      const tableLines = [];
+      while (li < lines.length && lines[li].trim().startsWith('|')) {
+        tableLines.push(lines[li]);
+        li++;
+      }
+      li--; // Adjust index because outer loop will increment it
+
+      const rows = [];
+      let isHeader = true;
+      for (let r = 0; r < tableLines.length; r++) {
+        const rowStr = tableLines[r].trim();
+        // Skip separator row
+        if (/^\|[-:| ]+\|/.test(rowStr) || /^[-\s|:]+$/.test(rowStr) && rowStr.includes('-') && rowStr.includes('|')) {
+          isHeader = false;
+          continue;
+        }
+        const cells = rowStr.split('|').filter((c, i, arr) => !(i === 0 && c === '') && !(i === arr.length - 1 && c === ''));
+
+        rows.push(
+          <View key={'tr'+li+'-'+r} style={[styles.tableRow, isHeader && styles.tableHeaderRow, r === tableLines.length - 1 && { borderBottomWidth: 0 }]}>
+            {cells.map((cell, ci) => (
+              <View key={'tc'+li+'-'+r+'-'+ci} style={[styles.tableCell, ci === cells.length - 1 && styles.tableCellLast]}>
+                <Text style={isHeader ? styles.tableHeaderText : styles.tableCellText}>
+                  {formatInlineParts(cell.trim())}
+                </Text>
+              </View>
+            ))}
+          </View>
+        );
+        if (r === 0) isHeader = false;
+      }
+
+      elements.push(
+        <ScrollView key={'tbl'+li} horizontal showsHorizontalScrollIndicator={Platform.OS === 'web'} style={{ marginVertical: 8 }}>
+          <View style={styles.tableContainer}>
+            {rows}
+          </View>
+        </ScrollView>
+      );
+      continue;
+    }
+
     if (/^#{1,3}\s/.test(line)) {
       const level = line.match(/^(#{1,3})/)![1].length;
       const headingText = line.replace(/^#{1,3}\s+/, '');
@@ -597,6 +640,40 @@ const styles = StyleSheet.create({
     marginTop: 8,
     paddingVertical: 4,
     alignSelf: 'flex-start' as const,
+  },
+  tableContainer: {
+    borderWidth: 1,
+    borderColor: IDE.border,
+    borderRadius: 8,
+    marginVertical: 8,
+    overflow: 'hidden',
+  },
+  tableRow: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderBottomColor: IDE.border,
+  },
+  tableHeaderRow: {
+    backgroundColor: IDE.surface,
+  },
+  tableCell: {
+    flex: 1,
+    padding: 8,
+    borderRightWidth: 1,
+    borderRightColor: IDE.border,
+    justifyContent: 'center',
+  },
+  tableCellLast: {
+    borderRightWidth: 0,
+  },
+  tableHeaderText: {
+    fontWeight: '700',
+    fontSize: 13,
+    color: IDE.text,
+  },
+  tableCellText: {
+    fontSize: 13,
+    color: IDE.text,
   },
   copyMsgText: {
     fontSize: 11,
