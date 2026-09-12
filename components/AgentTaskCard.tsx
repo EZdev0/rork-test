@@ -325,7 +325,7 @@ const AgentTaskCard = React.memo(({ task, index, editable, onUpdate, onRemove, o
             <Text style={styles.description}>{task.description}</Text>
           )}
 
-          {!!task.error && (
+          {task.error && (
             <View style={styles.errorBox}>
               <AlertCircle size={12} color={IDE.danger} />
               <Text style={styles.errorText}>{task.error}</Text>
@@ -338,8 +338,8 @@ const AgentTaskCard = React.memo(({ task, index, editable, onUpdate, onRemove, o
                 <FilePlus size={12} color={IDE.accent} />
                 <Text style={[styles.fileSectionTitle, { color: IDE.accent }]}>Erstellt</Text>
               </View>
-              {[...new Set(task.filesCreated)].map((f, fi) => (
-                <Text key={'fc_' + fi + '_' + f} style={styles.filePath}>{f}</Text>
+              {task.filesCreated.map(f => (
+                <Text key={f} style={styles.filePath}>{f}</Text>
               ))}
             </View>
           )}
@@ -350,8 +350,8 @@ const AgentTaskCard = React.memo(({ task, index, editable, onUpdate, onRemove, o
                 <FileText size={12} color={IDE.primary} />
                 <Text style={[styles.fileSectionTitle, { color: IDE.primary }]}>Geändert</Text>
               </View>
-              {[...new Set(task.filesModified)].map((f, fi) => (
-                <Text key={'fm_' + fi + '_' + f} style={styles.filePath}>{f}</Text>
+              {task.filesModified.map(f => (
+                <Text key={f} style={styles.filePath}>{f}</Text>
               ))}
             </View>
           )}
@@ -362,8 +362,8 @@ const AgentTaskCard = React.memo(({ task, index, editable, onUpdate, onRemove, o
                 <FileX size={12} color={IDE.danger} />
                 <Text style={[styles.fileSectionTitle, { color: IDE.danger }]}>Gelöscht</Text>
               </View>
-              {[...new Set(task.filesDeleted)].map((f, fi) => (
-                <Text key={'fd_' + fi + '_' + f} style={styles.filePath}>{f}</Text>
+              {task.filesDeleted.map(f => (
+                <Text key={f} style={styles.filePath}>{f}</Text>
               ))}
             </View>
           )}
@@ -386,7 +386,7 @@ const AgentTaskCard = React.memo(({ task, index, editable, onUpdate, onRemove, o
             </View>
           )}
 
-          {!!task.result && task.status === 'completed' && !isThinkingType && (
+          {task.result && task.status === 'completed' && !isThinkingType && (
             <View style={styles.resultBox}>
               <Text style={styles.resultLabel}>Ergebnis</Text>
               <Text style={styles.resultText} numberOfLines={6}>{task.result}</Text>
@@ -420,8 +420,8 @@ const AgentTaskCard = React.memo(({ task, index, editable, onUpdate, onRemove, o
               </TouchableOpacity>
               {toolsExpanded && (
                 <View style={styles.toolCallsList}>
-                  {allToolCalls.map((tc, ti) => (
-                    <ToolCallView key={(tc.id || 'tc') + '_' + ti} toolCall={tc} />
+                  {allToolCalls.map(tc => (
+                    <ToolCallView key={tc.id} toolCall={tc} />
                   ))}
                 </View>
               )}

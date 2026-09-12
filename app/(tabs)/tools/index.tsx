@@ -550,7 +550,7 @@ function PlanCard({ plan }: { plan: AgentPlan }) {
             <PlanTaskRow key={task.id} task={task} index={i} />
           ) : null)}
 
-          {!!plan.summary && (
+          {plan.summary && (
             <View style={planStyles.summaryBox}>
               <Text style={planStyles.summaryLabel}>Zusammenfassung</Text>
               <Text style={planStyles.summaryText}>{plan.summary}</Text>
@@ -610,7 +610,7 @@ function PlanTaskRow({ task, index }: { task: AgentTask; index: number }) {
       {expanded && (
         <View style={planStyles.taskDetails}>
           <Text style={planStyles.taskDesc}>{task.description}</Text>
-          {!!task.error && (
+          {task.error && (
             <View style={planStyles.taskErrorBox}>
               <AlertCircle size={10} color={IDE.danger} />
               <Text style={planStyles.taskErrorText}>{task.error}</Text>
@@ -619,16 +619,16 @@ function PlanTaskRow({ task, index }: { task: AgentTask; index: number }) {
           {task.filesCreated?.length > 0 && (
             <View style={planStyles.fileList}>
               <Text style={[planStyles.fileLabel, { color: IDE.accent }]}>Erstellt:</Text>
-              {[...new Set(task.filesCreated)].map((f, fi) => <Text key={'fc_' + fi + '_' + f} style={planStyles.filePath}>{f}</Text>)}
+              {task.filesCreated.map(f => <Text key={f} style={planStyles.filePath}>{f}</Text>)}
             </View>
           )}
           {task.filesModified?.length > 0 && (
             <View style={planStyles.fileList}>
               <Text style={[planStyles.fileLabel, { color: IDE.primary }]}>Geändert:</Text>
-              {[...new Set(task.filesModified)].map((f, fi) => <Text key={'fm_' + fi + '_' + f} style={planStyles.filePath}>{f}</Text>)}
+              {task.filesModified.map(f => <Text key={f} style={planStyles.filePath}>{f}</Text>)}
             </View>
           )}
-          {!!task.result && task.status === 'completed' && (
+          {task.result && task.status === 'completed' && (
             <View style={planStyles.resultBox}>
               <Text style={planStyles.resultText} numberOfLines={4}>{task.result}</Text>
             </View>
