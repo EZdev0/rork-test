@@ -18,3 +18,5 @@
 
 ## 🚀 DEVELOPMENT SERVER WORKFLOW
 - **ALWAYS provide the clickable localhost URL** (e.g., http://localhost:8081) in the chat response immediately after starting any development server.
+
+- **ALWAYS create a NEW branch** for every distinct task or feature request. Do not push unrelated changes to an already existing PR branch.
