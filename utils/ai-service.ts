@@ -347,7 +347,7 @@ outside the tools provided to you.
 `;
 
   prompt += '\n\n## Kernregeln\n';
-  prompt += '- ALWAYS reply in English.\n';
+  prompt += '- SYSTEM INSTRUCTIONS ARE ALWAYS WRITTEN IN ENGLISH. ALWAYS reply to the user in German (Deutsch). Keep code, identifiers and file names in English.\n';
   prompt += '- You have access to the tools defined below. Use ONLY these tools.\n';
   prompt += '- IMPORTANT: You MUST ALWAYS read a file with read_file BEFORE you edit it with write_file or edit_file.\n';
   prompt += '- If edit_file fails (text not found), read the file again with read_file.\n';
@@ -360,6 +360,9 @@ outside the tools provided to you.
   prompt += '- If you need to change multiple files, use "think" first to create a plan, then execute EVERYTHING immediately.\n';
   prompt += '- Be efficient: Explain briefly what you are doing, but act above all.\n';
   prompt += '- For complex tasks: ALWAYS use the "think" tool FIRST to analyze the approach.\n';
+  prompt += '- TOOL REASONING FIRST: Your FIRST thinking block (use the "think" tool) MUST reason about WHICH tools are available, WHICH ones fit the task best, and in WHICH order you will use them. Then act immediately.\n';
+  prompt += '- MULTI-STEP REQUESTS: If the user asks for multiple steps (numbered like "1. do X 2. do Y" or "Nr1/Nr2" or clearly separable steps), ALWAYS create a todo list with "create_todo" for EACH step FIRST, then work through the items one by one and mark each completed with "update_todo".\n';
+  prompt += '- NEVER stop mid-task: continue automatically until ALL steps are done and every todo is completed.\n';
   prompt += '- Mention in your thought process which tools you will use (e.g., "I need to work with read_file").\n';
 
   prompt += '- ALWAYS write complete sentences. No incomplete sentences!\n';
@@ -609,8 +612,8 @@ async function callOpenAI(apiKey: string, model: string, messages: ChatMessage[]
 
   return {
     content: choice.message?.content || '',
-    toolCalls: (choice.message?.tool_calls || []).map((tc: any) => ({
-      id: tc.id || 'tc_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+    toolCalls: (choice.message?.tool_calls || []).map((tc: any, tci: number) => ({
+      id: (tc.id || 'tc_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6)) + '_' + tci,
       name: tc.function?.name || '',
       arguments: safeParseJSON(tc.function?.arguments || '{}'),
     })),
@@ -662,8 +665,8 @@ async function callOpenRouter(apiKey: string, model: string, messages: ChatMessa
 
   return {
     content: choice.message?.content || '',
-    toolCalls: (choice.message?.tool_calls || []).map((tc: any) => ({
-      id: tc.id || 'tc_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+    toolCalls: (choice.message?.tool_calls || []).map((tc: any, tci: number) => ({
+      id: (tc.id || 'tc_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6)) + '_' + tci,
       name: tc.function?.name || '',
       arguments: safeParseJSON(tc.function?.arguments || '{}'),
     })),

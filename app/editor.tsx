@@ -177,15 +177,27 @@ export default function EditorScreen() {
             </View>
           </View>
         ) : (
-          <ScrollView ref={scrollRef} style={styles.viewScroll} contentContainerStyle={styles.viewContent}>
+          <ScrollView
+            ref={scrollRef}
+            style={styles.viewScroll}
+            contentContainerStyle={styles.viewContent}
+            horizontal={!settings.wordWrap}
+            showsHorizontalScrollIndicator={!settings.wordWrap}
+          >
             {lines.map((line, i) => (
-              <View key={i} style={styles.codeLine}>
+              <View key={i} style={[styles.codeLine, !settings.wordWrap && { alignSelf: 'flex-start' }]}>
                 {settings.showLineNumbers && (
                   <Text style={[styles.lineNum, { fontSize: settings.fontSize - 1, lineHeight: settings.fontSize * 1.6 }]}>
                     {i + 1}
                   </Text>
                 )}
-                <Text style={[styles.codeText, { fontSize: settings.fontSize, lineHeight: settings.fontSize * 1.6 }]}>
+                <Text
+                  style={[
+                    styles.codeText,
+                    !settings.wordWrap && { flex: 0 as const },
+                    { fontSize: settings.fontSize, lineHeight: settings.fontSize * 1.6 },
+                  ]}
+                >
                   {highlightLine(line, language).map((token, j) => (
                     <Text key={j} style={{ color: token.color }}>{token.text}</Text>
                   ))}

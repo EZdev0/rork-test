@@ -63,7 +63,7 @@ const ChatBubble = React.memo(({ message }: Props) => {
   const hasThinking = !!message.thinking;
   const hasTodos = !!(message.todos && message.todos.length > 0 && todoStats);
   const hasToolCalls = visibleToolCalls.length > 0;
-  const hasCopyButton = !isUser && message.content && message.content.length > 0;
+  const hasCopyButton = !!(!isUser && message.content && message.content.length > 0);
 
   // Early return AFTER hooks to satisfy Rules of Hooks
   if (message.role === 'tool') return null;
@@ -208,8 +208,8 @@ const CollapsedToolCalls = React.memo(({ toolCalls }: { toolCalls: any[] }) => {
       </TouchableOpacity>
       {expanded && (
         <View style={styles.toolCallsContainer}>
-          {toolCalls.map(tc => tc ? (
-            <ToolCallView key={tc.id} toolCall={tc} />
+          {toolCalls.map((tc, ti) => tc ? (
+            <ToolCallView key={(tc.id || 'tc') + '_' + ti} toolCall={tc} />
           ) : null)}
         </View>
       )}
