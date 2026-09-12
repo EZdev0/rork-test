@@ -8,6 +8,7 @@ import { compressChat } from '@/utils/chat-compression';
 import { useApp } from '@/providers/AppProvider';
 import { useProject } from '@/providers/ProjectProvider';
 
+
 function genId(): string {
   return 'm_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 10);
 }
@@ -263,7 +264,7 @@ export const [ChatProvider, useChat] = createContextHook(() => {
   }), []);
 
   const rorkAgent = useRorkAgent({
-    apiEndpoint: typeof window !== 'undefined' ? '/api/chat' : undefined,
+    api: typeof window !== 'undefined' ? '/api/chat' : undefined,
     tools: rorkTools,
     // Workaround for CORS if SDK supports custom fetch or endpoint
 
