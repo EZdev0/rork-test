@@ -32,4 +32,3 @@ jobs:
         run: |
           eas init --account ezdev2 --non-interactive || true
           bun x expo export -p web
-          eas build --platform android --non-interactive --no-wait

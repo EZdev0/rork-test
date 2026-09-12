@@ -365,29 +365,3 @@ const baseThinkPrompt = task.taskType === 'thinking'
 
 **Last update:** 2026-03-02
 **Next review:** For user feedback or new requirements
-
-## CORS Fix for AI Providers
-**Date:** 2026-09-12
-**Status:** Completed
-**Scope:** Browser cross-origin limitations on web platform.
-
-### Issue
-When deployed as a web application, browsers blocked cross-origin requests to `https://toolkit.rork.com/agent/chat` (CORS missing 'Access-Control-Allow-Origin' header). The Expo Go mobile environment is unaffected because React Native does not enforce CORS.
-
-### Solution
-Since the web build relies on `expo.web.output: "server"` deployed via Netlify functions:
-1. We modified `utils/ai-service.ts` and `providers/ChatProvider.tsx` (`useRorkAgent({ apiEndpoint: '/api/chat' })`) to send their POST requests to the local proxy route `/api/chat`.
-2. The proxy route `app/api/chat+api.ts` safely absorbs the payload and forwards the request server-side to the Rork Toolkit API. Servers do not enforce CORS, completely eliminating the browser security blocker.
-
-## Restoration of Android EAS Build
-**Date:** 2026-09-12
-**Status:** Restored & Tested
-**Scope:** Reverted GitHub actions to build the Android Play Store Build in EAS alongside the Web build, per user request.
-
-### Issue
-The original modification isolated EAS to just Web to avoid Apple Developer Certificate errors. However, the user desired maintaining Android Play Store compatibility (as proved by their Expo Dashboard logs).
-
-### Solution
-- Modified the GitHub Action `.github/workflows/eas-build.yml`.
-- Reintegrated `eas build --platform android --non-interactive --no-wait`.
-- Validated via `expo-doctor` to ensure all native module package versions align to avoid EAS native build failures.
