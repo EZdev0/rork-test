@@ -266,18 +266,9 @@ export const [ChatProvider, useChat] = createContextHook(() => {
 
   const rorkAgent = useRorkAgent({
     tools: rorkTools,
-    // Workaround for CORS if SDK supports custom fetch or endpoint
-    fetch: async (input: RequestInfo | URL, init?: RequestInit) => {
-      if (Platform.OS === 'web') {
-        const url = typeof input === 'string' ? input : (input as Request).url || input.toString();
-        // Skip proxy if it's already a relative URL or not toolkit
-        if (url.includes('toolkit.rork.com') || url.includes('/agent/chat')) {
-          const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(url);
-          return fetch(proxyUrl, init);
-        }
-      }
-      return fetch(input, init);
-    }
+    api: Platform.OS === 'web' ? '/api/chat' : undefined,
+    // Provide standard browser fetch for web builds to avoid any expoFetch polyfill issues
+    fetch: Platform.OS === 'web' ? fetch : undefined,
   });
 
   useEffect(() => {
