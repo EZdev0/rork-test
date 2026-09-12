@@ -1,5 +1,5 @@
 [build]
-  command = "npm install expo-server && npx expo export -p web"
+  command = "bun install && bun x expo export -p web"
   functions = "netlify/functions"
   publish = "dist/client"
 
