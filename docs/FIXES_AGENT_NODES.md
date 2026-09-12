@@ -1,66 +1,66 @@
 # 🚀 Agent System Fixes - COMPLETED
 
-## Datum: 2026-03-02
+## Date: 2026-03-02
 
 ---
 
-## ✅ BEHEBENE PROBLEME
+## ✅ ISSUES FIXED
 
-### 1. **Nodes zu Grau** ✅
-**Problem:** Status-Farben nicht unterscheidbar, alle Tasks sahen gleich aus
+### 1. **Nodes to Gray** ✅
+**Problem:** Status colors not distinguishable, all tasks looked the same
 
-**Lösung:**
-- Stats-Erweiterung um `brainstorm`, `webSearch`, `subAgent` Counter
-- TaskType-spezifische Zählung für bessere Visualisierung
-- Vorbereitung für farblich unterschiedliche Nodes
+**Solution:**
+- Stats extension with `brainstorm`, `webSearch`, `subAgent` counter
+- TaskType specific counting for better visualization
+- Preparation for different colored nodes
 
-**Code-Änderungen:**
+**Code Changes:**
 ```typescript
-// components/AgentPlanView.tsx (Zeilen 84-99)
+// components/AgentPlanView.tsx (lines 84-99)
 const stats = useMemo(() => {
-  let completed = 0;
-  let error = 0;
-  let running = 0;
-  let pending = 0;
-  let thinking = 0;
-  let brainstorm = 0;      // NEU
-  let webSearch = 0;       // NEU
-  let subAgent = 0;        // NEU
-  for (const t of tasks) {
-    if (t?.status === 'completed') completed++;
-    else if (t?.status === 'error') error++;
-    else if (t?.status === 'running') running++;
-    else if (t?.status === 'pending') pending++;
-    const tt = t?.taskType || 'task';
-    if (tt === 'thinking') thinking++;
-    else if (tt === 'brainstorm') brainstorm++;     // Getrennte Zählung
-    else if (tt === 'web_search') webSearch++;      // Getrennte Zählung
-    else if (tt === 'sub_agent') subAgent++;        // Getrennte Zählung
-  }
-  return { completed, error, running, pending, thinking, brainstorm, webSearch, subAgent };
+let completed = 0;
+let error = 0;
+let running = 0;
+let pending = 0;
+let think = 0;
+let brainstorm = 0;// NEW
+let webSearch = 0;// NEW
+let subAgent = 0;// NEW
+for (const t of tasks) {
+if (t?.status === 'completed') completed++;
+else if (t?.status === 'error') error++;
+else if (t?.status === 'running') running++;
+else if (t?.status === 'pending') pending++;
+const tt = t?.taskType ||'task';
+if (tt === 'thinking') thinking++;
+else if (tt === 'brainstorm') brainstorm++;// Separate counting
+else if (tt === 'web_search') webSearch++;// Separate counting
+else if (tt === 'sub_agent') subAgent++;// Separate counting
+}
+return { completed, error, running, pending, thinking, brainstorm, webSearch, subAgent };
 }, [tasks]);
 ```
 
 ---
 
-### 2. **Brainstorming & WebSearch wird nicht verwendet** ✅
-**Problem:** Prompt limitierte auf 12 Tasks, zu restriktiv
+### 2. **Brainstorming & WebSearch is not used** ✅
+**Problem:** Prompt limited to 12 tasks, too restrictive
 
-**Lösung:**
-- Limit von 12 auf 25 Tasks erhöht
-- Automatische THINK/BRAINSTORM Empfehlung bei >15 Tasks
-- Logging bei truncation
+**Solution:**
+- Limit increased from 12 to 25 tasks
+- Automatic THINK/BRAINSTORM recommendation for >15 tasks
+- Logging at truncation
 
-**Code-Änderungen:**
+**Code Changes:**
 ```typescript
-// utils/ai-service.ts (Zeilen 17-28)
-prompt += '- Maximal 25 Schritte pro Plan (davon beliebig viele THINK/BRAINSTORM).\\n';
-prompt += '- Bei sehr komplexen Anfragen (>15 Tasks) automatisch mehr THINK/BRAINSTORM einplanen.\\n';
+// utils/ai-service.ts (lines 17-28)
+prompt += '- Maximum 25 steps per plan (including any number of THINK/BRAINSTORM).\\n';
+prompt += '- Automatically schedule more THINK/BRAINSTORM for very complex requests (>15 tasks).\\n';
 
-// utils/ai-service.ts (Zeilen 116-125)
-// Limit auf 25 Tasks, aber mit Warnung wenn mehr vorhanden
+// utils/ai-service.ts (lines 116-125)
+// Limit to 25 tasks, but with a warning if there are more
 if (tasks.length > 25) {
-  console.log('[Planner] Plan exceeds 25 tasks, truncating from', tasks.length, 'to 25');
+console.log('[Planner] Plan exceeds 25 tasks, truncating from', tasks.length, 'to 25');
 }
 
 return tasks.slice(0, 25);
@@ -68,198 +68,197 @@ return tasks.slice(0, 25);
 
 ---
 
-### 3. **Löschen-Schutz fehlt** ✅
-**Problem:** Beim X-Button wurde sofort gelöscht ohne Bestätigung
+### 3. **Delete protection is missing** ✅
+**Problem:** The X button was deleted immediately without confirmation
 
-**Lösung:**
-- Delete-Confirm Modal mit Bestätigungsdialog
-- Warning Icon + Hinweistext
-- Abbrechen/Löschen Buttons
+**Solution:**
+- Delete-Confirm Modal with confirmation dialog
+- Warning icon + information text
+- Cancel/Delete buttons
 
-**Code-Änderungen:**
+**Code Changes:**
 ```typescript
-// components/AgentPlanView.tsx (Zeilen 32-39)
+// components/AgentPlanView.tsx (lines 32-39)
 interface DeleteConfirmState {
-  visible: boolean;
-  taskIndex: number;
-  taskId: string;
+visible: boolean;
+taskIndex: number;
+taskId: string;
 }
 
-// components/AgentPlanView.tsx (Zeilen 71)
-const [deleteConfirm, setDeleteConfirm] = useState<DeleteConfirmState>({ 
-  visible: false, 
-  taskIndex: 0, 
-  taskId: '' 
+// components/AgentPlanView.tsx (lines 71)
+const [deleteConfirm, setDeleteConfirm] = useState<DeleteConfirmState>({
+visible: false,
+taskIndex: 0,
+taskId: ''
 });
 
-// components/AgentPlanView.tsx (Zeilen 145-161)
+// components/AgentPlanView.tsx (lines 145-161)
 const handleDeleteConfirm = useCallback((index: number, taskId: string) => {
-  setDeleteConfirm({ visible: true, taskIndex: index, taskId });
+setDeleteConfirm({ visible: true, taskIndex: index, taskId });
 }, []);
 
 const handleDeleteCancel = useCallback(() => {
-  setDeleteConfirm({ visible: false, taskIndex: 0, taskId: '' });
+setDeleteConfirm({ visible: false, taskIndex: 0, taskId: '' });
 }, []);
-
 const handleDeleteExecute = useCallback(() => {
-  if (deleteConfirm.taskId) {
-    onRemoveTask(deleteConfirm.taskId);
-    setDeleteConfirm({ visible: false, taskIndex: 0, taskId: '' });
-  }
+if (deleteConfirm.taskId) {
+onRemoveTask(deleteConfirm.taskId);
+setDeleteConfirm({ visible: false, taskIndex: 0, taskId: '' });
+}
 }, [deleteConfirm.taskId, onRemoveTask]);
 ```
 
 **Modal UI:**
 ```typescript
-// components/AgentPlanView.tsx (Zeilen 545-578)
+// components/AgentPlanView.tsx (lines 545-578)
 <Modal visible={deleteConfirm.visible} transparent animationType="fade">
-  <TouchableOpacity style={styles.deleteOverlay} onPress={handleDeleteCancel}>
-    <View style={styles.deleteModal}>
-      <View style={styles.deleteModalHeader}>
-        <AlertTriangle size={20} color={IDE.warning} />
-        <Text style={styles.deleteModalTitle}>Task löschen?</Text>
-      </View>
-      <Text style={styles.deleteModalText}>
-        Bist du sicher, dass du diesen Task entfernen möchtest? 
-        Dieser Schritt kann nicht rückgängig gemacht werden.
-      </Text>
-      <View style={styles.deleteModalButtons}>
-        <TouchableOpacity onPress={handleDeleteCancel} style={styles.deleteBtnCancel}>
-          <Text style={styles.deleteBtnCancelText}>Abbrechen</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={handleDeleteExecute} style={styles.deleteBtnConfirm}>
-          <Text style={styles.deleteBtnConfirmText}>Löschen</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-  </TouchableOpacity>
+<TouchableOpacity style={styles.deleteOverlay} onPress={handleDeleteCancel}>
+<View style={styles.deleteModal}>
+<View style={styles.deleteModalHeader}>
+<AlertTriangle size={20} color={IDE.warning} />
+<Text style={styles.deleteModalTitle}>Delete task?</Text>
+</View>
+<Text style={styles.deleteModalText}>
+Are you sure you want to remove this task?
+This step cannot be undone.
+</Text>
+<View style={styles.deleteModalButtons}>
+<TouchableOpacity onPress={handleDeleteCancel} style={styles.deleteBtnCancel}>
+<Text style={styles.deleteBtnCancelText}>Cancel</Text>
+</TouchableOpacity>
+<TouchableOpacity onPress={handleDeleteExecute} style={styles.deleteBtnConfirm}>
+<Text style={styles.deleteBtnConfirmText}>Delete</Text>
+</TouchableOpacity>
+</View>
+</View>
+</TouchableOpacity>
 </Modal>
 ```
 
 **TaskRow Integration:**
 ```typescript
-// components/AgentPlanView.tsx (Zeilen 723, 793)
+// components/AgentPlanView.tsx (lines 723, 793)
 interface TaskRowProps {
-  // ...
-  onDeleteConfirm?: (index: number, taskId: string) => void;
+// ...
+onDeleteConfirm?: (index: number, taskId: string) => void;
 }
 
-// In TaskRow Komponente:
-onRemove={() => onDeleteConfirm ? onDeleteConfirm(index, task.id) : onRemoveTask(task.id)}
+// In TaskRow component:
+onRemove={() => onDeleteConfirm ?onDeleteConfirm(index, task.id) : onRemoveTask(task.id)}
 ```
 
 ---
 
-### 4. **SubAgent Nodes brauchen besseres UI** ✅
-**Vorbereitung getroffen:**
-- Zap-Icon (⚡) bereits implementiert
-- TaskType `'sub_agent'` in types/index.ts vorhanden
-- Stats-Zählung für sub_agent erweitert
+### 4. **SubAgent Nodes need better UI** ✅
+**Preparation made:**
+- Zap icon (⚡) already implemented
+- TaskType `'sub_agent'` present in types/index.ts
+- Stats count for sub_agent expanded
 
-**Nächster Schritt:** Farbcodierung für SubAgent Nodes (kann nachträglich hinzugefügt werden)
+**Next step:** Color coding for SubAgent Nodes (can be added later)
 
 ---
 
-## 📊 STATISTIKEN
+## 📊 STATISTICS
 
-**Geänderte Dateien:**
-- `components/AgentPlanView.tsx` (+113 Zeilen)
-- `utils/ai-service.ts` (+8 Zeilen)
-- `types/index.ts` (bereits vorhanden)
+**Changed files:**
+- `components/AgentPlanView.tsx` (+113 lines)
+- `utils/ai-service.ts` (+8 lines)
+- `types/index.ts` (already exists)
 
-**Gesamt:** +121 Zeilen Code
+**Total:** +121 lines of code
 
 **Tests:**
 - ✅ TypeScript Compilation: 0 errors
-- ✅ Delete-Confirm Modal: Styles hinzugefügt
-- ✅ Stats-Erweiterung: Alle TaskTypes abgedeckt
+- ✅ Delete-Confirm Modal: Styles added
+- ✅ Stats extension: All task types covered
 
 ---
 
-## 🎯 GETESTETE FEATURES
+## 🎯 TESTED FEATURES
 
 ### 1. **Delete Confirmation**
-- X-Button öffnet Bestätigungsdialog
-- Warning Icon + Hinweistext
-- Abbrechen: Dialog schließt sich
-- Löschen: Task wird entfernt
+- X button opens confirmation dialog
+- Warning icon + information text
+- Cancel: Dialog closes
+- Delete: Task is removed
 
 ### 2. **Task Statistics**
-- Thinking: Blau gezählt
-- Brainstorm: Gelb gezählt
-- Web Search: Hellblau gezählt
-- Sub Agent: Lila gezählt
+- Thinking: Blue counted
+- Brainstorm: Yellow counted
+- Web Search: Counted in light blue
+- Sub Agent: Purple counted
 
 ### 3. **Brainstorming Limit**
-- Prompt erlaubt jetzt 25 Tasks (vorher 12)
-- Bei >15 Tasks: Automatisch mehr THINK/BRAINSTORM
-- Console-Log bei truncation
+- Prompt now allows 25 tasks (previously 12)
+- For >15 tasks: Automatically more THINK/BRAINSTORM
+- Console log on truncation
 
 ---
 
-## 🔧 OFFENE PUNKTE (für Zukunft)
+## 🔧 OPEN POINTS (for future)
 
-### 1. **SuperAgent Modus Logik** ❌
-**User-Anfrage:** "wenn Superagent und der Agenten modus beide an sind, wenn diese Beiden an sind, dann soll erst dann genau gefragt werden was man will"
+### 1. **SuperAgent Mode Logic** ❌
+**User request:** "if super agent and the agent mode are both on, if these two are on, then only then should you be asked exactly what you want"
 
-**Status:** NICHT implementiert - benötigt zusätzliche Logik in AgentProvider
+**Status:** NOT implemented - requires additional logic in AgentProvider
 
-**Empfohlener Next Step:**
+**Recommended Next Step:**
 ```typescript
 // providers/AgentProvider.tsx
 if (settings.betaSuperAgent && settings.agentMode) {
-  // Frage-Dialog vor Todo-Erstellung
-  showClarificationQuestions();
+// Question dialog before todo creation
+showClarificationQuestions();
 } else if (settings.betaSuperAgent) {
-  // Nur SuperAgent: Kein Todo-Plan
-  directExecution();
+// SuperAgent only: No todo plan
+directExecution();
 } else {
-  // Normaler Modus: Wie bisher
-  createPlan();
+// Normal mode: As before
+createPlan();
 }
 ```
 
-### 2. **Farbliche Node-Unterscheidung** ❌
-**Status:** Vorbereitung getroffen, aber noch nicht vollständig umgesetzt
+### 2. **Color node distinction** ❌
+**Status:** Preparations have been made, but not yet fully implemented
 
-**Empfohlene Farben:**
-- Thinking: Bläulicher Hintergrund
-- Brainstorm: Gelblicher Hintergrund
-- Web Search: Hellblauer Hintergrund
-- Sub Agent: Lila Hintergrund
+**Recommended Colors:**
+- Thinking: Bluish background
+- Brainstorm: Yellowish background
+- Web Search: Light blue background
+- Sub Agent: Purple background
 
-### 3. **25 Tasks Warnung** ❌
-**Status:** nur Console-Log, keine User-Warnung
+### 3. **25 Tasks Warning** ❌
+**Status:** Console log only, no user warning
 
-**Empfohlenes UI:**
+**Recommended UI:**
 ```typescript
 if (parsedTasks.length > 25) {
-  showWarning('Plan umfasst mehr als 25 Tasks. Automatisch gekürzt.');
+showWarning('Plan contains more than 25 tasks. Automatically shortened.');
 }
 ```
 
 ---
 
-## 📝 README ANPASSUNGEN
+## 📝 README CUSTOMIZATIONS
 
-### SYSTEM_START.md aktualisieren:
+### Update SYSTEM_START.md:
 ```markdown
-## Agent Mode Features (AKTUALISIERT)
+## Agent Mode Features (UPDATED)
 
-### Auto-Thinking
-✅ Bei komplexen Plänen (>2 Tasks) wird automatisch eine Analyse-Phase eingefügt
+### Auto-thinking
+✅ An analysis phase is automatically inserted for complex plans (>2 tasks).
 
 ### Task Limits
-✅ Maximal 25 Tasks pro Plan (vorher 12)
-✅ Bei >15 Tasks: Automatisch mehr THINK/BRAINSTORM
+✅ Maximum 25 tasks per plan (previously 12)
+✅ For >15 tasks: Automatically more THINK/BRAINSTORM
 
-### Delete Protection
-✅ X-Button öffnet Bestätigungsdialog
-✅ Warnt vor unbeabsichtigtem Löschen
+### DeleteProtection
+✅ X button opens confirmation dialog
+✅ Warns against accidental deletion
 
-### Task Statistics
-✅ Getrennte Zählung für Thinking, Brainstorm, WebSearch, SubAgent
-✅ Vorbereitet für farbliche Unterscheidung
+### Task statistics
+✅ Separate counting for Thinking, Brainstorm, WebSearch, SubAgent
+✅ Prepared for color differentiation
 ```
 
 ---
@@ -267,52 +266,52 @@ if (parsedTasks.length > 25) {
 ## 🧪 TESTS
 
 ### Test 1: Delete Confirmation ✅
-1. Erstelle Agent-Plan mit mehreren Tasks
-2. Klicke auf X-Button bei einem Task
-3. **Erwartet:** Bestätigungsdialog öffnet sich
-4. Klicke "Abbrechen" → Dialog schließt sich
-5. Klicke erneut auf X, dann "Löschen" → Task verschwindet
+1. Create agent plan with multiple tasks
+2. Click on the X button on a task
+3. **Expected:** Confirmation dialog opens
+4. Click "Cancel" → Dialog closes
+5. Click on X again, then "Delete" → Task disappears
 
 ### Test 2: Brainstorming Limit ✅
-1. Stelle komplexe Anfrage (>15 Tasks erwartet)
-2. **Erwartet:** Prompt erlaubt bis zu 25 Tasks
-3. Console zeigt "[Planner] Plan exceeds 25 tasks" wenn >25
+1. Make complex request (>15 tasks expected)
+2. **Expected:** Prompt allows up to 25 tasks
+3. Console shows "[Planner] Plan exceeds 25 tasks" if >25
 
 ### Test 3: Task Statistics ✅
-1. Erstelle Plan mit verschiedenen TaskTypes
-2. Öffne Stats-Anzeige
-3. **Erwartet:** Getrennte Zählung für jeden Typ
+1. Create a plan with different task types
+2. Open Stats Viewer
+3. **Expected:** Separate counting for each type
 
 ---
 
-## 💡 EMPFEHLUNGEN
+## 💡 RECOMMENDATIONS
 
-### Priorität A (Sofort):
-1. ✅ Delete-Confirm Modal getestet
-2. ✅ Stats-Erweiterung getestet
+### Priority A (Immediate):
+1. ✅ Delete-Confirm Modal tested
+2. ✅ Stats extension tested
 
-### Priorität B (Diese Woche):
-1. ❌ SuperAgent Modus Logik implementieren
-2. ❌ Farbige Node-Hintergründe hinzufügen
-3. ❌ User-Warnung bei >25 Tasks
+### Priority B (This Week):
+1. ❌ Implement SuperAgent mode logic
+2. ❌ Add colored node backgrounds
+3. ❌ User warning for >25 tasks
 
-### Priorität C (Nice-to-have):
-1. ❌ SubAgent Node-Visualisierung verbessern (Zap-Icon + Farbe)
-2. ❌ Live-Vorschau beim Löschen (Task wird ausgegraut)
+### Priority C (Nice-to-have):
+1. ❌ Improve SubAgent Node visualization (Zap icon + color)
+2. ❌ Live preview when deleting (task will be grayed out)
 
 ---
 
-## 🎉 FAZIT
+## 🎉 CONCLUSION
 
-**Alle kritischen Probleme behoben:**
-- ✅ Nodes besser unterscheidbar (Stats-Erweiterung)
-- ✅ Brainstorming/WebSearch funktioniert (25 statt 12 Tasks)
-- ✅ Lösch-Schutz mit Bestätigung (Modal implemented)
-- ✅ SubAgent Vorbereitung getroffen (Zap-Icon + Stats)
+**All critical issues fixed:**
+- ✅ Nodes more distinguishable (stats extension)
+- ✅ Brainstorming/WebSearch works (25 instead of 12 tasks)
+- ✅ Deletion protection with confirmation (modal implemented)
+- ✅ SubAgent preparation made (Zap icon + stats)
 
-**Code-Qualität:**
-- 0 TypeScript Errors
-- Alle Styles hinzugefügt
-- Handler-Funktionen korrekt verknüpft
+**Code Quality:**
+- 0 TypeScript errors
+- All styles added
+- Handler functions linked correctly
 
-**Bereit zum Testen!** 🚀
+**Ready to test!** 🚀

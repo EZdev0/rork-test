@@ -1,150 +1,150 @@
-# 📊 System-Übersicht & Test-Bericht
+# 📊 System Overview & Test Report
 
-**Datum:** 2026-03-02  
-**Status:** ✅ Alle Kernfunktionen getestet und betriebsbereit  
-**Build:** Expo SDK 54.0.27 | React 19.1.0 | TypeScript 5.9.2
+**Date:** 2026-03-02
+**Status:** ✅ All core functions tested and operational
+**Build:** Expo SDK 54.0.27 |React 19.1.0 |TypeScript 5.9.2
 
 ---
 
 ## 🎯 Executive Summary
 
-### Projekt-Status
-- **App-Typ:** Native Cross-Platform Mobile IDE (iOS, Android, Web)
+### Project status
+- **App Type:** Native Cross-Platform Mobile IDE (iOS, Android, Web)
 - **Framework:** Expo Router + React Native
-- **State:** Production Ready (lokales Development)
-- **Dev-Server:** ✅ Läuft auf http://localhost:8081
-- **Preview Browser:** ✅ Verfügbar
+- **State:** Production Ready (local development)
+- **Dev Server:** ✅ Runs on http://localhost:8081
+- **Preview Browser:** ✅ Available
 
-### Wichtige Fixes Implementiert
-1. ✅ **Auto-Theming Task**: Agent fügt bei komplexen Plänen (>2 Tasks) automatisch Analyse-Phase ein
-2. ✅ **Drag & Drop Modal**: Long-Press Swap mit schönem UI + Cancel-Button
-3. ✅ **User-Info Auto-Extraction**: Speichert Namen/Beruf/Firma aus Chats in USER.md
-4. ✅ **Web-Search Enhancement**: DuckDuckGo mit 8s Timeout + Error-Handling
-5. ✅ **VS Code Debugger**: 4 Launch-Konfigurationen (iOS, Android, Web, Auto)
-6. ✅ **ESLint Fixes**: Hooks Rules of Hooks violations behoben
+### Important Fixes Implemented
+1. ✅ **Auto-Theming Task**: Agent automatically inserts an analysis phase for complex plans (>2 tasks).
+2. ✅ **Drag & Drop Modal**: Long-press swap with nice UI + cancel button
+3. ✅ **User Info Auto-Extraction**: Saves name/profession/company from chats in USER.md
+4. ✅ **Web Search Enhancement**: DuckDuckGo with 8s timeout + error handling
+5. ✅ **VS Code Debugger**: 4 launch configurations (iOS, Android, Web, Auto)
+6. ✅ **ESLint Fixes**: Hooks Rules of Hooks violations fixed
 
 ---
 
-## 🔧 Konfigurierte Komponenten
+## 🔧 Configured components
 
 ### 1. VS Code Debugger (.vscode/launch.json)
 
-| Profil | Port | Ziel | Status |
+|Profile |Port |Target |Status |
 |--------|------|------|--------|
-| **Expo iOS Simulator** | 9221 | iOS Simulator | ⚠️ macOS only (ios_webkit_debug_proxy) |
-| **Expo Android Emulator** | 9222 | Android Emulator | ✅ Windows ready |
-| **Expo Web Browser** | 9223 | Chrome/Edge | ✅ Plattform-unabhängig |
-| **Attach to Expo (Auto)** | 9224 | Auto-Detect | ✅ Flexibel |
+|**Expo iOS Simulator** |9221 |iOS Simulator |⚠️ macOS only (ios_webkit_debug_proxy) |
+|**Expo Android Emulator** |9222 |Android Emulator |✅ Windows ready |
+|**Expo Web Browser** |9223 |Chrome/Edge |✅ Platform independent |
+|**Attach to Expo (Auto)** |9224 |Auto Detect |✅ Flexible |
 
-**Start-Anleitung:**
+**Starting Instructions:**
 ```bash
 # Terminal 1: Dev Server
 npm start
 
-# VS Code: Strg+Shift+D → Profil wählen
-# ODER F5 drücken (Standard: "Attach to Expo")
+# VS Code: Ctrl+Shift+D → select profile
+# OR press F5 (default: "Attach to Expo")
 ```
 
 ### 2. App Provider (State Management)
 
 #### AppProvider.tsx
-- **AsyncStorage**: Persistenz aller Einstellungen
-- **Todos**: CRUD-Operationen mit Auto-Save
-- **Memos**: Kurzzeitnotizen des Agenten
+- **AsyncStorage**: Persistence of all settings
+- **Todos**: CRUD operations with auto-save
+- **Memos**: Short-term notes from the agent
 - **Settings**: API Keys, Beta Features, Tool Permissions
 - **Identity Docs**: USER.md, SOUL.md, AGENT.md, etc.
 
-#### AgentProvider.tsx (1008 Zeilen)
-- **Plan Parser**: KI-Antworten → strukturierte Tasks
-- **Tool Executor**: 15+ Tools mit Permission System
-- **Auto-Theming**: Intelligente Plan-Erweiterung
-- **User-Info Extraction**: Regex-basierte Entity-Erkennung
-- **Web Search**: DuckDuckGo Integration
-- **Lernmodus**: Automatisches Speichern von User-Präferenzen
+#### AgentProvider.tsx (1008 lines)
+- **Plan Parser**: AI responses → structured tasks
+- **Tool Executor**: 15+ tools with permission system
+- **Auto-Theming**: Smart plan extension
+- **User-Info Extraction**: Regex-based entity detection
+- **Web Search**: DuckDuckGo integration
+- **Learning mode**: Automatically save user preferences
 
-#### ChatProvider.tsx (896 Zeilen)
-- **Message Queue**: Chat-Historie mit Kontext
+#### ChatProvider.tsx (896 lines)
+- **Message Queue**: Chat history with context
 - **API Handler**: Multi-Provider Support (OpenAI, Anthropic, Gemini, Groq)
-- **Streaming**: Token-weise Antworten
-- **Tool Call Parsing**: Automatische Tool-Erkennung
+- **Streaming**: Token-wise replies
+- **Tool Call Parsing**: Automatic tool detection
 
 #### ProjectProvider.tsx
-- **File Tree**: Virtuelles Dateisystem
+- **File Tree**: Virtual file system
 - **CRUD**: Create, Read, Update, Delete Files
-- **Export**: ZIP, Text, JSON Formate
+- **Export**: ZIP, Text, JSON formats
 - **Active File**: Editor State Management
 
 ### 3. UI Components
 
-#### AgentPlanView.tsx (1314 Zeilen)
-- **Task Visualisierung**: Hierarchische Todo-Grafik
-- **Collapsible Sections**: Collapse/Expand für Subtasks
+#### AgentPlanView.tsx (1314 lines)
+- **Task Visualization**: Hierarchical todo graphic
+- **Collapsible Sections**: Collapse/Expand for subtasks
 - **Drag & Drop**: Long-Press Swap Modal (400ms Delay)
 - **LayoutAnimation**: Smooth Reordering (iOS/Android)
-- **Progress Bar**: Live-Fortschrittsanzeige
-- **Swap Modal**: 
-  - ScrollView für viele Tasks
-  - Cancel-Button unten (Full-Width)
-  - Rotes X oben rechts
-  - Visuelle Badges ("Aktuell")
+- **Progress Bar**: Live progress bar
+- **Swap Modal**:
+- ScrollView for many tasks
+- Cancel button at the bottom (full width)
+- Red X at the top right
+- Visual badges (“Current”)
 
 #### AgentTaskCard.tsx
-- **Tool Calls**: Live-Anzeige der Tool-Ausführung
+- **Tool Calls**: Live display of tool execution
 - **Sub-Agent Messages**: Nested Chat Bubbles
-- **Thinking Blocks**: KI-Überlegungen collapsible
+- **Thinking Blocks**: AI considerations collapsible
 - **Progress Indicators**: Loading States
 
 #### ChatBubble.tsx
-- **Markdown Parsing**: Syntax Highlighting mit PrismJS
+- **Markdown Parsing**: Syntax highlighting with PrismJS
 - **Code Blocks**: Line Numbers + Copy Button
-- **Todo Stats**: Fortschrittsanzeige (completed/total)
+- **Todo Stats**: Progress display (completed/total)
 - **ToolCallView**: Embedded Tool Execution UI
-- **ThinkingBlock**: Analyse-Phasen anzeigbar
+- **ThinkingBlock**: Analysis phases can be displayed
 
 #### ThinkingBlock.tsx
-- **Expandable**: Collapsible KI-Analyse
-- **Syntax Highlighting**: Formatierter Code
+- **Expandable**: Collapsible AI analysis
+- **Syntax Highlighting**: Formatted code
 - **Animation**: Smooth Expand/Collapse
 
 #### ToolCallView.tsx
-- **Tool Icons**: Lucide Icons pro Tool-Typ
+- **Tool Icons**: Lucide icons per tool type
 - **Status Indicators**: Pending, Running, Success, Error
-- **Result Preview**: Kurzansicht der Ergebnisse
+- **Result Preview**: Short view of the results
 
 ### 4. Utils & Helpers
 
 #### ai-service.ts
-- **API Wrapper**: Unified Interface für alle Provider
-- **Request Builder**: Prompt Templates
+- **API Wrapper**: Unified interface for all providers
+- **Request Builder**: Prompt templates
 - **Error Handling**: Retry Logic + Fallbacks
 
 #### syntax.ts
-- **PrismJS Integration**: Client-side Syntax Highlighting
-- **Language Detection**: Auto-Erkennung
-- **Theme**: IDE Farbschema (constants/colors.ts)
+- **PrismJS Integration**: Client-side syntax highlighting
+- **Language Detection**: Auto detection
+- **Theme**: IDE color scheme (constants/colors.ts)
 
 #### file-icons.ts
-- **Icon Mapping**: Dateiendungen → Lucide Icons
-- **Color Coding**: Typ-spezifische Farben
+- **Icon Mapping**: File extensions → Lucide Icons
+- **Color Coding**: Type-specific colors
 
 #### sample-project.ts
-- **Demo Daten**: Beispiel-Projekt für Onboarding
-- **Tutorials**: Interaktive Einführungen
+- **Demo data**: Example project for onboarding
+- **Tutorials**: Interactive introductions
 
 ---
 
-## 🧪 Test-Ergebnisse
+## 🧪 Test results
 
 ### Build & Compilation
 
-| Test | Ergebnis | Details |
+|test |Result |Details |
 |------|----------|---------|
-| **npm install** | ✅ Success | 1040 Pakete installiert |
-| **TypeScript** | ✅ 0 Errors | Alle Dateien kompilieren |
-| **ESLint** | ⚠️ 29 Warnings | Keine Errors mehr (vorher 7) |
-| **Expo Doctor** | ⚠️ 2 Warnings | Harmlose Dependency-Warnungen |
+|**npm install** |✅ Success |1040 packages installed |
+|**TypeScript** |✅ 0 Errors |Compile all files |
+|**ESLint** |⚠️ 29 Warnings |No more errors (previously 7) |
+|**Expo Doctor** |⚠️ 2 Warnings |Harmless dependency warnings |
 
-### Funktionale Tests
+### Functional testing
 
 #### Core Navigation ✅
 - [x] Tab Switching (Home, Chat, Settings, Tools)
@@ -153,7 +153,7 @@ npm start
 - [x] Stack Navigation (Back Buttons)
 
 #### Home Tab ✅
-- [x] File Tree Rendering
+- [x] File tree rendering
 - [x] File Actions (Open, Rename, Delete, Export)
 - [x] Alert.prompt Conditional (Platform Support)
 - [x] Active File Selection
@@ -162,39 +162,39 @@ npm start
 #### Chat Tab ✅
 - [x] Message Sending
 - [x] API Key Validation
-- [x] Warning Banner (kein API Key)
-- [x] Markdown Rendering
-- [x] Syntax Highlighting
+- [x] Warning Banner (no API Key)
+- [x] Markdown rendering
+- [x] Syntax highlighting
 - [x] Copy Functionality
 - [x] Escaped Quotes (`&quot;`)
 
 #### Agent Mode ✅
-- [x] Plan Creation (KI generiert Tasks)
-- [x] Auto-Theming Insertion (>2 Tasks)
+- [x] Plan Creation (AI generates tasks)
+- [x] Auto-Theming Insertion (>2 tasks)
 - [x] Tool Execution (read_file, write_file, etc.)
-- [x] Permission Prompts (ask/always/blocked)
-- [x] Progress Tracking
+- [x] Permission prompts (ask/always/blocked)
+- [x] Progress tracking
 - [x] Sub-Agent Messages
 - [x] Thinking Blocks
 
 #### Drag & Drop ✅
-- [x] Long-Press Detection (400ms)
-- [x] Swap Modal Animation
-- [x] Position Selection
+- [x] Long press detection (400ms)
+- [x] Swap modal animation
+- [x] Position selection
 - [x] LayoutAnimation (iOS/Android)
-- [x] Cancel Functionality
-- [x] Visual Feedback (Badges, Highlights)
+- [x] Cancel functionality
+- [x] Visual feedback (badges, highlights)
 
-#### User-Info Extraction ✅
-- [x] Regex Pattern Matching (Name, Beruf, Firma)
-- [x] USER.md Speicherung
-- [x] Memo Updates
-- [x] Lernmodus Toggle
+#### User Info Extraction ✅
+- [x] Regex pattern matching (name, profession, company)
+- [x] USER.md storage
+- [x] Memo updates
+- [x] Learning mode toggle
 
 #### Web Search ✅
-- [x] DuckDuckGo API Call
-- [x] 8s Timeout (AbortController)
-- [x] Error Handling (Netzwerkfehler)
+- [x] DuckDuckGo API call
+- [x] 8s timeout (AbortController)
+- [x] Error Handling (network error)
 - [x] Result Formatting (Abstract + Topics)
 
 #### Settings ✅
@@ -202,32 +202,32 @@ npm start
 - [x] Provider Selection
 - [x] Beta Features Toggle
 - [x] Yolo Mode (auto-approve tools)
-- [x] AsyncStorage Persistenz
+- [x] AsyncStorage persistence
 
-### Performance Tests
+### Performance testing
 
-| Metrik | Wert | Bewertung |
+|Metric |Value |Rating |
 |--------|------|-----------|
-| **Cold Start** | ~3s | Gut |
-| **Hot Reload** | <1s | Sehr gut |
-| **Bundle Size** | ~12MB | Normal |
-| **Memory Usage** | ~150MB | Gut |
+|**Cold Start** |~3s |Good |
+|**Hot Reload** |<1s |Very good |
+|**Bundle Size** |~12MB |Normal |
+|**Memory Usage** |~150MB |Good |
 
 ---
 
-## 🐛 Bekannte Probleme
+## 🐛 Known issues
 
-### Kritische Fehler
-❌ **Keine** - Alle kritischen Pfade funktionieren
+### Critical errors
+❌ **None** - All critical paths work
 
-### Warnings (Nicht-Kritisch)
+### Warnings (Non-Critical)
 
 #### 1. ESLint Warnings (29 total)
-- **Unused Imports**: In mehreren Dateien (tools/index.tsx, editor.tsx)
-- **useCallback Dependencies**: Fehlende Dependencies in Hooks
-- **Impact**: Keine funktionale Beeinträchtigung
+- **Unused Imports**: In several files (tools/index.tsx, editor.tsx)
+- **useCallback Dependencies**: Missing dependencies in hooks
+- **Impact**: No functional impairment
 
-**Betroffene Dateien:**
+**Affected files:**
 - `app/(tabs)/(home)/index.tsx` (2 warnings)
 - `app/(tabs)/chat/index.tsx` (6 warnings)
 - `app/(tabs)/tools/index.tsx` (12 warnings)
@@ -237,48 +237,48 @@ npm start
 - `components/ThinkingBlock.tsx` (1 warning)
 
 #### 2. Expo Doctor Warnings
-- **Lockfile-Konflikt**: package-lock.json + bun.lock
-  - **Lösung**: Eine entfernen oder ignorieren
-- **expo-location Duplikat**: v19 + v15 via react-native-web-maps
-  - **Impact**: Harmlos, Expo dedupliziert automatisch
+- **Lockfile conflict**: package-lock.json + bun.lock
+- **Solution**: Remove or ignore one
+- **expo-location duplicate**: v19 + v15 via react-native-web-maps
+- **Impact**: Harmless, Expo deduplicates automatically
 
 #### 3. Platform-Specific Issues
-- **iOS Debugging (Windows)**: ios_webkit_debug_proxy fehlt
-  - **Workaround**: Android Emulator oder Web nutzen
-  - **Lösung**: WSL2 oder macOS required
+- **iOS Debugging (Windows)**: ios_webkit_debug_proxy missing
+- **Workaround**: Use Android Emulator or Web
+- **Solution**: WSL2 or macOS required
 
 ---
 
-## 📦 Dependency-Analyse
+## 📦 Dependency analysis
 
-### Production Dependencies (40 Pakete)
+### Production Dependencies (40 packages)
 
 **Core Framework:**
 - expo: ~54.0.27
 - react: 19.1.0
 - react-native: 0.81.5
-- expo-router: ~6.0.17
+- expo router: ~6.0.17
 
 **State Management:**
 - @tanstack/react-query: ^5.83.0 (Server State)
-- zustand: ^5.0.2 (Client State)
+- state: ^5.0.2 (Client State)
 - @nkzw/create-context-hook: ^1.1.0 (Context Hooks)
 
 **Navigation:**
-- expo-router (File-based Routing)
+- expo-router (file-based routing)
 - react-native-screens: ~4.16.0
 - react-native-safe-area-context: ~5.6.0
 
 **UI Components:**
-- lucide-react-native: ^0.523.0 (Icons)
+- lucide-react-native: ^0.523.0 (icons)
 - react-native-svg: 15.12.1
-- expo-image: ~3.0.11
+- expo image: ~3.0.11
 - expo-linear-gradient: ~15.0.8
 
 **Native Modules:**
-- expo-location: ~19.0.8
-- expo-clipboard: ~8.0.8
-- expo-sharing: ~14.0.8
+- expo location: ~19.0.8
+- expo clipboard: ~8.0.8
+- expo sharing: ~14.0.8
 - expo-haptics: ~15.0.8
 - expo-file-system: ~19.0.21
 
@@ -286,23 +286,23 @@ npm start
 - @rork-ai/toolkit-sdk: ^0.2.51
 
 **Utilities:**
-- jszip: ^3.10.1 (ZIP Export)
-- zod: ^4.3.6 (Validation)
+- jszip: ^3.10.1 (ZIP export)
+- zod: ^4.3.6 (validation)
 - @ungap/structured-clone: ^1.3.0
 
-### Dev Dependencies (6 Pakete)
+### Dev Dependencies (6 packages)
 - typescript: ~5.9.2
 - eslint: ^9.31.0
 - eslint-config-expo: ~10.0.0
 - @babel/core: ^7.25.2
-- @types/react: ~19.1.10
-- @expo/ngrok: ^4.1.0 (Tunneling)
+- @types/react: ~1/19/10
+- @expo/ngrok: ^4.1.0 (tunneling)
 
 ---
 
 ## 🚀 Deployment Options
 
-### 1. Web Deployment
+### 1. Web deployment
 ```bash
 # Build
 eas build --platform web
@@ -312,15 +312,15 @@ eas hosting:configure
 eas hosting:deploy
 
 # Alternative: Vercel/Netlify
-# GitHub Repo connecten → Auto-Deploy
+# Connect GitHub Repo → Auto-Deploy
 ```
 
 ### 2. App Store (iOS)
 ```bash
-# EAS CLI installieren
+# Install EAS CLI
 npm install -g @expo/eas-cli
 
-# Konfigurieren
+# Configure
 eas build:configure
 
 # Build
@@ -341,86 +341,86 @@ eas submit --platform android
 
 ---
 
-## 📋 Projektstruktur (Deep Dive)
+## 📋 Project Structure (Deep Dive)
 
-### app/ (Routing)
+### app/ (routing)
 ```
 app/
-├── (tabs)/                    # Tab Navigation
-│   ├── _layout.tsx           # Tab Bar Config
-│   ├── (home)/
-│   │   ├── _layout.tsx       # Home Stack
-│   │   └── index.tsx         # File Browser + Agent
-│   ├── chat/
-│   │   ├── _layout.tsx
-│   │   └── index.tsx         # Chat Interface
-│   ├── settings/
-│   │   ├── _layout.tsx
-│   │   └── index.tsx         # Settings Form
-│   └── tools/
-│       ├── _layout.tsx
-│       └── index.tsx         # Tool Registry
-├── _layout.tsx               # Root Layout + Providers
-├── editor.tsx                # Code Editor Screen
-├── +not-found.tsx            # 404 Page
-└── +native-intent.tsx        # Android Intents
+├── (tabs)/ # Tab navigation
+│ ├── _layout.tsx # Tab Bar Config
+│ ├── (home)/
+│ │ ├── _layout.tsx # Home stack
+│ │ └── index.tsx # File Browser + Agent
+│ ├── chat/
+│ │ ├── _layout.tsx
+│ │ └── index.tsx # Chat interface
+│ ├── settings/
+│ │ ├── _layout.tsx
+│ │ └── index.tsx # Settings Form
+│ └── tools/
+│ ├── _layout.tsx
+│ └── index.tsx # Tool Registry
+├── _layout.tsx # Root Layout + Providers
+├── editor.tsx # Code Editor Screen
+├── +not-found.tsx # 404 Page
+└── +native-intent.tsx # Android Intents
 ```
 
 ### providers/ (Context)
 ```
 providers/
-├── AppProvider.tsx           # Settings, Todos, Memos, Identity
-├── AgentProvider.tsx         # Agent Mode Logic + Tools
-├── ChatProvider.tsx          # Chat State + API Calls
-└── ProjectProvider.tsx       # File System + Exports
+├── AppProvider.tsx # Settings, Todos, Memos, Identity
+├── AgentProvider.tsx # Agent Mode Logic + Tools
+├── ChatProvider.tsx # Chat State + API Calls
+└── ProjectProvider.tsx # File System + Exports
 ```
 
 ### components/ (UI)
 ```
 components/
-├── AgentPlanView.tsx         # Plan Visualization + Drag & Drop
-├── AgentTaskCard.tsx         # Task Card + Tool Calls
-├── ChatBubble.tsx            # Message Rendering
-├── ThinkingBlock.tsx         # AI Analysis Display
-├── ToolCallView.tsx          # Tool Execution UI
-└── FileTreeItem.tsx          # File Node Rendering
+├── AgentPlanView.tsx # Plan Visualization + Drag & Drop
+├── AgentTaskCard.tsx # Task Card + Tool Calls
+├── ChatBubble.tsx # Message rendering
+├── ThinkingBlock.tsx # AI Analysis Display
+├── ToolCallView.tsx # Tool Execution UI
+└── FileTreeItem.tsx # File node rendering
 ```
 
 ### utils/ (Helpers)
 ```
 utils/
-├── ai-service.ts             # API Abstraction
-├── syntax.ts                 # Syntax Highlighting
-├── file-icons.ts             # Icon Mapping
-├── download.ts               # File Downloads
-├── sample-project.ts         # Demo Data
-└── self-source.ts            # Self-Analysis Tools
+├── ai-service.ts # API Abstraction
+├── syntax.ts # Syntax highlighting
+├── file-icons.ts # Icon mapping
+├── download.ts # File Downloads
+├── sample-project.ts # Demo Data
+└── self-source.ts # Self-Analysis Tools
 ```
 
 ### .qcoder/rules/ (Agent Config)
 ```
 .qcoder/rules/
-├── user.md                   # Nutzerpräferenzen
-├── Agent.md                  # Agenten-Regeln
-└── lessons_learned.md        # Fehlergedächtnis
+├── user.md # User preferences
+├── Agent.md # Agent rules
+└── lessons_learned.md # Error memory
 ```
 
 ---
 
 ## 🎨 Design System
 
-### Farbpalette (constants/colors.ts)
+### Color palette (constants/colors.ts)
 ```typescript
 IDE = {
-  primary: '#3B82F6',      // Blue
-  success: '#10B981',      // Green
-  warning: '#F59E0B',      // Orange
-  danger: '#EF4444',       // Red
-  text: '#FFFFFF',         // White
-  muted: '#9CA3AF',        // Gray
-  border: '#374151',       // Dark Gray
-  bg: '#111827',           // Very Dark
-  surface: '#1F2937',      // Dark
+primary: '#3B82F6', // Blue
+success: '#10B981', // Green
+warning: '#F59E0B', // Orange
+danger: '#EF4444', // Ed
+text: '#FFFFFF', // White
+muted: '#9CA3AF', // Gray
+border: '#374151', // Dark Gray
+bg: '#111827', // Very Dark
+surface: '#1F2937', // Dark
 }
 ```
 
@@ -435,28 +435,28 @@ IDE = {
 
 ---
 
-## 🔒 Security Features
+## 🔒 Security features
 
 ### API Key Management
-- **Encryption:** AsyncStorage (verschlüsselt durch OS)
-- **Isolation:** Pro Provider separater Key
-- **Fallback:** Leerstrings wenn nicht konfiguriert
+- **Encryption:** AsyncStorage (encrypted by OS)
+- **Isolation:** Separate key per provider
+- **Fallback:** Empty strings if not configured
 
-### Permission System
+### Permission system
 - **Tool Levels:** always, ask, blocked, removed
-- **Yolo Mode:** Override für Power-User
-- **Beta Flags:** Explizite Freigabe nötig
+- **Yolo Mode:** Override for power users
+- **Beta Flags:** Explicit release required
 
-### Data Persistence
+### Data persistence
 - **LocalStorage:** AsyncStorage (React Native)
-- **No Cloud:** Alle Daten lokal (Privacy-first)
-- **Backup:** Manuelles Export (ZIP, JSON)
+- **No Cloud:** All data local (privacy-first)
+- **Backup:** Manual export (ZIP, JSON)
 
 ---
 
-## 📈 Performance-Metriken
+## 📈 Performance metrics
 
-### Bundle-Analyse
+### Bundle analysis
 ```
 Total Size: 12.4 MB
 ├── JavaScript: 6.8 MB
@@ -465,54 +465,54 @@ Total Size: 12.4 MB
 └── Fonts/Icons: 0.3 MB
 ```
 
-### Render-Performance
+### Rendering performance
 - **Fast Refresh:** <500ms
 - **Tab Switch:** <100ms
 - **List Scroll:** 60 FPS
 - **Modal Open:** <200ms
 
-### Memory-Usage
+### Memory Usage
 ```
-Baseline: 145 MB
+Baseline: 145MB
 ├── React Tree: 45 MB
-├── State (Zustand): 12 MB
+├── State: 12 MB
 ├── Images/Assets: 38 MB
 └── Native Heap: 50 MB
 ```
 
 ---
 
-## 🛠️ Wartung & Updates
+## 🛠️ Maintenance & Updates
 
-### Regelmäßige Tasks
+### Regular tasks
 ```bash
-# Dependencies aktualisieren
+# Update dependencies
 npx npm-check-updates -u
 npm install
 
-# Cache leeren
+# Clear cache
 npx expo start --clear
 
-# Build testen
+# Test build
 eas build --platform web
 
 # Linting
 npm run lint
 
-# Type Check
+# Type check
 npx tsc --noEmit
 ```
 
 ### Known Update Risks
-- **Expo SDK Upgrades:** Breaking Changes bei Major Versions
-- **React 19:** Noch neu, einige Libraries inkompatibel
+- **Expo SDK Upgrades:** Breaking Changes in Major Versions
+- **React 19:** Still new, some libraries incompatible
 - **lucide-react-native:** Rapid Release Cycle
 
 ---
 
 ## 📞 Support & Resources
 
-### Dokumentation
+### Documentation
 - **Expo:** https://docs.expo.dev/
 - **React Native:** https://reactnative.dev/
 - **Rork:** https://rork.com/faq
@@ -523,38 +523,38 @@ npx tsc --noEmit
 - **React Native Discord:** https://discord.gg/react-native
 - **GitHub Issues:** https://github.com/expo/expo/issues
 
-### Debugging Tools
+### Debugging tools
 - **React DevTools:** Browser Extension
-- **Flipper:** Mobile Debugging
-- **Expo DevTools:** Integriert im CLI
+- **Flipper:** Mobile debugging
+- **Expo DevTools:** Integrated in CLI
 
 ---
 
-## ✅ Fazit
+## ✅ Conclusion
 
-**System-Status: Production Ready**
+**System status: Production Ready**
 
-Alle kritischen Funktionen wurden erfolgreich getestet:
-- ✅ Debugger-Konfiguration abgeschlossen
-- ✅ iOS WebKit Proxy Fehler analysiert (Platform-Limitation)
-- ✅ Web-Server läuft stabil
-- ✅ Preview Browser verfügbar
-- ✅ TypeScript Compilation fehlerfrei
-- ✅ ESLint Errors behoben (29 Warnings verbleibend)
-- ✅ Agent Mode voll funktionsfähig
-- ✅ Drag & Drop implementiert
-- ✅ User-Info Extraction aktiv
-- ✅ Web Search mit Error-Handling
+All critical functions have been successfully tested:
+- ✅ Debugger configuration completed
+- ✅ iOS WebKit proxy errors analyzed (platform limitation)
+- ✅ Web server runs stable
+- ✅ Preview browser available
+- ✅ TypeScript compilation error-free
+- ✅ ESLint errors fixed (29 warnings remaining)
+- ✅ Agent Mode fully functional
+- ✅ Drag & Drop implemented
+- ✅ User info extraction active
+- ✅ Web search with error handling
 
-**Nächste Schritte (Optional):**
-1. EAS CLI für Production Builds
-2. CI/CD Pipeline einrichten
-3. Unit Tests schreiben
-4. Performance-Optimierung (Hermes Engine)
-5. Accessibility Testing
+**Next steps (Optional):**
+1. EAS CLI for production builds
+2. Set up CI/CD pipeline
+3. Write unit tests
+4. Performance optimization (Hermes Engine)
+5. Accessibility testing
 
 ---
 
-**Letztes Update:** 2026-03-02  
-**Geprüft von:** QCoder Agent  
-**Status:** ✅ Alle Systeme operational
+**Last update:** 2026-03-02
+**Verified by:** QCoder Agent
+**Status:** ✅ All systems operational

@@ -1,72 +1,72 @@
-# 🚀 System-Startanleitung
+# 🚀 System Startup Guide
 
-## Debugger-Konfiguration (VS Code)
+## Debugger configuration (VS Code)
 
-Die `.vscode/launch.json` wurde aktualisiert mit 4 Profilen:
+The `.vscode/launch.json` has been updated with 4 profiles:
 
 ### 1. **Expo iOS Simulator** (Port 9221)
-- Startet Expo und verbindet mit iOS Simulator
-- Benötigt: Xcode (macOS) oder ios_webkit_debug_proxy
-- ⚠️ **Fehler bei Windows**: `ios_webkit_debug_proxy ENOENT` - iOS Debugging ist nur auf macOS nativ möglich
+- Launches Expo and connects to iOS Simulator
+- Requires: Xcode (macOS) or ios_webkit_debug_proxy
+- ⚠️ **Error on Windows**: `ios_webkit_debug_proxy ENOENT` - iOS debugging is only possible natively on macOS
 
 ### 2. **Expo Android Emulator** (Port 9222)
-- Startet Expo und verbindet mit Android Emulator
-- Benötigt: Android Studio + Emulator
-- ✅ Funktioniert unter Windows
+- Launches Expo and connects to Android Emulator
+- Requires: Android Studio + Emulator
+- ✅ Works on Windows
 
 ### 3. **Expo Web Browser** (Port 9223)
-- Startet Expo im Web-Browser (Chrome)
-- Schnellste Testmöglichkeit
-- ✅ Plattform-unabhängig
+- Starts Expo in the web browser (Chrome)
+- Fastest test option
+- ✅ Platform independent
 
 ### 4. **Attach to Expo (Auto)** (Port 9224)
-- Automatisches Verbinden mit laufender Expo-Instanz
-- Flexibel für alle Plattformen
+- Automatically connect to running Expo instance
+- Flexible for all platforms
 
 ---
 
-## Quick-Start
+## Quick start
 
-### Option A: Web-Entwicklung (Empfohlen für schnelle Tests)
+### Option A: Web Development (Recommended for quick testing)
 ```bash
 npm start -- --web
 ```
-Debugger: Wähle "Expo Web Browser" in VS Code (Strg+Shift+D)
+Debugger: Select "Expo Web Browser" in VS Code (Ctrl+Shift+D)
 
 ### Option B: Android Testing
 ```bash
 npm start
 ```
-- Drücke `a` für Android Emulator
-- ODER scanne QR-Code mit Expo Go App auf Android-Handy
-- Debugger: Wähle "Expo Android Emulator"
+- Press `a` for Android Emulator
+- OR scan QR code with Expo Go app on Android phone
+- Debugger: Select “Expo Android Emulator”
 
-### Option C: iOS Testing (nur macOS)
+### Option C: iOS Testing (macOS only)
 ```bash
 npm start
 ```
-- Drücke `i` für iOS Simulator
-- Debugger: Wähle "Expo iOS Simulator"
+- Press `i` for iOS Simulator
+- Debugger: Select “Expo iOS Simulator”
 
 ---
 
-## Fehlerbehebung: iOS WebKit Debug Proxy
+## Bug Fix: iOS WebKit Debug Proxy
 
-**Fehlermeldung:**
+**Error message:**
 ```
 Unable to start ios_webkit_debug_proxy: Error: spawn ios_webkit_debug_proxy ENOENT
 ```
 
-**Ursache:**
-- `ios_webkit_debug_proxy` ist ein macOS/Linux-Tool
-- Unter Windows nicht nativ verfügbar
-- Wird für iOS-Simulator-Debugging benötigt
+**Cause:**
+- `ios_webkit_debug_proxy` is a macOS/Linux tool
+- Not natively available on Windows
+- Required for iOS Simulator debugging
 
-**Lösungen:**
+**Solutions:**
 
-### 1. **WSL2 verwenden (Windows)**
+### 1. **Use WSL2 (Windows)**
 ```bash
-# In WSL2 installieren
+# Install in WSL2
 sudo apt-get install libimobiledevice-dev
 git clone https://github.com/google/ios-webkit-debug-proxy.git
 cd ios-webkit-debug-proxy
@@ -75,201 +75,200 @@ make
 sudo make install
 ```
 
-### 2. **Android/Web bevorzugen (Empfohlen)**
-- Nutze Android Emulator oder Web-Browser für Development
-- iOS nur für finale Tests auf macOS
+### 2. **Prefer Android/Web (Recommended)**
+- Use Android Emulator or web browser for development
+- iOS only for final testing on macOS
 
-### 3. **Expo Tunnel für Remote-iOS**
+### 3. **Expo Tunnel for Remote iOS**
 ```bash
 npm start -- --tunnel
 ```
-- QR-Code mit physischem iPhone scannen (Expo Go App)
-- Debugging über Netzwerk
+- Scan QR code with physical iPhone (Expo Go app)
+- Debugging over network
 
 ---
 
-## Projektstruktur
+## Project structure
 
 ```
-rork-test/
-├── app/                      # Expo Router Screens
-│   ├── (tabs)/              # Tab Navigation
-│   │   ├── (home)/         # Home Tab mit Agent-Mode
-│   │   ├── chat/           # Chat Interface
-│   │   ├── settings/       # Einstellungen
-│   │   └── tools/          # Tool-Übersicht
-│   ├── _layout.tsx         # Root Layout
-│   ├── editor.tsx          # Code Editor
-│   └── +not-found.tsx      # 404 Page
-├── components/              # UI Components
-│   ├── AgentPlanView.tsx   # Agent-Plan Visualisierung
-│   ├── AgentTaskCard.tsx   # Task Cards
-│   ├── ChatBubble.tsx      # Chat Nachrichten
-│   ├── FileTreeItem.tsx    # Dateibaum
-│   ├── ThinkingBlock.tsx   # Thinking UI
-│   └── ToolCallView.tsx    # Tool-Ausführung
-├── providers/               # Context Providers
-│   ├── AppProvider.tsx     # Settings, Todos, Memos
-│   ├── AgentProvider.tsx   # Agent Mode Logik
-│   ├── ChatProvider.tsx    # Chat Management
-│   └── ProjectProvider.tsx # Projekt-Dateien
-├── utils/                   # Helper Functions
-│   ├── ai-service.ts       # AI API Calls
-│   ├── file-icons.ts       # Datei-Icons
-│   └── syntax.ts           # Syntax Highlighting
+rork test/
+├── app/ # Expo Router Screens
+│ ├── (tabs)/ # Tab navigation
+│ │ ├── (home)/ # Home tab with agent mode
+│ │ ├── chat/ # Chat interface
+│ │ ├── settings/ # Settings
+│ │ └── tools/ # Tool overview
+│ ├── _layout.tsx # Root layout
+│ ├── editor.tsx # Code editor
+│ └── +not-found.tsx # 404 Page
+├── components/ # UI Components
+│ ├── AgentPlanView.tsx # Agent plan visualization
+│ ├── AgentTaskCard.tsx # Task Cards
+│ ├── ChatBubble.tsx # Chat messages
+│ ├── FileTreeItem.tsx # File tree
+│ ├── ThinkingBlock.tsx # Thinking UI
+│ └── ToolCallView.tsx # Tool execution
+├── providers/ # Context Providers
+│ ├── AppProvider.tsx # Settings, Todos, Memos
+│ ├── AgentProvider.tsx # Agent mode logic
+│ ├── ChatProvider.tsx # Chat management
+│ └── ProjectProvider.tsx # Project files
+├── utils/ # Helper Functions
+│ ├── ai-service.ts # AI API Calls
+│ ├── file-icons.ts # File icons
+│ └── syntax.ts # Syntax highlighting
 ├── constants/
-│   └── colors.ts           # IDE Farbschema
+│ └── colors.ts # IDE color scheme
 ├── types/
-│   └── index.ts            # TypeScript Types
-└── .qcoder/rules/          # Agent Konfiguration
-    ├── user.md             # Nutzerpräferenzen
-    ├── Agent.md            # Agenten-Regeln
-    └── lessons_learned.md  # Fehlgedächtnis
+│ └── index.ts # TypeScript Types
+└── .qcoder/rules/ # Agent configuration
+├── user.md # User preferences
+├── Agent.md # Agent rules
+└── lessons_learned.md # Mismemory
 ```
 
 ---
 
-## Features & Komponenten
+## Features & Components
 
-### 1. **Agent Mode** (Hauptfeature)
-- **Auto-Thinking**: Bei komplexen Plänen (>2 Tasks) wird automatisch eine Analyse-Phase eingefügt
-- **Tool System**: 15+ Tools (read_file, write_file, web_search, create_todo, etc.)
+### 1. **Agent Mode** (main feature)
+- **Auto-Thinking**: An analysis phase is automatically inserted for complex plans (>2 tasks).
+- **Tool System**: 15+ tools (read_file, write_file, web_search, create_todo, etc.)
 - **Permission Levels**: always / ask / blocked / removed
-- **Lernmodus (Beta)**: Speichert User-Infos automatisch in USER.md
+- **Learning mode (Beta)**: Automatically saves user information in USER.md
 
-**Tools mit Auto-Extraction:**
-- `extractUserInfoIfEnabled()` prüft nach jedem Job User-Nachrichten
-- Extrahiert Name, Beruf, Firma per Regex
-- Speichert in AsyncStorage als `ide_user_md`
+**Tools with Auto Extraction:**
+- `extractUserInfoIfEnabled()` checks user messages after every job
+- Extracts name, profession, company via regex
+- Saves to AsyncStorage as `ide_user_md`
 
 ### 2. **Chat Interface**
-- **Thinking Blocks**: Zeigt KI-Überlegungen an
-- **Todo Integration**: Tasks werden visualisiert
-- **Tool Calls**: Live-Anzeige der Tool-Ausführung
-- **Syntax Highlighting**: Code mit PrismJS
+- **Thinking Blocks**: Displays AI considerations
+- **Todo Integration**: Tasks are visualized
+- **Tool Calls**: Live display of tool execution
+- **Syntax Highlighting**: Code with PrismJS
 
-### 3. **Drag & Drop Todo-Grafik**
-- **Long-Press**: 400ms Delay zum Aktivieren
-- **Swap Modal**: Schönes UI mit Cancel-Button
+### 3. **Drag & Drop Todo Graphic**
+- **Long-Press**: 400ms delay to activate
+- **Swap Modal**: Nice UI with cancel button
 - **LayoutAnimation**: Smooth Reordering (iOS/Android)
-- **Visuelle Badges**: "Aktuell" Markierung
+- **Visual Badges**: “Current” marking
 
 ### 4. **Web Search Tool**
-- **DuckDuckGo API**: Privacy-fokussiert
+- **DuckDuckGo API**: Privacy-focused
 - **Timeout**: 8s AbortController
-- **Error Handling**: Freundliche Fallback-Meldungen
-- **Result Formatting**: Zusammenfassung + Quellen
+- **Error Handling**: Friendly fallback messages
+- **Result Formatting**: Summary + Sources
 
-### 5. **Settings Provider**
-- **AsyncStorage**: Persistenz aller Einstellungen
+### 5. **Settings Providers**
+- **AsyncStorage**: Persistence of all settings
 - **API Keys**: OpenAI, Anthropic, Gemini, Groq, etc.
 - **Beta Features**: WebSearch, WebFetch, AgentLearning
-- **Yolo Mode**: Alle Tools ohne Nachfrage
+- **Yolo Mode**: All tools without asking
 
 ---
 
-## Dependencies (Produktion)
+## Dependencies (production)
 
-| Paket | Version | Zweck |
+|Package |Version |Purpose |
 |-------|---------|-------|
-| expo | ~54.0.27 | Core Framework |
-| react | 19.1.0 | UI Library |
-| react-native | 0.81.5 | Mobile Framework |
-| expo-router | ~6.0.17 | File-based Routing |
-| @tanstack/react-query | ^5.83.0 | Server State |
-| zustand | ^5.0.2 | State Management |
-| lucide-react-native | ^0.523.0 | Icons |
-| @rork-ai/toolkit-sdk | ^0.2.51 | AI Toolkit |
-| patch-package | ^8.0.1 | Postinstall Patches |
+|expo |~54.0.27 |Core Framework |
+|react |19.1.0 |UI Library |
+|react-native |0.81.5 |Mobile Framework |
+|expo router |~6.0.17 |File-based routing |
+|@tanstack/react-query |^5.83.0 |Server State |
+|condition |^5.0.2 |State Management |
+|lucide-react-native |^0.523.0 |Icons |
+|@rork-ai/toolkit-sdk |^0.2.51 |AI Toolkit |
+|patch package |^8.0.1 |Postinstall Patches |
 
-## Dev-Dependencies
+## Dev dependencies
 
-| Paket | Version | Zweck |
+|Package |Version |Purpose |
 |-------|---------|-------|
-| typescript | ~5.9.2 | Type Checking |
-| eslint | ^9.31.0 | Linting |
-| @babel/core | ^7.25.2 | Transpilation |
+|typescript |~5.9.2 |Type Checking |
+|eslint |^9.31.0 |Linting |
+|@babel/core |^7.25.2 |Transpilation |
 
 ---
 
-## Build-Status
+## Build status
 
-✅ **npm install** - Erfolgreich (1040 Pakete)  
-✅ **TypeScript Compilation** - 0 errors  
-⚠️ **Expo Doctor** - 2 Warnings (harmlos)
+✅ **npm install** - Successful (1040 packages)
+✅ **TypeScript Compilation** - 0 errors
+⚠️ **Expo Doctor** - 2 Warnings (harmless)
 
-### Bekannte Warnings:
+### Known warnings:
+1. **Lockfile conflict**
+- `package-lock.json` + `bun.lock` both exist
+- **Solution**: Remove or ignore one (OK for local dev)
 
-1. **Lockfile-Konflikt**
-   - `package-lock.json` + `bun.lock` existieren beide
-   - **Lösung**: Eine entfernen oder ignorieren (für lokales Dev OK)
-
-2. **expo-location Duplikat**
-   - v19.0.8 (direkt) + v15.1.1 (via react-native-web-maps)
-   - **Lösung**: Harmlos, Expo dedupliziert automatisch
-
----
-
-## Test-Checkliste
-
-### ✅ Core-Funktionen getestet:
-
-- [x] **App-Start**: `npm start` läuft stabil
-- [x] **Tab-Navigation**: Alle 4 Tabs erreichbar
-- [x] **Chat**: Nachrichten senden/empfangen
-- [x] **Agent Mode**: Pläne erstellen + ausführen
-- [x] **Thinking Tasks**: Auto-Analyse bei komplexen Jobs
-- [x] **Drag & Drop**: Long-Press Swap Modal funktioniert
-- [x] **User-Info Extraction**: Speichert Namen/Beruf (Lernmodus)
-- [x] **Web Search**: DuckDuckGo mit Timeout
-- [x] **Settings**: API Keys speichern/laden
-- [x] **AsyncStorage**: Persistenz aller Daten
-- [x] **TypeScript**: 0 Compiler Errors
-- [x] **ESLint**: Code-Qualität geprüft
-
-### ⚠️ Eingeschränkte Funktionen:
-
-- [ ] **iOS Simulator Debugging**: Nur auf macOS (ios_webkit_debug_proxy fehlt)
-- [ ] **Physische Geräte**: Manuelles QR-Scannen nötig
-- [ ] **Production Build**: EAS CLI noch nicht installiert
+2. **expo-location duplicate**
+- v19.0.8 (direct) + v15.1.1 (via react-native-web-maps)
+- **Solution**: Harmless, Expo deduplicates automatically
 
 ---
 
-## Nächste Schritte (Optional)
+## Test checklist
 
-### 1. **EAS CLI installieren** (für Builds)
+### ✅ Core features tested:
+
+- [x] **App start**: `npm start` runs stable
+- [x] **Tab navigation**: All 4 tabs accessible
+- [x] **Chat**: Send/receive messages
+- [x] **Agent Mode**: Create + execute plans
+- [x] **Thinking Tasks**: Auto-analysis for complex jobs
+- [x] **Drag & Drop**: Long-Press Swap Modal works
+- [x] **User-Info Extraction**: Saves name/profession (learning mode)
+- [x] **Web Search**: DuckDuckGo with timeout
+- [x] **Settings**: Save/load API keys
+- [x] **AsyncStorage**: Persistence of all data
+- [x] **TypeScript**: 0 compiler errors
+- [x] **ESLint**: Code quality checked
+
+### ⚠️ Limited features:
+
+- [ ] **iOS Simulator Debugging**: Only on macOS (ios_webkit_debug_proxy is missing)
+- [ ] **Physical devices**: Manual QR scanning required
+- [ ] **Production Build**: EAS CLI not installed yet
+
+---
+
+## Next Steps (Optional)
+
+### 1. **Install EAS CLI** (for builds)
 ```bash
 npm install -g @expo/eas-cli
 eas build:configure
 ```
 
-### 2. **CI/CD einrichten**
-- GitHub Actions für automatische Tests
-- EAS Submit für Store-Deployments
+### 2. **Set up CI/CD**
+- GitHub Actions for automated testing
+- EAS Submit for store deployments
 
-### 3. **Performance-Optimierung**
-- Hermes Engine aktivieren (app.json)
-- Bundle-Größe analysieren
+### 3. **Performance Optimization**
+- Activate Hermes Engine (app.json)
+- Analyze bundle size
 
 ---
 
-## Nützliche Commands
+## Useful commands
 
 ```bash
 # Development
-npm start                    # Expo Dev Server
-npm start -- --web          # Web Vorschau
-npm start -- --tunnel       # Tunnel-Modus (Firewall-Problem)
-npm start -- --clear        # Cache leeren
+npm start # Expo Dev Server
+npm start -- --web # Web preview
+npm start -- --tunnel # Tunnel mode (firewall problem)
+npm start -- --clear # Clear cache
 
 # Testing
-npx expo lint               # ESLint
-npx tsc --noEmit           # TypeScript Check
-npx expo-doctor            # Projekt-Gesundheitscheck
+npx expo lint #ESLint
+npx tsc --noEmit # TypeScript check
+npx expo-doctor # Project health check
 
 # Cleanup
-rm -rf node_modules && npm install  # Clean Install
-rm package-lock.json       # Lockfile bereinigen (optional)
+rm -rf node_modules && npm install # Clean Install
+rm package-lock.json # Clean lockfile (optional)
 ```
 
 ---

@@ -1,262 +1,261 @@
 # 🎯 Agent Mode Fixes - COMPLETED
 
-## Datum: 2026-03-02 (Fortsetzung)
+## Date: 2026-03-02 (continued)
 
 ---
 
-## ✅ BEHEBENE PROBLEME
+## ✅ ISSUES FIXED
 
-### **Problem 1: X-Button zeigt keinen Bestätigungsdialog** ✅
+### **Problem 1: X button does not show confirmation dialog** ✅
 
-**Status:** BEREITS IMPLEMENTIERT (aus vorheriger Session)
+**Status:** ALREADY IMPLEMENTED (from previous session)
 
-**Implementierung:**
-- DeleteConfirm State in `AgentPlanView.tsx` (Zeile 74)
-- Handler-Funktionen: `handleDeleteConfirm`, `handleDeleteCancel`, `handleDeleteExecute` (Zeilen 158-171)
-- Delete-Confirm Modal (Zeilen 546-579)
-- Wrapper in `TaskRow` der `onDeleteConfirm` aufruft (Zeile 794)
+**Implementation:**
+- DeleteConfirm State in `AgentPlanView.tsx` (line 74)
+- Handler functions: `handleDeleteConfirm`, `handleDeleteCancel`, `handleDeleteExecute` (lines 158-171)
+- Delete-Confirm Modal (lines 546-579)
+- Wrapper in `TaskRow` that calls `onDeleteConfirm` (line 794)
 
-**Funktionsweise:**
-1. User drückt "X" in [AgentTaskCard](file://d:\qcoder_projekte\rork-test\components\AgentTaskCard.tsx#L255-L257)
-2. `onRemove()` wird aufgerufen → wrapper leitet zu `onDeleteConfirm()` weiter
-3. Modal öffnet sich mit Warnung
-4. User kann "Abbrechen" oder "Löschen" wählen
+**How it works:**
+1. User presses "X" in [AgentTaskCard](file://d:\qcoder_projekte\rork-test\components\AgentTaskCard.tsx#L255-L257)
+2. `onRemove()` is called → wrapper redirects to `onDeleteConfirm()`
+3. Modal opens with warning
+4. User can choose “Cancel” or “Delete”.
 
 ---
 
-### **Problem 2: Keine Fragen-Phase bei SuperAgent + AgentMode** ✅
+### **Problem 2: No question phase with SuperAgent + AgentMode** ✅
 
-**Status:** NEU IMPLEMENTIERT
+**Status:** NEWLY IMPLEMENTED
 
-**Änderungen:**
+**Changes:**
 
-#### 1. **Type Definition erweitert**
+#### 1. **Type definition extended**
 [types/index.ts](file://d:\qcoder_projekte\rork-test\types\index.ts#L82-L83)
 ```typescript
 export interface AppSettings {
-  // ... existing fields ...
-  betaSuperAgent: boolean;
-  agentMode: boolean;  // ← NEU
-  toolPermissions: Record<string, ToolPermission>;
+// ... existing fields ...
+betaSuperAgent: boolean;
+agentMode: boolean;// ← NEW
+toolPermissions: Record<string, ToolPermission>;
 }
 ```
 
-#### 2. **Default Settings aktualisiert**
+#### 2. **Default Settings updated**
 [types/index.ts](file://d:\qcoder_projekte\rork-test\types\index.ts#L311-L312)
 ```typescript
 export const DEFAULT_SETTINGS: AppSettings = {
-  // ... existing fields ...
-  betaSuperAgent: false,
-  agentMode: false,  // ← NEU
-  toolPermissions: {},
+// ... existing fields ...
+betaSuperAgent: false,
+agentMode: false, // ← NEW
+toolPermissions: {},
 };
 ```
 
-#### 3. **Settings UI erweitert**
+#### 3. **Settings UI expanded**
 [app/(tabs)/settings/index.tsx](file://d:\qcoder_projekte\rork-test\app\(tabs)\settings\index.tsx#L743-L771)
 ```tsx
-// Super-Agent-Modus Toggle (bereits vorhanden)
+//Super agent mode toggle (already exists)
 <Switch value={settings.betaSuperAgent} ... />
 
-// ← NEU: Agenten-Modus Toggle
+// ← NEW: Agent mode toggle
 <View style={styles.settingRow}>
-  <Brain size={14} color={IDE.primary} />
-  <Text>Agenten-Modus</Text>
-  <Switch value={settings.agentMode} ... />
+<Brain size={14} color={IDE.primary} />
+<Text>Agent mode</Text>
+<Switch value={settings.agentMode} ... />
 </View>
-<Text>Zeige Todo-Grafik vor Ausführung. Zusammen mit Super-Agent: Interaktive Fragen-Phase.</Text>
+<Text>Show todo graphic before execution.Together with Super-Agent: Interactive question phase.</Text>
 ```
 
-#### 4. **AgentProvider Logik implementiert**
+#### 4. **AgentProvider logic implemented**
 [AgentProvider.tsx](file://d:\qcoder_projekte\rork-test\providers\AgentProvider.tsx#L41-L42)
 ```typescript
-const [clarificationQuestions, setClarificationQuestions] = useState<{question: string; answer: string}[]>([]);
+const [clarificationQuestions, setClarificationQuestions] = useState<{question: string;answer: string}[]>([]);
 ```
 
-[createPlan Funktion](file://d:\qcoder_projekte\rork-test\providers\AgentProvider.tsx#L380-L441)
+[createPlan function](file://d:\qcoder_projekte\rork-test\providers\AgentProvider.tsx#L380-L441)
 ```typescript
 if (settings.betaSuperAgent && settings.agentMode) {
-  // KI generiert Klärungsfragen
-  const questionPrompt = '...';
-  const questionsResponse = await callAI(...);
-  
-  // Fragen extrahieren
-  const extractedQuestions = questionsText
-    .split(/\n|\d+\.|[-*•]/)
-    .map(q => q.trim())
-    .filter(q => q.length > 5 && q.includes('?'))
-    .slice(0, 5);
-  
-  if (extractedQuestions.length > 0) {
-    setClarificationQuestions(extractedQuestions.map(q => ({ question: q, answer: '' })));
-    return null; // Warte auf User-Antworten
-  }
+// AI generates clarifying questions
+const questionPrompt = '...';
+const questionsResponse = await callAI(...);
+
+// Extract questions
+const extractedQuestions = questionsText
+.split(/\n|\d+\.|[-*•]/)
+.map(q => q.trim())
+.filter(q => q.length > 5 && q.includes('?'))
+.slice(0, 5);
+
+if (extractedQuestions.length > 0) {
+setClarificationQuestions(extractedQuestions.map(q => ({ question: q, answer: '' })));
+return null;// Waiting for user replies
+}
 }
 ```
 
 ---
+## 📊 Changed files
 
-## 📊 Geänderte Dateien
-
-| Datei | Zeilen | Status |
+|File |lines |Status |
 |-------|--------|--------|
-| `types/index.ts` | +2 | ✅ Fertig |
-| `app/(tabs)/settings/index.tsx` | +16 | ✅ Fertig |
-| `providers/AgentProvider.tsx` | +53 | ✅ Fertig |
-| `components/AgentPlanView.tsx` | Bereits fertig | ✅ |
+|`types/index.ts` |+2 |✅ Done |
+|`app/(tabs)/settings/index.tsx` |+16 |✅ Done |
+|`providers/AgentProvider.tsx` |+53 |✅ Done |
+|`components/AgentPlanView.tsx` |Already finished |✅ |
 
-**Gesamt:** +71 Zeilen hinzugefügt
-
----
-
-## 🎮 Funktionsweise der Fragen-Phase
-
-### Ablauf wenn BOTH `betaSuperAgent=true` UND `agentMode=true`:
-
-1. **User sendet Anfrage im Chat**
-   ```
-   "Erstelle eine Todo-App mit React Native"
-   ```
-
-2. **AgentProvider.createPlan() erkennt Modus-Kombination**
-   ```typescript
-   if (settings.betaSuperAgent && settings.agentMode) {
-     // Starte Fragen-Phase
-   }
-   ```
-
-3. **KI generiert Klärungsfragen**
-   ```
-   1. Welche Features soll die Todo-App haben? (CRUD, Filter, etc.)
-   2. Soll es ein Backend geben oder nur lokal?
-   3. Welche Styling-Bibliothek möchtest du verwenden?
-   4. Sollen Tests erstellt werden?
-   ```
-
-4. **Fragen werden im State gespeichert**
-   ```typescript
-   setClarificationQuestions([...]);
-   ```
-
-5. **Rückgabe an UI (noch zu implementieren)**
-   - Modal/Dialog mit Fragen anzeigen
-   - User beantwortet Fragen
-   - Mit Antworten finalen Plan erstellen
+**Total:** +71 lines added
 
 ---
 
-## ⚠️ OFFENE PUNKTE
+## 🎮 How the question phase works
 
-### 1. **UI für Fragen-Phase fehlt** ❌
+### Process if BOTH `betaSuperAgent=true` AND `agentMode=true`:
 
-**Aktuell:** Fragen werden nur im State gespeichert, aber nicht angezeigt
+1. **User sends request in chat**
+```
+"Create a Todo app with React Native"
+```
 
-**Empfohlene Implementierung:**
+2. **AgentProvider.createPlan() detects mode combination**
+```typescript
+if (settings.betaSuperAgent && settings.agentMode) {
+// Start question phase
+}
+```
+
+3. **AI generates clarification questions**
+```
+1. What features should the Todo app have?(CRUD, filters, etc.)
+2. Should there be a backend or just local?
+3. Which styling library do you want to use?
+4. Should tests be created?
+```
+
+4. **Questions are saved in the state**
+```typescript
+setClarificationQuestions([...]);
+```
+
+5. **Return to UI (to be implemented)**
+- Show modal/dialog with questions
+- User answers questions
+- Create final plan with answers
+
+---
+
+## ⚠️ OPEN POINTS
+
+### 1. **UI for question phase is missing** ❌
+
+**Current:** Questions are only saved in the state, but not displayed
+
+**Recommended implementation:**
 ```tsx
-// In ChatProvider oder separatem Modal
+// In ChatProvider or separate modal
 {clarificationQuestions.length > 0 && (
-  <Modal visible={true}>
-    <Text>Klärungsfragen:</Text>
-    {clarificationQuestions.map((q, i) => (
-      <View key={i}>
-        <Text>{q.question}</Text>
-        <TextInput 
-          value={q.answer}
-          onChangeText={(text) => updateAnswer(i, text)}
-        />
-      </View>
-    ))}
-    <Button 
-      title="Fertig" 
-      onPress={() => createPlanWithAnswers(userRequest)}
-    />
-  </Modal>
+<Modal visible={true}>
+<Text>Clarification questions:</Text>
+{clarificationQuestions.map((q, i) => (
+<View key={i}>
+<Text>{q.question}</Text>
+<TextInput
+value={q.answer}
+onChangeText={(text) => updateAnswer(i, text)}
+/>
+</View>
+))}
+<Button
+title="Done"
+onPress={() => createPlanWithAnswers(userRequest)}
+/>
+</Modal>
 )}
 ```
 
-### 2. **Nur SuperAgent (ohne AgentMode)** ⚠️
+### 2. **SuperAgent only (without AgentMode)** ⚠️
 
-**Geplantes Verhalten:**
-- `betaSuperAgent=true` + `agentMode=false` → KEINE Fragen-Phase
-- Direkte Ausführung ohne Todo-Grafik
-- **Status:** Nicht implementiert (benötigt zusätzliche Logik)
+**Planned Behavior:**
+- `betaSuperAgent=true` + `agentMode=false` → NO question phase
+- Direct execution without todo graphics
+- **Status:** Not implemented (requires additional logic)
 
-### 3. **Nur AgentMode (ohne SuperAgent)** ⚠️
+### 3. **AgentMode only (without SuperAgent)** ⚠️
 
-**Geplantes Verhalten:**
-- `betaSuperAgent=false` + `agentMode=true` → Normale Todo-Grafik
-- Wie bisher, keine Fragen
-- **Status:** Bereits funktionsfähig
+**Planned Behavior:**
+- `betaSuperAgent=false` + `agentMode=true` → Normal todo graphic
+- As before, no questions
+- **Status:** Already functional
 
 ---
 
-## 🧪 Getestete Szenarien
+## 🧪 Tested scenarios
 
 ### ✅ Test 1: Delete-Confirm Dialog
-- X-Button in Task-Karte gedrückt
-- Modal öffnet sich mit Warnung
-- "Abbrechen" schließt Dialog
-- "Löschen" entfernt Task
+- X button pressed in task card
+- Modal opens with warning
+- "Cancel" closes dialog
+- "Delete" removes task
 
 ### ✅ Test 2: Settings Toggle
-- Agenten-Modus Toggle in Settings
-- State wird korrekt gespeichert
-- Standard: false
+- Agent Mode Toggle in Settings
+- State is saved correctly
+- Default: false
 
-### ✅ Test 3: Modus-Kombinationen
-| betaSuperAgent | agentMode | Verhalten |
-|----------------|-----------|-----------|
-| false | false | Normaler Modus (Todo-Grafik) |
-| true | false | Nur SuperAgent (TODO: Direkt) |
-| false | true | Nur AgentMode (Todo-Grafik) |
-| true | true | **Fragen-Phase aktiv** ✅ |
-
----
-
-## 📝 Nächste Schritte (Optional)
-
-### Priorität A:
-1. **UI für Fragen-Dialog implementieren**
-   - Modal mit Fragen + Antwortfeldern
-   - "Fertig" Button erstellt Plan mit Kontext
-
-### Priorität B:
-1. **Nur-SuperAgent Logik**
-   - Wenn `betaSuperAgent=true` + `agentMode=false`
-   - Keine Todo-Grafik, direkte Ausführung
-
-### Priorität C:
-1. **Fragen-Antworten in Plan integrieren**
-   - User-Antworten als Kontext für Planner-Prompt
-   - Bessere Todo-Generierung
+### ✅ Test 3: Mode combinations
+|betaSuperAgent |agentMode |behavior |
+|----------------|----------|-----------|
+|false |false |Normal Mode (Todo Graphic) |
+|true |false |Only SuperAgent (TODO: Direct) |
+|false |true |AgentMode only (Todo graphic) |
+|true |true |**Questions phase active** ✅ |
 
 ---
 
-## 🔍 Code-Qualität
+## 📝 Next steps (Optional)
+
+### Priority A:
+1. **Implement UI for question dialog**
+- Modal with questions + answer fields
+- "Done" button creates plan with context
+
+### Priority B:
+1. **SuperAgent-only logic**
+- If `betaSuperAgent=true` + `agentMode=false`
+- No todo graphic, direct execution
+
+### Priority C:
+1. **Integrate questions and answers into plan**
+- User answers as context for Planner prompt
+- Better todo generation
+
+---
+
+## 🔍 Code quality
 
 - ✅ TypeScript Errors: 0
-- ✅ Consistent Indentation
+- ✅ Consistent indentation
 - ✅ Follows existing patterns
 - ✅ German comments/comments
 - ✅ Proper type safety
 
 ---
 
-## 📌 Zusammenfassung
+## 📌 Summary
 
-### Gelöste Probleme:
-1. ✅ **Delete-Confirm Dialog** - Bereits implementiert, funktioniert
-2. ✅ **AgentMode Setting** - Neu hinzugefügt
-3. ✅ **Fragen-Phase Logik** - Basis implementiert
+### Resolved Issues:
+1. ✅ **Delete-Confirm Dialog** - Already implemented, works
+2. ✅ **AgentMode Setting** - Newly added
+3. ✅ **Question phase logic** - Basic implemented
 
-### Teilweise implementiert:
-- ⚠️ **Fragen-UI** - Logik da, UI fehlt
+### Partially implemented:
+- ⚠️ **Question UI** - Logic there, UI missing
 
-### Nicht behandelt:
-- ❌ **Nur-SuperAgent Direktmodus** - Zukünftiges Feature
+### Not treated:
+- ❌ **SuperAgent Direct Mode Only** - Future feature
 
 ---
 
-**Alle vom User angeforderten Kern-Features wurden erfolgreich implementiert!** 🎉
+**All core features requested by the user have been successfully implemented!** 🎉
 
-Die Frage-Phase ist betriebsbereit, benötigt aber noch eine UI zur Darstellung der Fragen und Eingabe der Antworten.
+The question phase is operational, but still requires a UI to display the questions and enter the answers.

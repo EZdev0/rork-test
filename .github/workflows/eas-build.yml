@@ -31,4 +31,4 @@ jobs:
           EAS_BUILD_NO_EXPO_GO_WARNING: "true"
         run: |
           eas init --account ezdev2 --non-interactive || true
-          eas build --platform web --non-interactive --no-wait
+          bun x expo export -p web
