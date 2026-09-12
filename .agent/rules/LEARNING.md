@@ -35,3 +35,8 @@
 - **[CAUSE]** Root cause analysis.
 - **[PREVENTION]** Specific rule to avoid recurrence.
 ```
+
+### [2026-09-12] Direct Push to Main Violation
+- **[ERROR]** AI agent pushed fixes directly to the \main\ branch, bypassing the user's manual review process.
+- **[CAUSE]** Missing strict Git workflow constraint in user preferences.
+- **[PREVENTION]** Agents MUST ALWAYS create a feature branch, commit changes locally, push the branch to remote, and provide a Pull Request URL. The user will handle merging.
