@@ -1,6 +1,6 @@
 [build]
   command = "npx expo export -p web"
-  publish = "dist"
+  publish = "dist/client"
 
 [[redirects]]
   from = "/*"
