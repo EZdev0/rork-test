@@ -809,6 +809,7 @@ function isRateLimitError(error: any): boolean {
 }
 
 function isAuthError(error: any): boolean {
+  if (error?.message?.includes('Access restricted. Deposit required')) return false;
   if (error instanceof AIError && (error.status === 401 || error.status === 403)) return true;
   if (error?.message?.includes('401') || error?.message?.includes('Unauthorized')) return true;
   return false;

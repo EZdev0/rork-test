@@ -26,9 +26,14 @@ jobs:
       - name: Install dependencies
         run: bun install
 
-      - name: Build on EAS (Web)
+      - name: Export Web Application (Netlify)
         env:
           EAS_BUILD_NO_EXPO_GO_WARNING: "true"
         run: |
           eas init --account ezdev2 --non-interactive || true
           bun x expo export -p web
+
+      - name: Build on EAS (Android)
+        env:
+          EAS_BUILD_NO_EXPO_GO_WARNING: "true"
+        run: eas build --platform android --non-interactive --no-wait
