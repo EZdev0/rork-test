@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useRef, useMemo, useEffect } from 'react';
+import { Platform } from 'react-native';
 import createContextHook from '@nkzw/create-context-hook';
 import { z } from 'zod';
 import { createRorkTool, useRorkAgent } from '@rork-ai/toolkit-sdk';
@@ -264,10 +265,19 @@ export const [ChatProvider, useChat] = createContextHook(() => {
   }), []);
 
   const rorkAgent = useRorkAgent({
-    api: typeof window !== 'undefined' ? '/api/chat' : undefined,
     tools: rorkTools,
     // Workaround for CORS if SDK supports custom fetch or endpoint
-
+    fetch: async (input: RequestInfo | URL, init?: RequestInit) => {
+      if (Platform.OS === 'web') {
+        const url = typeof input === 'string' ? input : (input as Request).url || input.toString();
+        // Skip proxy if it's already a relative URL or not toolkit
+        if (url.includes('toolkit.rork.com') || url.includes('/agent/chat')) {
+          const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(url);
+          return fetch(proxyUrl, init);
+        }
+      }
+      return fetch(input, init);
+    }
   });
 
   useEffect(() => {
