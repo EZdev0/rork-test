@@ -1,283 +1,281 @@
-# 🚀 KRITISCHE FIXES - Zusammenfassung
+# 🚀 CRITICAL FIXES - Summary
 
-## 🔴 Problem 1: Web-Suche funktioniert nicht richtig
+## 🔴 Problem 1: Web search not working properly
 
-**Ursache:** DuckDuckGo API liefert oft keine Ergebnisse oder nur eingeschränkt.
+**Cause:** DuckDuckGo API often does not provide any results or only provides limited results.
 
-**Lösung in AgentProvider.tsx (Zeile ~261-300):**
+**Solution in AgentProvider.tsx (line ~261-300):**
 ```typescript
 case 'web_search': {
-  if (!args?.query) return { result: 'FEHLER: Suchbegriff fehlt.' };
-  try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 8000);
-    
-    const resp = await fetch(
-      'https://api.duckduckgo.com/?q=' + encodeURIComponent(args.query) + '&format=json&no_redirect=1&no_html=1',
-      { signal: controller.signal }
-    );
-    clearTimeout(timeoutId);
-    
-    let results = '';
-    
-    if (resp.ok) {
-      const data = await resp.json();
-      
-      // Abstract (Hauptergebnis)
-      if (data?.Abstract) {
-        results += '**Zusammenfassung:**\n' + data.Abstract + '\n\n';
-        if (data?.AbstractURL) results += '_Quelle: ' + data.AbstractURL + '_\n\n';
-      }
-      
-      // Related Topics
-      if (data?.RelatedTopics && Array.isArray(data.RelatedTopics)) {
-        const topics = data.RelatedTopics.slice(0, 8);
-        if (topics.length > 0) {
-          results += '**Gefundene Themen:**\n';
-          for (const t of topics) {
-            if (t?.Text) {
-              results += '• ' + t.Text + '\n';
-              if (t?.FirstURL) results += '  _Quelle: ' + t.FirstURL + '_\n';
-            }
-          }
-          results += '\n';
-        }
-      }
-      
-      // Results Array
-      if (data?.Results && Array.isArray(data.Results)) {
-        const res = data.Results.slice(0, 5);
-        if (res.length > 0) {
-          results += '**Ergebnisse:**\n';
-          for (const r of res) {
-            if (r?.Text && r?.FirstURL) {
-              results += '• ' + r.Text + '\n  _' + r.FirstURL + '_\n';
-            }
-          }
-        }
-      }
-    }
-    
-    // Wenn keine Ergebnisse, hilfreiche Fallback-Nachricht
-    if (!results.trim()) {
-      return { 
-        result: 'ℹ️ Keine direkten Web-Ergebnisse für "' + args.query + '" gefunden.\n\n' +
-                '**Mögliche Gründe:**\n' +
-                '• Sehr spezifische oder technische Anfrage\n' +
-                '• Begriff wird anders geschrieben\n' +
-                '• Aktuelles Thema noch nicht indexiert\n\n' +
-                '**Versuche:**\n' +
-                '• Andere Formulierung der Suche\n' +
-                '• Englisch statt Deutsch\n' +
-                '• Allgemeinere Begriffe'
-      };
-    }
-    
-    return { result: results };
-  } catch (e: any) {
-    console.log('[Web-Search] Error:', e.message);
-    return { 
-      result: '⚠️ Web-Suche derzeit nicht verfügbar (Netzwerkfehler).\n\n' +
-              '**Beschreibe was du finden möchtest:**\n' +
-              '• Welches Thema?\n' +
-              '• Welche Informationen brauchst du?\n' +
-              '• Gibt es alternative Quellen?'
-    };
-  }
+if (!args?.query) return { result: 'ERROR: Search term missing.'};
+try {
+const controller = new AbortController();
+const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+const resp = await fetch(
+'https://api.duckduckgo.com/?q=' + encodeURIComponent(args.query) + '&format=json&no_redirect=1&no_html=1',
+{ signal: controller.signal }
+);
+clearTimeout(timeoutId);
+
+let results = '';
+
+if (resp.ok) {
+const data = await resp.json();
+
+// Abstract (main result)
+if (data?.Abstract) {
+results += '**Summary:**\n' + data.Abstract + '\n\n';
+if (data?.AbstractURL) results += '_Source: ' + data.AbstractURL + '_\n\n';
+}
+
+// Related Topics
+if (data?.RelatedTopics && Array.isArray(data.RelatedTopics)) {
+const topics = data.RelatedTopics.slice(0, 8);
+if (topics.length > 0) {
+results += '**Topics found:**\n';
+for (const t of topics) {
+if (t?.Text) {
+results += '• ' + t.Text + '\n';
+if (t?.FirstURL) results += ' _Source: ' + t.FirstURL + '_\n';
+}
+}
+results += '\n';
+}
+}
+
+// Results Array
+if (data?.Results && Array.isArray(data.Results)) {
+const res = data.Results.slice(0, 5);
+if (res.length > 0) {
+results += '**Results:**\n';
+for (const r of res) {
+if (r?.Text && r?.FirstURL) {
+results += '• ' + r.Text + '\n _' + r.FirstURL + '_\n';
+}
+}
+}
+}
+}
+
+// If no results, helpful fallback message
+if (!results.trim()) {
+return {
+result: 'ℹ️ No direct web results found for "' + args.query + '".\n\n' +
+'**Possible reasons:**\n' +
+'• Very specific or technical request\n' +
+'• Term is spelled differently\n' +
+'• Current topic not yet indexed\n\n' +
+'**Attempts:**\n' +
+'• Different wording of the search\n' +
+'• English instead of German\n' +
+'• More general terms'
+};
+}
+
+return { result: results };
+} catch (e: any) {
+console.log('[Web-Search] Error:', e.message);
+return {
+result: '⚠️ Web search currently unavailable (network error).\n\n' +
+'**Describe what you want to find:**\n' +
+'• Which topic?\n' +
+'• What information do you need?\n' +
+'• Are there alternative sources?'
+};
+}
 }
 ```
 
 ---
 
-## 🔴 Problem 2: Unteragenten-Tasks ohne Live-Visualisierung
+## 🔴 Issue 2: Subagent tasks without live visualization
+**New TaskType 'sub_agent' created!**
 
-**Neuer TaskType 'sub_agent' erstellt!**
-
-### A) types/index.ts erweitern:
+### A) expand types/index.ts:
 ```typescript
-export type AgentTaskType = 'task' | 'thinking' | 'brainstorm' | 'web_search' | 'sub_agent';
+export type AgentTaskType = 'task' |'thinking' |'brainstorm' |'web_search' |'sub_agent';
 
 export interface AgentTask {
-  id: string;
-  title: string;
-  description: string;
-  taskType: AgentTaskType;
-  status: AgentTaskStatus;
-  subAgentMessages: ChatMessage[];
-  filesCreated: string[];
-  filesModified: string[];
-  filesDeleted: string[];
-  thinkingContent?: string;
-  result?: string;
-  error?: string;
-  startedAt?: number;
-  completedAt?: number;
-  // NEU: Für Unteragenten-Kommunikation
-  isSubAgentTask?: boolean;
-  parentTaskId?: string;
-  agentRole?: 'analyst' | 'developer' | 'tester' | 'researcher';
+id: string;
+title: string;
+description: string;
+taskType: AgentTaskType;
+status: AgentTaskStatus;
+subAgentMessages: ChatMessage[];
+filesCreated: string[];
+filesModified: string[];
+filesDeleted: string[];
+thinkingContent?: string;
+result?: string;
+error?: string;
+startedAt?: number;
+completedAt?: number;
+// NEW: For sub-agent communication
+isSubAgentTask?: boolean;
+parentTaskId?: string;
+agentRole?: 'analyst' |'developer' |'tester' |'researcher';
 }
 ```
 
-### B) AgentPlanView.tsx - Sub-Agent-Visualisierung:
-Füge bei den TaskType-Buttons hinzu (Zeile ~304):
+### B) AgentPlanView.tsx - Sub-agent visualization:
+Add to the TaskType buttons (line ~304):
 ```typescript
 {(['task', 'thinking', 'brainstorm', 'web_search', 'sub_agent'] as AgentTaskType[]).map(type => (
-  <TouchableOpacity
-    key={type}
-    style={[styles.addTypeBtn, addType === type && styles.addTypeBtnActive]}
-    onPress={() => setAddType(type)}
-    activeOpacity={0.7}
-  >
-    {type === 'thinking' ? <Brain size={12} color={addType === type ? IDE.keyword : IDE.muted} /> :
-     type === 'brainstorm' ? <Lightbulb size={12} color={addType === type ? IDE.warning : IDE.muted} /> :
-     type === 'web_search' ? <Globe size={12} color={addType === type ? '#2196F3' : IDE.muted} /> :
-     type === 'sub_agent' ? <Zap size={12} color={addType === type ? IDE.accent : IDE.muted} /> :
-     <Play size={12} color={addType === type ? IDE.primary : IDE.muted} />}
-    <Text style={[styles.addTypeBtnText, addType === type && {
-      color: type === 'thinking' ? IDE.keyword : type === 'brainstorm' ? IDE.warning : type === 'web_search' ? '#2196F3' : type === 'sub_agent' ? IDE.accent : IDE.primary,
-    }]}>
-      {type === 'thinking' ? 'Analyse' : type === 'brainstorm' ? 'Brainstorm' : type === 'web_search' ? 'Web-Suche' : type === 'sub_agent' ? 'Unteragent' : 'Aufgabe'}
-    </Text>
-  </TouchableOpacity>
+<TouchableOpacity
+key={type}
+style={[styles.addTypeBtn, addType === type && styles.addTypeBtnActive]}
+onPress={() => setAddType(type)}
+activeOpacity={0.7}
+>
+{type === 'thinking' ?<Brain size={12} color={addType === type ?IDE.keyword : IDE.muted} /> :
+type === 'brainstorm' ?<Lightbulb size={12} color={addType === type ?IDE.warning : IDE.muted} /> :
+type === 'web_search' ?<Globe size={12} color={addType === type ?'#2196F3' : IDE.muted} /> :
+type === 'sub_agent' ?<Zap size={12} color={addType === type ?IDE.accent : IDE.muted} /> :
+<Play size={12} color={addType === type ?IDE.primary : IDE.muted} />}
+<Text style={[styles.addTypeBtnText, addType === type && {
+color: type === 'thinking' ?IDE.keyword : type === 'brainstorm' ?IDE.warning : type === 'web_search' ?'#2196F3' : type === 'sub_agent' ?IDE.accent : IDE.primary,
+}]}>
+{type === 'thinking' ?'Analysis' : type === 'brainstorm' ?'Brainstorm' : type === 'web_search' ?'Web Search' : type === 'sub_agent' ?'Subagent' : 'Task'}
+</Text>
+</TouchableOpacity>
 ))}
 ```
 
-### C) AgentTaskCard.tsx - Sub-Agent-Chat-Anzeige:
-Wenn `task.taskType === 'sub_agent'`, zeige speziellen Chat-Bereich mit:
-- Ladeanimation während `status === 'running'`
-- Hauptagent ↔ Unteragent Konversation
-- "Zum Chat springen" Button
-- Auto-Löschen nach Abschluss
+### C) AgentTaskCard.tsx - Sub-agent chat display:
+If `task.taskType === 'sub_agent'`, show special chat area with:
+- Loading animation while `status === 'running'`
+- Main agent ↔ sub-agent conversation
+- "Jump to chat" button
+- Auto-delete upon completion
 
 ---
 
-## 🔴 Problem 3: Chats werden nicht gespeichert
+## 🔴 Problem 3: Chats are not saved
 
-**Lösung: Chat-Provider erweitern**
+**Solution: Expand chat provider**
 
-### ChatProvider.tsx - Persistenz hinzufügen:
+### ChatProvider.tsx - Add persistence:
 ```typescript
-// Nach jedem Nachricht hinzufügen
+// Add message after each
 const saveChatToStorage = useCallback(async (chatId: string, messages: ChatMessage[]) => {
-  try {
-    const chatDir = getDocumentDirectory() + '/chats';
-    // Verzeichnis erstellen falls nicht vorhanden
-    await FileSystem.makeDirectoryAsync(chatDir, { intermediates: true });
-    
-    // Chat speichern als JSON
-    const filePath = chatDir + '/' + chatId + '.json';
-    const chatData = {
-      id: chatId,
-      messages,
-      lastAccessed: Date.now(),
-      metadata: {
-        messageCount: messages.length,
-        createdAt: messages[0]?.timestamp || Date.now(),
-      },
-    };
-    await FileSystem.writeAsStringAsync(filePath, JSON.stringify(chatData, null, 2));
-  } catch (e) {
-    console.error('[Chat] Save failed:', e);
-  }
+try {
+const chatDir = getDocumentDirectory() + '/chats';
+// Create directory if not available
+await FileSystem.makeDirectoryAsync(chatDir, { intermediates: true });
+
+// Save chat as JSON
+const filePath = chatDir + '/' + chatId + '.json';
+const chatData = {
+id: chatId,
+messages,
+lastAccessed: Date.now(),
+metadata: {
+messageCount: messages.length,
+createdAt: messages[0]?.timestamp ||Date.now(),
+},
+};
+await FileSystem.writeAsStringAsync(filePath, JSON.stringify(chatData, null, 2));
+} catch (e) {
+console.error('[Chat] Save failed:', e);
+}
 }, []);
 
-// Beim Laden der App alle Chats laden
+// Load all chats when loading the app
 const loadAllChats = useCallback(async () => {
-  try {
-    const chatDir = getDocumentDirectory() + '/chats';
-    const exists = await FileSystem.getInfoAsync(chatDir);
-    if (!exists.exists) return [];
-    
-    const files = await FileSystem.readDirectoryAsync(chatDir);
-    const chats = [];
-    for (const file of files.filter(f => f.endsWith('.json'))) {
-      const content = await FileSystem.readAsStringAsync(chatDir + '/' + file);
-      chats.push(JSON.parse(content));
-    }
-    return chats.sort((a, b) => b.lastAccessed - a.lastAccessed);
-  } catch (e) {
-    console.error('[Chat] Load failed:', e);
-    return [];
-  }
+try {
+const chatDir = getDocumentDirectory() + '/chats';
+const exists = await FileSystem.getInfoAsync(chatDir);
+if (!exists.exists) return [];
+
+const files = await FileSystem.readDirectoryAsync(chatDir);
+const chats = [];
+for (const file of files.filter(f => f.endsWith('.json'))) {
+const content = await FileSystem.readAsStringAsync(chatDir + '/' + file);
+chats.push(JSON.parse(content));
+}
+return chats.sort((a, b) => b.lastAccessed - a.lastAccessed);
+} catch (e) {
+console.error('[Chat] Load failed:', e);
+return[];
+}
 }, []);
 ```
 
 ---
 
-## 🔴 Problem 4: Formatierungsfehler bei Hashtag-Dokumentation
+## 🔴 Issue 4: Hashtag documentation formatting error
 
-**Ursache:** `formatFinalResponse` erkennt `!####!` nicht korrekt.
+**Cause:** `formatFinalResponse` does not recognize `!####!` correctly.
 
-**Fix in AgentPlanView.tsx (Zeile ~543-587):**
+**Fix in AgentPlanView.tsx (line ~543-587):**
 ```typescript
 function formatFinalResponse(text: string): React.ReactNode {
-  if (!text) return null;
-  const lines = text.split('\n');
-  const elements: React.ReactNode[] = [];
+if (!text) return null;
+const lines = text.split('\n');
+const elements: React.ReactNode[] = [];
 
-  for (let li = 0; li < lines.length; li++) {
-    const line = lines[li];
+for (let li = 0; li < lines.length; li++) {
+const line = lines[li];
 
-    // HASHTAG-DOKUMENTATION: !####! 📘 Dokumentation
-    const hashtagMatch = line.match(/^!(#{1,6})!\s*(.+)$/);
-    if (hashtagMatch) {
-      const level = hashtagMatch[1].length;
-      const headingText = hashtagMatch[2].trim();
-      const fontSize = level === 1 ? 17 : level === 2 ? 15 : 13;
-      elements.push(
-        <Text key={'h' + li} style={[styles.finalHeading, { fontSize, marginTop: li > 0 ? 8 }]}>
-          {formatInlineFinal(headingText)}
-        </Text>
-      );
-      continue;
-    }
+// HASHTAG DOCUMENTATION: !####!📘 Documentation
+const hashtagMatch = line.match(/^!(#{1,6})!\s*(.+)$/);
+if (hashtagMatch) {
+const level = hashtagMatch[1].length;
+const headingText = hashtagMatch[2].trim();
+const fontSize = level === 1 ?17 : level === 2 ?15:13;
+elements.push(
+<Text key={'h' + li} style={[styles.finalHeading, { fontSize, marginTop: li > 0 ?8 }]}>
+{formatInlineFinal(headingText)}
+</Text>
+);
+continue;
+}
 
-    // Normale Headings
-    if (/^#{1,3}\s/.test(line)) {
-      const level = line.match(/^(#{1,3})/)![1].length;
-      const headingText = line.replace(/^#{1,3}\s+/, '');
-      const fontSize = level === 1 ? 17 : level === 2 ? 15 : 13;
-      elements.push(
-        <Text key={'h' + li} style={[styles.finalHeading, { fontSize, marginTop: li > 0 ? 8 : 0 }]}>
-          {formatInlineFinal(headingText)}
-        </Text>
-      );
-      continue;
-    }
+// Normal headings
+if (/^#{1,3}\s/.test(line)) {
+const level = line.match(/^(#{1,3})/)![1].length;
+const headingText = line.replace(/^#{1,3}\s+/, '');
+const fontSize = level === 1 ?17 : level === 2 ?15:13;
+elements.push(
+<Text key={'h' + li} style={[styles.finalHeading, { fontSize, marginTop: li > 0 ?8 : 0 }]}>
+{formatInlineFinal(headingText)}
+</Text>
+);
+continue;
+}
 
-    // ... Rest unverändert
-  }
+// ... Rest unchanged
+}
 
-  return elements;
+return elements;
 }
 ```
 
 ---
 
-## 🔴 Problem 5: Brainstorming denkt zu kurz
+## 🔴 Problem 5: Brainstorming thinks too short
 
-**FIX bereits implementiert in ai-service.ts!**
+**FIX already implemented in ai-service.ts!**
 
-Der Prompt wurde erweitert um:
+The prompt has been expanded to:
 ```
-## BRAINSTORMING-REGELN
-- Brainstorming muss GRÜNDLICH sein, nicht oberflächlich!
-- Generiere MINDESTENS 3 verschiedene Lösungsansätze.
-- Vergleiche Vor- und Nachteile jedes Ansatzes.
-- Bewerte Komplexität, Wartbarkeit, Performance.
-- Denke auch an unkonventionelle Lösungen.
-- Erst wenn ALLE Optionen geprüft sind, ist Brainstorming abgeschlossen.
+## BRAINSTORMING RULES
+- Brainstorming must be THOROUGH, not superficial!
+- Generate AT LEAST 3 different solutions.
+- Compare advantages and disadvantages of each approach.
+- Evaluate complexity, maintainability, performance.
+- Also think of unconventional solutions.
+- Brainstorming is only complete when ALL options have been checked.
 ```
 
 ---
 
-## 📋 NÄCHSTE SCHRITTE
+## 📋 NEXT STEPS
 
-1. **AgentProvider.tsx** - Web-Suche verbessern (Zeile ~261)
-2. **types/index.ts** - Sub-Agent-Types hinzufügen
-3. **AgentPlanView.tsx** - Sub-Agent-UI hinzufügen
-4. **AgentTaskCard.tsx** - Sub-Agent-Chat visualisieren
-5. **ChatProvider.tsx** - Chat-Persistenz implementieren
-6. **Testen aller Features!**
-
+1. **AgentProvider.tsx** - Improve web search (line ~261)
+2. **types/index.ts** - Add sub-agent types
+3. **AgentPlanView.tsx** - Add sub-agent UI
+4. **AgentTaskCard.tsx** - Visualize sub-agent chat
+5. **ChatProvider.tsx** - Implement chat persistence
+6. **Testing all features!**
