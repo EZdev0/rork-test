@@ -26,5 +26,9 @@ jobs:
       - name: Install dependencies
         run: bun install
 
-      - name: Build on EAS (Android & iOS)
-        run: eas build --platform all --non-interactive --no-wait
+      - name: Build on EAS (Web)
+        env:
+          EAS_BUILD_NO_EXPO_GO_WARNING: "true"
+        run: |
+          eas init --account ezdev2 --non-interactive || true
+          eas build --platform web --non-interactive --no-wait
