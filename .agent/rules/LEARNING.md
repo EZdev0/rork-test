@@ -40,3 +40,8 @@
 - **[ERROR]** AI agent pushed fixes directly to the \main\ branch, bypassing the user's manual review process.
 - **[CAUSE]** Missing strict Git workflow constraint in user preferences.
 - **[PREVENTION]** Agents MUST ALWAYS create a feature branch, commit changes locally, push the branch to remote, and provide a Pull Request URL. The user will handle merging.
+
+### [2026-09-12] Missing Server URL in Response
+- **[ERROR]** The AI started the development server but did not explicitly provide the clickable localhost link in its response.
+- **[CAUSE]** Lack of a strict communication rule requiring the URL.
+- **[PREVENTION]** The AI MUST always append the clickable URL (e.g., http://localhost:8081) to its response whenever it starts a server.

@@ -15,3 +15,6 @@
 - **ALWAYS create a new branch** for your changes.
 - **ALWAYS push the branch** and provide the user with a Pull Request link.
 - The user will handle reviewing, merging, and deploying the PR.
+
+## 🚀 DEVELOPMENT SERVER WORKFLOW
+- **ALWAYS provide the clickable localhost URL** (e.g., http://localhost:8081) in the chat response immediately after starting any development server.
