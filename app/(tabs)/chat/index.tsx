@@ -430,7 +430,7 @@ export default function ChatScreen() {
           ref={flatListRef}
           data={visibleMessages}
           renderItem={renderMessage}
-          keyExtractor={(item, index) => item?.id || 'msg_' + index}
+          keyExtractor={item => item?.id ?? Math.random().toString()}
           style={styles.messageList}
           contentContainerStyle={styles.messageListContent}
           keyboardShouldPersistTaps="handled"
@@ -525,7 +525,7 @@ export default function ChatScreen() {
         </View>
       )}
 
-      {!!lastFallbackInfo && (
+      {lastFallbackInfo && (
         <View style={styles.fallbackBanner}>
           <Info size={12} color={IDE.warning} />
           <Text style={styles.fallbackText}>{lastFallbackInfo}</Text>

@@ -641,7 +641,7 @@ const AgentPlanView = React.memo(({ plan, isExecuting, onExecute, onStop, onDism
         </Modal>
       )}
 
-      {isDone && !!plan?.finalResponse && (
+      {isDone && plan?.finalResponse && (
         <View style={styles.finalResponseContainer}>
           <View style={styles.finalResponseHeader}>
             <View style={styles.finalResponseDot} />

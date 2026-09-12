@@ -1,5 +1,4 @@
 import React, { useState, useCallback, useRef } from 'react';
-import { Alert } from 'react-native';
 import createContextHook from '@nkzw/create-context-hook';
 import { AgentPlan, AgentTask, AgentTaskStatus, AgentTaskType, AgentToolUsage, ChatMessage, ToolCall, AIProviderType, PendingToolApproval, TOOL_REGISTRY } from '@/types';
 import { callAI, TOOL_DEFINITIONS, buildSystemPrompt, buildPlannerPrompt, parsePlanFromAI, generateFinalResponse } from '@/utils/ai-service';
@@ -511,12 +510,7 @@ export const [AgentProvider, useAgent] = createContextHook(() => {
       setActivePlanId(plan.id);
       return plan.id;
     } catch (e: any) {
-      console.error('[Agent] Planning error:', e?.message || e);
-      Alert.alert(
-        'Agenten-Modus',
-        'Der Plan konnte nicht erstellt werden:\n' + (e?.message || 'Unbekannter Fehler') + '\n\nPrüfe die Verbindung und den Provider in den Einstellungen.',
-        [{ text: 'OK' }],
-      );
+      console.log('[Agent] Planning error:', e);
       return null;
     } finally {
       setIsPlanning(false);
@@ -744,8 +738,6 @@ Untersuche alle Optionen gründlich.`;
         if (t.name === 'web_search' && !settings.betaWebSearch) return false;
         if (t.name === 'web_fetch' && !settings.betaWebFetch) return false;
       }
-      // propose_agent_mode ist im Agenten-Modus sinnlos (nur Rork-Chat-Pfad)
-      if (t.name === 'propose_agent_mode') return false;
       const learningTools = ['read_identity_files', 'update_soul_md', 'update_agents_md', 'update_identity_md', 'update_user_md', 'update_memory_md'];
       if (learningTools.includes(t.name) && !settings.betaAgentLearning) return false;
       const perm = getToolPermission(t.name);

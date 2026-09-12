@@ -245,7 +245,7 @@ export default function SettingsScreen() {
                   <Text style={styles.activeProviderModel}>
                     {currentModel?.name ?? 'Kein Modell'}
                   </Text>
-                  {!!providerInfo?.pricing && (
+                  {providerInfo?.pricing && (
                     <View style={[
                       styles.pricingBadge,
                       currentProvider?.free ? styles.pricingBadgeFree : styles.pricingBadgePaid,
@@ -310,7 +310,7 @@ export default function SettingsScreen() {
                         <Text style={styles.keyMissingText}>Nicht konfiguriert</Text>
                       </View>
                     )}
-                    {!!providerInfo?.endpoint && (
+                    {providerInfo?.endpoint && (
                       <TouchableOpacity
                         style={styles.getKeyBtn}
                         onPress={() => Linking.openURL(providerInfo.endpoint!)}
@@ -401,7 +401,7 @@ export default function SettingsScreen() {
                                 </View>
                               )}
                             </View>
-                            {!!pInfo?.pricing && (
+                            {pInfo?.pricing && (
                               <Text style={styles.providerListPricing}>{pInfo.pricing}</Text>
                             )}
                           </View>
@@ -418,7 +418,7 @@ export default function SettingsScreen() {
                       {isExpanded && pInfo && (
                         <View style={styles.providerInfoExpanded}>
                           <Text style={styles.providerInfoDesc}>{pInfo.desc}</Text>
-                          {!!pInfo.endpoint && (
+                          {pInfo.endpoint && (
                             <TouchableOpacity
                               style={styles.providerInfoEndpoint}
                               onPress={() => handleCopyEndpoint(pInfo.endpoint!)}
@@ -430,7 +430,7 @@ export default function SettingsScreen() {
                               </Text>
                             </TouchableOpacity>
                           )}
-                          {!!pInfo.modelHint && (
+                          {pInfo.modelHint && (
                             <Text style={styles.providerInfoHint}>Empfohlen: {pInfo.modelHint}</Text>
                           )}
                         </View>
@@ -507,7 +507,7 @@ export default function SettingsScreen() {
                       {showKeys[p.id] ? <EyeOff size={14} color={IDE.muted} /> : <Eye size={14} color={IDE.muted} />}
                     </TouchableOpacity>
                   </View>
-                  {!!pInfo?.endpoint && !keyValue && (
+                  {pInfo?.endpoint && !keyValue && (
                     <TouchableOpacity
                       style={styles.getKeyLinkSm}
                       onPress={() => Linking.openURL(pInfo.endpoint!)}
