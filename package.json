@@ -30,6 +30,7 @@
     "expo-linking": "~8.0.10",
     "expo-location": "~19.0.8",
     "expo-router": "~6.0.17",
+    "expo-server": "^57.0.3",
     "expo-sharing": "~14.0.8",
     "expo-splash-screen": "~31.0.12",
     "expo-status-bar": "~3.0.9",
