@@ -29,4 +29,6 @@ jobs:
       - name: Build on EAS (Android & iOS)
         env:
           EAS_BUILD_NO_EXPO_GO_WARNING: "true"
-        run: eas build --platform all --non-interactive --no-wait
+        run: |
+          eas init --account ezdev2 --non-interactive || true
+          eas build --platform all --non-interactive --no-wait
