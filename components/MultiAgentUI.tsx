@@ -377,6 +377,8 @@ function getAgentTypeIcon(type: SubAgentType): string {
     case 'developer': return 'code-slash';
     case 'tester': return 'flask';
     case 'researcher': return 'library';
+    case 'critic': return 'shield-checkmark';
+    default: return 'help-circle';
   }
 }
 
@@ -432,14 +434,15 @@ function showDeployMenu(onDeploy: (type: SubAgentType) => void) {
     { type: 'analyst', label: 'Analyse-Agent', icon: '🔍' },
     { type: 'developer', label: 'Code-Agent', icon: '💻' },
     { type: 'tester', label: 'Test-Agent', icon: '🧪' },
-    { type: 'researcher', label: 'Research-Agent', icon: '📚' }
+    { type: 'researcher', label: 'Research-Agent', icon: '📚' },
+    { type: 'critic', label: 'Critic-Agent', icon: '🛡️' }
   ];
 
   // In production: Show proper modal/dialog
   const choice = prompt(
     'Welchen Agenten möchtest du einsetzen?\n\n' +
     choices.map(c => `${c.icon} ${c.label}`).join('\n') +
-    '\n\nGib die Nummer ein (1-4):'
+    '\n\nGib die Nummer ein (1-5):'
   );
 
   if (choice) {

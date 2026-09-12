@@ -204,6 +204,24 @@ export default function ToolsScreen() {
         {activeTab === 'tools' && (
           <>
             <View style={styles.toolsHeader}>
+              <Text style={styles.toolsTitle}>Aktive Agenten</Text>
+            </View>
+            <Text style={styles.toolsSubtitle}>Verfügbare spezialisierte KI-Unteragenten im System.</Text>
+            <View style={styles.categorySection}>
+              {['analyst', 'developer', 'tester', 'researcher', 'critic'].map(agentName => (
+                <View key={agentName} style={styles.toolCard}>
+                  <View style={[styles.toolPermIcon, { backgroundColor: IDE.primary + '20' }]}>
+                    <Brain size={12} color={IDE.primary} />
+                  </View>
+                  <View style={styles.toolCardContent}>
+                    <Text style={styles.toolCardName}>{agentName.toUpperCase()} Agent</Text>
+                    <Text style={styles.toolCardDesc} numberOfLines={1}>Führt spezifische Aufgaben mit eigenen Tools aus.</Text>
+                  </View>
+                </View>
+              ))}
+            </View>
+
+            <View style={[styles.toolsHeader, { marginTop: 20 }]}>
               <Text style={styles.toolsTitle}>Tool Registry</Text>
               <View style={styles.toolsCountBadge}>
                 <Text style={styles.toolsCountText}>{activeToolCount} aktiv</Text>

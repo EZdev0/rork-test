@@ -147,27 +147,27 @@ export const [AgentProvider, useAgent] = createContextHook(() => {
           };
         }
         case 'create_file': {
-          if (!args?.path) return { result: 'FEHLER: Kein Dateipfad angegeben.' };
+          if (!args?.path) return { result: 'ERROR: Kein Dateipfad angegeben.' };
           createFile(args.path, args.content || '');
           return { result: 'Datei "' + args.path + '" erstellt.', fileAction: { type: 'created', path: args.path } };
         }
         case 'edit_file': {
-          if (!args?.path) return { result: 'FEHLER: Kein Dateipfad angegeben.' };
-          if (!args?.old_text) return { result: 'FEHLER: old_text ist leer.' };
+          if (!args?.path) return { result: 'ERROR: Kein Dateipfad angegeben.' };
+          if (!args?.old_text) return { result: 'ERROR: old_text ist leer.' };
           const content = getFileContent(args.path);
-          if (content === null) return { result: 'FEHLER: Datei "' + args.path + '" nicht gefunden. Bitte erst mit read_file lesen.' };
-          if (!content.includes(args.old_text)) return { result: 'FEHLER: Text nicht gefunden in "' + args.path + '". Bitte erneut mit read_file lesen.' };
+          if (content === null) return { result: 'ERROR: Datei "' + args.path + '" nicht gefunden. Bitte erst mit read_file lesen.' };
+          if (!content.includes(args.old_text)) return { result: 'ERROR: Text nicht gefunden in "' + args.path + '". Bitte erneut mit read_file lesen.' };
           const newContent = content.replace(args.old_text, args.new_text ?? '');
           updateFileContent(args.path, newContent);
           return { result: 'Datei "' + args.path + '" bearbeitet.', fileAction: { type: 'modified', path: args.path } };
         }
         case 'delete_file': {
-          if (!args?.path) return { result: 'FEHLER: Kein Dateipfad angegeben.' };
+          if (!args?.path) return { result: 'ERROR: Kein Dateipfad angegeben.' };
           deleteFile(args.path);
           return { result: 'Datei "' + args.path + '" gelöscht.', fileAction: { type: 'deleted', path: args.path } };
         }
         case 'rename_file': {
-          if (!args?.old_path || !args?.new_path) return { result: 'FEHLER: old_path und new_path sind erforderlich.' };
+          if (!args?.old_path || !args?.new_path) return { result: 'ERROR: old_path und new_path sind erforderlich.' };
           renameFile(args.old_path, args.new_path);
           return { result: 'Umbenannt: "' + args.old_path + '" → "' + args.new_path + '".', fileAction: { type: 'modified', path: args.new_path } };
         }
@@ -175,14 +175,14 @@ export const [AgentProvider, useAgent] = createContextHook(() => {
           return { result: listDirectory(args?.path || '') };
         }
         case 'search_files': {
-          if (!args?.query) return { result: 'FEHLER: Kein Suchbegriff angegeben.' };
+          if (!args?.query) return { result: 'ERROR: Kein Suchbegriff angegeben.' };
           return { result: searchFilesInProject(args.query, args.path) };
         }
         case 'find_replace': {
-          if (!args?.path) return { result: 'FEHLER: Kein Dateipfad angegeben.' };
-          if (args?.find === undefined || args?.find === null || args.find === '') return { result: 'FEHLER: Suchtext (find) fehlt.' };
+          if (!args?.path) return { result: 'ERROR: Kein Dateipfad angegeben.' };
+          if (args?.find === undefined || args?.find === null || args.find === '') return { result: 'ERROR: Suchtext (find) fehlt.' };
           const content = getFileContent(args.path);
-          if (content === null) return { result: 'FEHLER: Datei "' + args.path + '" nicht gefunden.' };
+          if (content === null) return { result: 'ERROR: Datei "' + args.path + '" nicht gefunden.' };
           let newContent: string;
           let count: number;
           if (args.all) {
@@ -196,7 +196,7 @@ export const [AgentProvider, useAgent] = createContextHook(() => {
           return { result: count + ' Vorkommen in "' + args.path + '" ersetzt.', fileAction: { type: 'modified', path: args.path } };
         }
         case 'create_directory': {
-          if (!args?.path) return { result: 'FEHLER: Kein Pfad angegeben.' };
+          if (!args?.path) return { result: 'ERROR: Kein Pfad angegeben.' };
           createDirectory(args.path);
           return { result: 'Verzeichnis "' + args.path + '" erstellt.' };
         }
@@ -204,21 +204,21 @@ export const [AgentProvider, useAgent] = createContextHook(() => {
           return { result: getProjectTree() };
         }
         case 'get_file_info': {
-          if (!args?.path) return { result: 'FEHLER: Kein Dateipfad angegeben.' };
+          if (!args?.path) return { result: 'ERROR: Kein Dateipfad angegeben.' };
           return { result: getFileInfo(args.path) };
         }
         case 'create_todo': {
-          if (!args?.text) return { result: 'FEHLER: Todo-Text fehlt.' };
+          if (!args?.text) return { result: 'ERROR: Todo-Text fehlt.' };
           const id = addTodo(args.text);
           return { result: 'Todo erstellt (ID: ' + id + '): "' + args.text + '"' };
         }
         case 'update_todo': {
-          if (!args?.id) return { result: 'FEHLER: Todo-ID fehlt.' };
+          if (!args?.id) return { result: 'ERROR: Todo-ID fehlt.' };
           updateTodoItem(args.id, args.completed, args.text);
           return { result: 'Todo "' + args.id + '" aktualisiert.' };
         }
         case 'add_memo': {
-          if (!args?.content) return { result: 'FEHLER: Memo-Inhalt fehlt.' };
+          if (!args?.content) return { result: 'ERROR: Memo-Inhalt fehlt.' };
           addMemo(args.content);
           return { result: 'Memo gespeichert: "' + args.content + '"' };
         }
@@ -234,13 +234,17 @@ export const [AgentProvider, useAgent] = createContextHook(() => {
           output += '## MEMORY.md\n' + (memoryMd || '(leer)');
           return { result: output };
         }
+        case 'get_active_tools': {
+          const activeTools = TOOL_DEFINITIONS.filter(t => getToolPermission(t.name) !== 'removed').map(t => t.name);
+          return { result: 'Available active tools: ' + activeTools.join(', ') };
+        }
         case 'update_soul_md': {
-          if (!args?.content) return { result: 'FEHLER: Kein Inhalt angegeben.' };
+          if (!args?.content) return { result: 'ERROR: Kein Inhalt angegeben.' };
           setSoulMd(args.content);
           return { result: 'SOUL.md aktualisiert (' + args.content.split('\n').length + ' Zeilen).' };
         }
         case 'update_agents_md': {
-          if (!args?.content) return { result: 'FEHLER: Kein Inhalt angegeben.' };
+          if (!args?.content) return { result: 'ERROR: Kein Inhalt angegeben.' };
           setAgentMd(args.content);
           return { result: 'AGENTS.md aktualisiert (' + args.content.split('\n').length + ' Zeilen).' };
         }
@@ -388,15 +392,15 @@ export const [AgentProvider, useAgent] = createContextHook(() => {
       if (settings.betaSuperAgent && settings.agentMode) {
         console.log('[Agent] SuperAgent + AgentMode: Starting clarification phase');
         // KI generiert zunächst Klärungsfragen
-        const questionPrompt = 'Du bist ein erfahrener Projektplaner. Bevor du einen Plan erstellst, stelle KLÄRUNGSFRAGEN um die Anforderungen genau zu verstehen.\n\n' +
-          'User-Anfrage: ' + userRequest + '\n\n' +
-          'Stelle 2-5 präzise Fragen die dir helfen den besten Plan zu erstellen.\n' +
-          'Denke an:\n' +
-          '- Welche Dateien sind betroffen?\n' +
-          '- Was ist das genaue Ziel?\n' +
-          '- Gibt es spezielle Anforderungen?\n' +
-          '- Technologie-Entscheidungen?\n\n' +
-          'Antworte auf Deutsch.';
+        const questionPrompt = 'You are an experienced project planner. Before creating a plan, ask CLARIFICATION QUESTIONS to fully understand the requirements.\n\n' +
+          'User request: ' + userRequest + '\n\n' +
+          'Ask 2-5 precise questions that will help you create the best plan.\n' +
+          'Think about:\n' +
+          '- Which files are affected?\n' +
+          '- What is the exact goal?\n' +
+          '- Are there special requirements?\n' +
+          '- Technology decisions?\n\n' +
+          'Always reply in English.';
         
         const fallbackSettings = settings.autoFallback ? getFallbackSettings() : undefined;
         const questionMessages: ChatMessage[] = [{
@@ -410,7 +414,7 @@ export const [AgentProvider, useAgent] = createContextHook(() => {
             settings.selectedModel,
             questionMessages,
             [],
-            'Antworte auf Deutsch. Stelle klare, präzise Fragen.',
+            'Always reply in English. Ask clear, precise questions.',
             settings.customEndpoint || undefined,
             fallbackSettings,
           );
@@ -479,8 +483,8 @@ export const [AgentProvider, useAgent] = createContextHook(() => {
       const hasThinkingTask = parsedTasks.some(t => t && (t.taskType === 'thinking' || t.taskType === 'brainstorm'));
       if (!hasThinkingTask && parsedTasks.length > 2) {
         parsedTasks.unshift({
-          title: '🧠 Analyse des Auftrags',
-          description: 'Verstehe die Anforderungen, analysiere die Projektstruktur und plane die Umsetzung systematisch. Welche Dateien müssen gelesen/erstellt/geändert werden?',
+          title: '🧠 Request Analysis',
+          description: 'Understand the requirements, analyze the project structure, and plan the implementation systematically. Which files need to be read/created/modified?',
           taskType: 'thinking' as any,
         });
         console.log('[Agent] Auto-inserted thinking task for complex plan');
@@ -586,12 +590,11 @@ export const [AgentProvider, useAgent] = createContextHook(() => {
           + 'Your task: ' + task.title + '\n'
           + 'Details: ' + task.description + '\n\n'
           + 'Use web_search to find information and web_fetch to load web pages.\n'
-          + 'Summarize the results and call task_complete when you are done.\n'
-          + 'Use add_memo to save important insights.';
+          + 'Summarize the results and call task_complete when you are done.';
 
         let messages: ChatMessage[] = [{
           id: genId(), role: 'user',
-          content: 'Recherchiere: ' + task.title + '\n' + task.description,
+          content: 'Research: ' + task.title + '\n' + task.description,
           timestamp: Date.now(),
         }];
 
@@ -668,48 +671,48 @@ export const [AgentProvider, useAgent] = createContextHook(() => {
 
       try {
         const baseThinkPrompt = task.taskType === 'thinking'
-          ? `Analysiere folgendes Problem EXTREM GRÜNDLICH und TIEFGEHEND. Nimm dir Zeit für eine detaillierte Analyse.
+          ? `Analyze the following problem EXTREMELY THOROUGHLY and DEEPLY. Take your time for a detailed analysis.
 
-Thema: ${task.title}
+Topic: ${task.title}
 
-Beschreibung: ${task.description}
+Description: ${task.description}
 
-Projektstruktur:\n${getProjectTree()}
+Project Structure:\n${getProjectTree()}
 
-WICHTIG:
-- Analysiere das Problem in mehreren Schichten (Oberflächlich → Tief)
-- Betrachte ALLE relevanten Aspekte
-- Denke an Edge Cases, Fehlerbehandlung, Performance
-- Überlege welche Files betroffen sein könnten
-- Plane die Implementierung Schritt-für-Schritt
-- Validiere deinen Ansatz kritisch
+IMPORTANT:
+- Analyze the problem in multiple layers (Surface → Deep)
+- Consider ALL relevant aspects
+- Think about edge cases, error handling, performance
+- Consider which files might be affected
+- Plan the implementation step-by-step
+- Critically validate your approach
 
-Gib einen sehr detaillierten Gedankengang zurück.`
-          : `Brainstorme über folgendes Thema. Untersuche MULTIPLE Alternativen und Ansätze.
+Return a very detailed thought process.`
+          : `Brainstorm about the following topic. Investigate MULTIPLE alternatives and approaches.
 
-Thema: ${task.title}
+Topic: ${task.title}
 
-Beschreibung: ${task.description}
+Description: ${task.description}
 
-Projektstruktur:\n${getProjectTree()}
+Project Structure:\n${getProjectTree()}
 
-WICHTIG:
-- Generiere MINDESTENS 3 verschiedene Lösungsansätze
-- Vergleiche Vor- und Nachteile jedes Ansatzes
-- Bewerte Komplexität, Wartbarkeit, Performance
-- Denke auch an unkonventionelle Lösungen
-- Sammle kreative Ideen
-- Validiere jede Alternative kritisch
+IMPORTANT:
+- Generate AT LEAST 3 different solution approaches
+- Compare pros and cons of each approach
+- Evaluate complexity, maintainability, performance
+- Also think about unconventional solutions
+- Collect creative ideas
+- Critically validate each alternative
 
-Untersuche alle Optionen gründlich.`;
+Investigate all options thoroughly.`;
 
         const thinkMsgs: ChatMessage[] = [{ id: genId(), role: 'user', content: baseThinkPrompt, timestamp: Date.now() }];
-        const readOnlyTools = TOOL_DEFINITIONS.filter(t => ['read_file', 'read_lines', 'list_directory', 'search_files', 'get_project_tree', 'get_file_info', 'think'].includes(t.name));
+        const readOnlyTools = TOOL_DEFINITIONS.filter(t => ['read_file', 'read_lines', 'list_directory', 'search_files', 'get_project_tree', 'get_file_info', 'think', 'get_active_tools'].includes(t.name));
         const fallbackSettings = settings.autoFallback ? getFallbackSettings() : undefined;
 
         const response = await callAI(
           settings.selectedProvider as AIProviderType, apiKey, settings.selectedModel,
-          thinkMsgs, readOnlyTools, 'Antworte auf Deutsch. Sei SEHR analytisch, gründlich und tiefgehend. Denke langsam und systematisch. Nutze nur Lese-Tools zur Analyse.',
+          thinkMsgs, readOnlyTools, 'Always answer in English. Be VERY analytical, thorough, and deep. Think slowly and systematically. Use only read-only tools for analysis.',
           settings.customEndpoint || undefined, fallbackSettings,
         );
 
@@ -857,7 +860,7 @@ Untersuche alle Optionen gründlich.`;
 
           if (tc.name === 'task_complete') {
             tc.status = 'completed';
-            tc.result = 'Aufgabe abgeschlossen: ' + (tc.arguments?.summary || '');
+            tc.result = 'Task completed: ' + (tc.arguments?.summary || '');
             taskDone = true;
             toolResultMessages.push({
               id: genId(), role: 'tool', content: tc.result, toolCallId: tc.id, toolName: tc.name, timestamp: Date.now(),
@@ -867,7 +870,7 @@ Untersuche alle Optionen gründlich.`;
 
           const { result, fileAction } = await executeTool(tc.name, tc.arguments);
           tc.result = result;
-          const isError = result.startsWith('FEHLER');
+          const isError = result.startsWith('ERROR') || result.startsWith('FEHLER');
           tc.status = isError ? 'error' : 'completed';
 
           if (fileAction) {
@@ -901,7 +904,7 @@ Untersuche alle Optionen gründlich.`;
       } catch (e: any) {
         console.log('[Agent] Sub-agent iteration error:', e);
         const errorMsg: ChatMessage = {
-          id: genId(), role: 'assistant', content: 'Fehler: ' + (e?.message || 'Unbekannt'), timestamp: Date.now(),
+          id: genId(), role: 'assistant', content: 'Error: ' + (e?.message || 'Unknown'), timestamp: Date.now(),
         };
         messages = [...messages, errorMsg];
         updateTaskInPlan(planId, task.id, t => ({ ...t, subAgentMessages: [...messages] }));
@@ -1018,6 +1021,65 @@ Untersuche alle Optionen gründlich.`;
           }
         }
       }
+
+      // --- CRITIC LOOP ---
+      let criticRounds = 0;
+      let criticPassed = false;
+      while (criticRounds < 4 && !abortRef.current && !hadFatalError && !criticPassed) {
+        criticRounds++;
+        
+        // 1. Critic Task
+        const criticTaskId = genId();
+        const criticTask: AgentTask = {
+          id: criticTaskId,
+          title: 'Critic Review - Round ' + criticRounds,
+          description: 'You are the CRITIC agent. Review all changes. You must enforce AAA quality! Evaluate functionality, logic, missing requirements, and edge cases. Score the implementation on a scale of 0 to 10. Format MUST contain exactly: "Score: X/10" where X is a number. If score is less than 8.5, you MUST explain what needs to be fixed. If score is 8.5 or higher, explain why it passes.',
+          taskType: 'thinking',
+          status: 'draft',
+          subAgentMessages: [], filesCreated: [], filesModified: [], filesDeleted: []
+        };
+        
+        addTaskToPlan(planId, criticTask.title, criticTask.description, criticTask.taskType);
+        
+        const latestPlanWithCritic = plansRef.current.find(p => p.id === planId);
+        const actualCriticTask = latestPlanWithCritic?.tasks.find(t => t.title === criticTask.title);
+        
+        if (actualCriticTask) {
+          await executeSubAgent(planId, actualCriticTask);
+          
+          const postCriticPlan = plansRef.current.find(p => p.id === planId);
+          const finishedCriticTask = postCriticPlan?.tasks.find(t => t.id === actualCriticTask.id);
+          
+          const criticResult = finishedCriticTask?.thinkingContent || finishedCriticTask?.result || '';
+          const scoreMatch = criticResult.match(/(?:(?:Score|Rating):?\s*)?(10|10\.0|[0-9](?:\.[0-9]+)?)\s*(?:\/|out of)\s*10/i);
+          let score = 0;
+          if (scoreMatch && scoreMatch[1]) {
+            score = parseFloat(scoreMatch[1]);
+          }
+          
+          if (score >= 8.5) {
+            criticPassed = true;
+          } else {
+            // Add a Fix Task
+            const fixTask: AgentTask = {
+              id: genId(),
+              title: 'Fix issues from Critic Round ' + criticRounds,
+              description: 'The Critic rejected the implementation with a score of ' + score + '/10. Review the critic feedback and fix ALL issues immediately:\n\n' + criticResult.slice(0, 1000),
+              taskType: 'task',
+              status: 'draft',
+              subAgentMessages: [], filesCreated: [], filesModified: [], filesDeleted: []
+            };
+            addTaskToPlan(planId, fixTask.title, fixTask.description, fixTask.taskType);
+            
+            const planWithFix = plansRef.current.find(p => p.id === planId);
+            const actualFixTask = planWithFix?.tasks.find(t => t.title === fixTask.title);
+            if (actualFixTask) {
+              await executeSubAgent(planId, actualFixTask);
+            }
+          }
+        }
+      }
+      // --- END CRITIC LOOP ---
 
       await new Promise(resolve => setTimeout(resolve, 100));
 
