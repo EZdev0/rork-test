@@ -13,17 +13,17 @@ There are several ways of editing your native mobile application.
 
 ### **Use Rork**
 
-Simply visit [rork.com](https://rork.com) and prompt to build your app with AI.
+Simply visit [rork.com](https://rork.com) and promptly to build your app with AI.
 
 Changes made via Rork will be committed automatically to this GitHub repo.
 
-Whenever you make a change in your local code editor and push it to GitHub, it will be also reflected in Rork.
+Whenever you make a change in your local code editor and push it to GitHub, it will also be reflected in Rork.
 
 ### **Use your preferred code editor**
 
-If you want to work locally using your own code editor, you can clone this repo and push changes. Pushed changes will also be reflected in Rork.
+If you want to work locally using your own code editor, you can clone this repo and push changes.Pushed changes will also be reflected in Rork.
 
-If you are new to coding and unsure which editor to use, we recommend Cursor. If you're familiar with terminals, try Claude Code.
+If you are new to coding and unsure which editor to use, we recommend Cursor.If you're familiar with terminals, try Claude Code.
 
 The only requirement is having Node.js & Bun installed - [install Node.js with nvm](https://github.com/nvm-sh/nvm) and [install Bun](https://bun.sh/docs/installation)
 
@@ -40,11 +40,11 @@ cd <YOUR_PROJECT_NAME>
 bun i
 
 # Step 4: Start the instant web preview of your Rork app in your browser, with auto-reloading of your changes
-bun run start-web
+bun run start web
 
 # Step 5: Start iOS preview
 # Option A (recommended):
-bun run start  # then press "i" in the terminal to open iOS Simulator
+bun run start # then press "i" in the terminal to open iOS Simulator
 # Option B (if supported by your environment):
 bun run start -- --ios
 ```
@@ -75,8 +75,7 @@ This project is built with the most popular native mobile cross-platform technic
 3. Run `bun run start` and scan the QR code from your development server
 
 ### **In your browser**
-
-Run `bun start-web` to test in a web browser. Note: The browser preview is great for quick testing, but some native features may not be available.
+Run `bun start-web` to test in a web browser.Note: The browser preview is great for quick testing, but some native features may not be available.
 
 ### **iOS Simulator / Android Emulator**
 
@@ -97,7 +96,7 @@ If you have XCode (iOS) or Android Studio installed:
 # iOS Simulator
 bun run start -- --ios
 
-# Android Emulator
+# Android emulators
 bun run start -- --android
 ```
 
@@ -107,26 +106,26 @@ bun run start -- --android
 
 1. **Install EAS CLI**:
 
-   ```bash
-   bun i -g @expo/eas-cli
-   ```
+```bash
+bun i -g @expo/eas-cli
+```
 
 2. **Configure your project**:
 
-   ```bash
-   eas build:configure
-   ```
+```bash
+eas build:configure
+```
 
 3. **Build for iOS**:
 
-   ```bash
-   eas build --platform ios
-   ```
+```bash
+eas build --platform ios
+```
 
 4. **Submit to App Store**:
-   ```bash
-   eas submit --platform ios
-   ```
+```bash
+eas submit --platform ios
+```
 
 For detailed instructions, visit [Expo's App Store deployment guide](https://docs.expo.dev/submit/ios/).
 
@@ -134,14 +133,14 @@ For detailed instructions, visit [Expo's App Store deployment guide](https://doc
 
 1. **Build for Android**:
 
-   ```bash
-   eas build --platform android
-   ```
+```bash
+eas build --platform android
+```
 
 2. **Submit to Google Play**:
-   ```bash
-   eas submit --platform android
-   ```
+```bash
+eas submit --platform android
+```
 
 For detailed instructions, visit [Expo's Google Play deployment guide](https://docs.expo.dev/submit/android/).
 
@@ -151,15 +150,15 @@ Your React Native app can also run on the web:
 
 1. **Build for web**:
 
-   ```bash
-   eas build --platform web
-   ```
+```bash
+eas build --platform web
+```
 
 2. **Deploy with EAS Hosting**:
-   ```bash
-   eas hosting:configure
-   eas hosting:deploy
-   ```
+```bash
+eas hosting:configure
+eas hosting:deploy
+```
 
 Alternative web deployment options:
 
@@ -181,22 +180,22 @@ This template includes:
 ## Project Structure
 
 ```
-├── app/                    # App screens (Expo Router)
+├── app/ # App screens (Expo Router)
 │   ├── (tabs)/            # Tab navigation screens
-│   │   ├── _layout.tsx    # Tab layout configuration
-│   │   └── index.tsx      # Home tab screen
-│   ├── _layout.tsx        # Root layout
+│ │ ├── _layout.tsx # Tab layout configuration
+│ │ └── index.tsx # Home tab screen
+│ ├── _layout.tsx # Root layout
 │   ├── modal.tsx          # Modal screen example
-│   └── +not-found.tsx     # 404 screen
-├── assets/                # Static assets
+│ └── +not-found.tsx # 404 screen
+├── assets/ # Static assets
 │   └── images/           # App icons and images
-├── constants/            # App constants and configuration
+├── constants/ # App constants and configuration
 ├── app.json             # Expo configuration
 ├── package.json         # Dependencies and scripts
-└── tsconfig.json        # TypeScript configuration
+└── tsconfig.json # TypeScript configuration
 ```
 
-## Custom Development Builds
+## Custom development builds
 
 For advanced native features, you'll need to create a Custom Development Build instead of using Expo Go.
 
@@ -204,7 +203,7 @@ For advanced native features, you'll need to create a Custom Development Build i
 
 - **Native Authentication**: Face ID, Touch ID, Apple Sign In, Google Sign In
 - **In-App Purchases**: App Store and Google Play subscriptions
-- **Advanced Native Features**: Third-party SDKs, platform-specifc features (e.g. Widgets on iOS)
+- **Advanced Native Features**: Third-party SDKs, platform-specific features (e.g. Widgets on iOS)
 - **Background Processing**: Background tasks, location tracking
 
 ### **Creating a Custom Development Build**
@@ -272,7 +271,6 @@ Monetize your app:
 - **PayPal** - PayPal payments integration - [Setup Guide](https://developer.paypal.com/docs/checkout/mobile/react-native/)
 
 **Native In-App Purchases (requires Custom Development Build):**
-
 - **RevenueCat** - Cross-platform in-app purchases and subscriptions - [Expo Integration Guide](https://www.revenuecat.com/docs/expo)
 - **Expo In-App Purchases** - Direct App Store/Google Play integration - [Implementation Guide](https://docs.expo.dev/versions/latest/sdk/in-app-purchases/)
 
@@ -315,4 +313,4 @@ For mobile apps, you'll configure your app's deep linking scheme in `app.json`.
 
 Rork builds fully native mobile apps using React Native and Expo - the same technology stack used by Discord, Shopify, Coinbase, Instagram, and nearly 30% of the top 100 apps on the App Store.
 
-Your Rork app is production-ready and can be published to both the App Store and Google Play Store. You can also export your app to run on the web, making it truly cross-platform.
+Your Rork app is production-ready and can be published to both the App Store and Google Play Store.You can also export your app to run on the web, making it truly cross-platform.

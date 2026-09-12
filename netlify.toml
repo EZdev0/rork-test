@@ -1,8 +1,12 @@
 [build]
-  command = "npx expo export -p web"
+  command = "bun install && bun x expo export -p web"
+  functions = "netlify/functions"
   publish = "dist/client"
 
 [[redirects]]
   from = "/*"
-  to = "/index.html"
-  status = 200
+  to = "/.netlify/functions/server"
+  status = 404
+
+[functions]
+  included_files = ["dist/server/**/*"]

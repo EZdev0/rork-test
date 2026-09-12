@@ -970,9 +970,9 @@ async function callRork(
   }
 
   try {
-    const RORK_URL = 'https://toolkit.rork.com/llm/text';
     // Use universal API route proxy if running on Web to bypass CORS, else direct
     const isWeb = typeof window !== 'undefined';
+    const RORK_URL = 'https://toolkit.rork.com/llm/text';
     const fetchUrl = isWeb ? '/api/chat' : RORK_URL;
 
     const bodyPayload = isWeb
