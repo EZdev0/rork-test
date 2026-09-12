@@ -264,7 +264,6 @@ export const [ChatProvider, useChat] = createContextHook(() => {
   }), []);
 
   const rorkAgent = useRorkAgent({
-    api: typeof window !== 'undefined' ? '/api/chat' : undefined,
     tools: rorkTools,
     // Workaround for CORS if SDK supports custom fetch or endpoint
 
@@ -635,28 +634,43 @@ export const [ChatProvider, useChat] = createContextHook(() => {
     setError(null);
     setLastFallbackInfo(null);
 
+    // Mehrschritt-Anfragen ("1. ... 2. ..." oder "Nr1/Nr2 ...") landen automatisch in der To-Do-Liste
+    const stepMarkers = userText.match(/(?:^|\s)(?:nr\.?\s*)?\d{1,2}[.)]\s+/gi);
+    if (stepMarkers && stepMarkers.length >= 2) {
+      const parts = userText
+        .split(/(?:^|\s)(?:nr\.?\s*)?\d{1,2}[.)]\s+/i)
+        .map(s => s.trim())
+        .filter(s => s.length > 2);
+      if (parts.length >= 2) {
+        for (const p of parts.slice(0, 8)) addTodo(p.slice(0, 120));
+      }
+    }
+
     if (isRorkProvider) {
       setRorkLoading(true);
 
       let fullMsg = '';
       if (!rorkContextSentRef.current || (rorkAgent.messages ?? []).length === 0) {
-        fullMsg += 'You are an AI coding assistant in "Studio IDE". ALWAYS reply in English.\n';
+        fullMsg += 'You are an AI coding assistant in "Studio IDE". SYSTEM INSTRUCTIONS ARE IN ENGLISH. ALWAYS reply to the user in German (Deutsch). Keep code and identifiers in English.\n';
         fullMsg += 'Use your tools ACTIVELY and IMMEDIATELY. DO NOT ask if you should do something - JUST DO IT.\n';
         fullMsg += 'ALWAYS read files with read_file BEFORE editing them.\n';
         fullMsg += 'Format responses with Markdown: **bold**, `code`, lists.\n';
         fullMsg += 'Use "think" tool for complex tasks to reason.\n';
         fullMsg += 'For complex tasks: First use "think", then create a plan, then execute all steps. If it is too complex for chat, use the "propose_agent_mode" tool.\n';
                 fullMsg += 'CRITICAL: DO NOT claim to have used a tool if you did not explicitly call it. If a tool fails or is unavailable, you MUST report that it failed.\n';
+        fullMsg += 'TOOL REASONING FIRST: Your FIRST thinking block (use "think") MUST reason about WHICH tools you need, the best fit, and the order. Then act.\n';
+        fullMsg += 'MULTI-STEP REQUESTS: If the user asks for multiple steps ("1. do X 2. do Y" or "Nr1/Nr2"), ALWAYS create a todo list (create_todo) for EACH step FIRST and mark each item completed (update_todo) as you go.\n';
+        fullMsg += 'NEVER stop mid-task: continue automatically until ALL steps are done.\n';
         if (settings.betaWebSearch || settings.yoloMode) {
           fullMsg += 'You have the "web_search" tool available! Use it for web research and current information.\n';
         }
         if (settings.betaWebFetch || settings.yoloMode) {
-          fullMsg += 'Du hast das Tool "web_fetch" verfügbar! Nutze es um Webseiten-Inhalte zu laden.\n';
+          fullMsg += 'You have the "web_fetch" tool available! Use it to load website content.\n';
         }
         if (settings.yoloMode) {
-          fullMsg += 'YOLO-Modus: Erstelle/bearbeite Dateien OHNE Nachfragen.\n';
+          fullMsg += 'YOLO mode: create/edit files WITHOUT asking for permission.\n';
         }
-        fullMsg += '\nProjektstruktur:\n' + getProjectTree() + '\n';
+        fullMsg += '\nProject structure:\n' + getProjectTree() + '\n';
         fullMsg += '---\n';
         rorkContextSentRef.current = true;
       }
@@ -719,12 +733,15 @@ export const [ChatProvider, useChat] = createContextHook(() => {
       let iterations = 0;
       const maxIterations = 15;
       let collectedTodos: InlineTodo[] = [];
+      let continuationAttempts = 0;
 
       const filteredTools = TOOL_DEFINITIONS.filter(t => {
         if (!settings.yoloMode) {
           if (t.name === 'web_search' && !settings.betaWebSearch) return false;
           if (t.name === 'web_fetch' && !settings.betaWebFetch) return false;
         }
+        // propose_agent_mode ist nur im Rork-Pfad nativ verfügbar (createRorkTool)
+        if (t.name === 'propose_agent_mode') return false;
         const learningTools = ['read_identity_files', 'update_soul_md', 'update_agents_md', 'update_identity_md', 'update_user_md', 'update_memory_md'];
         if (learningTools.includes(t.name) && !settings.betaAgentLearning) return false;
         const perm = getToolPermission(t.name);
@@ -756,6 +773,16 @@ export const [ChatProvider, useChat] = createContextHook(() => {
         const { thinking, cleanContent } = parseThinkingFromContent(response.content || '');
 
         if (!response.toolCalls || response.toolCalls.length === 0) {
+          // Stall-Erkennung: leere Antwort (z.B. nach Timeout) -> Kontext automatisch fortsetzen
+          if (!cleanContent.trim() && continuationAttempts < 2) {
+            continuationAttempts++;
+            console.log('[Chat] Empty response, auto-continuing (attempt ' + continuationAttempts + ')');
+            conversationHistory = [...conversationHistory, {
+              id: genId(), role: 'user', timestamp: Date.now(),
+              content: '[System] Your last response was empty or was cut off (possible timeout). Continue EXACTLY where you left off with your full context and complete the remaining work. Reply in German.',
+            }];
+            continue;
+          }
           const assistantMsg: ChatMessage = {
             id: genId(), role: 'assistant', content: cleanContent, timestamp: Date.now(),
             thinking: thinking || undefined,
@@ -823,7 +850,7 @@ export const [ChatProvider, useChat] = createContextHook(() => {
       setIsThinking(false);
       setThinkingPhase('');
     }
-  }, [isRorkProvider, settings, getApiKey, getFallbackSettings, getFileContent, getProjectTree, memos, todos, executeManualTool, rorkAgent, agentMd, soulMd, identityMd, userMd, memoryMd]);
+  }, [isRorkProvider, settings, getApiKey, getFallbackSettings, getFileContent, getProjectTree, memos, todos, executeManualTool, rorkAgent, agentMd, soulMd, identityMd, userMd, memoryMd, addTodo]);
 
   const stopGeneration = useCallback(() => {
     abortRef.current = true;

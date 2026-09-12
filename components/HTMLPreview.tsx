@@ -189,6 +189,7 @@ export const HTMLPreview = React.memo(({ htmlContent, onLoad, onError }: Props) 
     </View>
   );
 });
+HTMLPreview.displayName = 'HTMLPreview';
 
 const styles = StyleSheet.create({
   container: {
