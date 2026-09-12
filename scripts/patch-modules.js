@@ -55,18 +55,3 @@ for (const p of sdkAgentPaths) {
     console.log('Patched', p);
   }
 }
-
-// Patch agent.d.ts
-const dtsPath = path.join(__dirname, '..', 'node_modules', '@rork-ai', 'toolkit-sdk', 'lib', 'typescript', 'src', 'agent.d.ts');
-if (fs.existsSync(dtsPath)) {
-  let content = fs.readFileSync(dtsPath, 'utf8');
-  if (!content.includes('fetch?:')) {
-    content = content.replace(
-      /useRorkAgent<T extends Record<string, Tool<z.ZodType>>>\(options: Omit<UseChatOptions<UIMessage>, "transport"> & \{/g,
-      'useRorkAgent<T extends Record<string, Tool<z.ZodType>>>(options: Omit<UseChatOptions<UIMessage>, "transport"> & { fetch?: any; api?: string; '
-    );
-    fs.writeFileSync(dtsPath, content, 'utf8');
-    console.log('Patched', dtsPath);
-  }
-}
-

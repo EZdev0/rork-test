@@ -24,12 +24,6 @@
 ## 📝 Error Entry Template for Future AI Actions
 
 ```markdown
-### [2026-09-12] Studio AI fetch CORS Issue in Web
-- **[ERROR]** Studio KI fails to fetch when hosted or outside of Expo Go due to CORS blocks (`network error`).
-- **[CAUSE]** `@rork-ai/toolkit-sdk`'s `useRorkAgent` uses a hardcoded `expoFetch` and `AGENT_URL` that cannot be overridden by default, which causes browsers to block the request via CORS.
-- **[PREVENTION]** Patch `@rork-ai/toolkit-sdk/lib/module/agent.js` (and `.d.ts`) via `postinstall` to allow `fetch` overrides in `useRorkAgent`, then wrap the fetch call in `ChatProvider.tsx` using a CORS proxy (e.g. `corsproxy.io`) for web builds.
-
-```markdown
 ### [YYYY-MM-DD] <Title of Issue>
 - **[ERROR]** Description of failure.
 - **[CAUSE]** Root cause analysis.
