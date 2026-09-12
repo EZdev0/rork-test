@@ -7,7 +7,8 @@
     "start-web": "expo start --web",
     "start-tunnel": "bunx rork start -p z4baphwr1dneh3hj3x7o1 --tunnel",
     "start-web-dev": "DEBUG=expo* bunx rork start -p z4baphwr1dneh3hj3x7o1 --web --tunnel",
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "postinstall": "node scripts/patch-modules.js"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
