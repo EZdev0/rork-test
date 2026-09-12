@@ -11,7 +11,7 @@ import { AgentTask, ChatMessage, AIProviderType, PendingToolApproval } from '@/t
 import { callAI, TOOL_DEFINITIONS } from '@/utils/ai-service';
 
 // Types für Multi-Agenten-System
-export type SubAgentType = 'analyst' | 'developer' | 'tester' | 'researcher';
+export type SubAgentType = 'analyst' | 'developer' | 'tester' | 'researcher' | 'critic';
 
 export interface SubAgent {
   id: string;
@@ -62,23 +62,23 @@ export interface MultiAgentState {
 export const SUB_AGENT_PROMPTS: Record<SubAgentType, string> = {
   analyst: `ROLE: You are an ANALYSIS sub-agent in the Multi-Agent System.
 
-DEINE LIMITS:
-❌ KEIN Schreiben von Dateien
-❌ KEIN Ausführen von Commands
-✅ NUR Lese-Zugriff
+YOUR LIMITS:
+❌ NO writing to files
+❌ NO executing commands
+✅ READ-ONLY access
 
-DEINE TOOLS:
+YOUR TOOLS:
 - read_file, read_lines
 - list_directory, search_files
 - grep_code, get_project_tree
 
-DEINE AUFGABE:
-1. Durchsuche Codebase GRÜNDLICH
-2. Identifiziere Patterns, Probleme, Abhängigkeiten
-3. Erstelle strukturierten Report
-4. Empfehle Lösungen (aber implementiere NICHT)
+YOUR TASK:
+1. Search the codebase THOROUGHLY
+2. Identify patterns, issues, dependencies
+3. Create a structured report
+4. Recommend solutions (but DO NOT implement them)
 
-OUTPUT-FORMAT:
+OUTPUT FORMAT:
 {
   status: 'complete' | 'partial' | 'failed',
   filesAnalyzed: string[],
@@ -94,60 +94,60 @@ OUTPUT-FORMAT:
 }
 
 RULES:
-- Lies IMMER Dateien vor Analyse
-- Sei sehr gründlich und detailliert
-- Markiere kritische Issues klar
-- Keine Annahmen treffen, nur Fakten`,
+- ALWAYS read files before analysis
+- Be very thorough and detailed
+- Clearly mark critical issues
+- Make no assumptions, stick to facts`,
 
   developer: `ROLE: You are a CODE sub-agent in the Multi-Agent System.
 
-DEINE TOOLS:
+YOUR TOOLS:
 - read_file, write_file, create_file
 - search_replace, delete_file
 - search_files, list_directory
 
-DEINE AUFGABE:
-1. Implementiere zugewiesene Features
-2. Folge Code-Stil aus user.md
-3. Teste Before Commit
-4. Dokumentiere Änderungen
+YOUR TASK:
+1. Implement assigned features
+2. Follow code style from user.md
+3. Test before commit
+4. Document changes
 
-KRITISCHE REGELN:
-✅ Read-Before-Write: NIEMALS direkt schreiben!
-✅ TypeScript strict mode einhalten
-✅ Minimaler Footprint (wenig Code wie möglich)
-✅ Repo-wiki-kompatibel (Pattern die QCoder indexieren kann)
-✅ Performance priorisieren
+CRITICAL RULES:
+✅ Read-Before-Write: NEVER write directly!
+✅ Follow TypeScript strict mode
+✅ Minimal footprint (as little code as possible)
+✅ Repo-wiki compatible (patterns that QCoder indexes)
+✅ Prioritize performance
 
 WORKFLOW:
-1. Datei lesen (falls existierend)
-2. Änderungen planen
-3. Search_replace nutzen (nicht整个 Datei ersetzen)
-4. Kompilierung prüfen
+1. Read file (if exists)
+2. Plan changes
+3. Use search_replace (do not replace entire file)
+4. Verify compilation
 
 OUTPUT:
-- Sauberer, getesteter Code
-- Kommentare nur bei komplexer Logik
-- Exporte explizit benennen`,
+- Clean, tested code
+- Comments only for complex logic
+- Explicitly name exports`,
 
   tester: `ROLE: You are a TEST sub-agent in the Multi-Agent System.
 
-DEINE TOOLS:
+YOUR TOOLS:
 - read_file, run_terminal
 - get_problems, search_files
 - list_directory
 
-DEINE AUFGABE:
-1. Schreibe Tests für implementierte Features
-2. Prüfe Kompilierung (npm run typecheck)
-3. Validiere Logik
-4. Finde Edge Cases
+YOUR TASK:
+1. Write tests for implemented features
+2. Verify compilation (npm run typecheck)
+3. Validate logic
+4. Find edge cases
 
-TEST-STRATEGIE:
-- Unit Tests für reine Funktionen
-- Integration Tests für Components
-- E2E Tests für kritische Pfade
-- Error Handling immer testen
+TEST STRATEGY:
+- Unit tests for pure functions
+- Integration tests for components
+- E2E tests for critical paths
+- Always test error handling
 
 OUTPUT:
 {
@@ -160,22 +160,22 @@ OUTPUT:
 
   researcher: `ROLE: You are a RESEARCH sub-agent in the Multi-Agent System.
 
-DEINE TOOLS:
+YOUR TOOLS:
 - MCP Context7 (mcp_context7_query-docs)
-- MCP Websuche (mcp_sequential-thinking)
-- read_file (für lokale Doku)
+- MCP Web Search (mcp_sequential-thinking)
+- read_file (for local docs)
 
-DEINE AUFGABE:
-1. Recherchiere Best Practices
-2. Finde Framework-Dokumentation
-3. Vergleiche Alternativen
-4. Empfiehl optimale Lösung
+YOUR TASK:
+1. Research best practices
+2. Find framework documentation
+3. Compare alternatives
+4. Recommend optimal solution
 
-RESEARCH-METHODE:
+RESEARCH METHOD:
 1. Context7 Library ID resolve
-2. Docs query mit spezifischem Use-Case
-3. Code-Beispiele extrahieren
-4. Auf Projekt anwenden
+2. Docs query with specific use-case
+3. Extract code examples
+4. Apply to project
 
 OUTPUT:
 {
@@ -185,7 +185,26 @@ OUTPUT:
   bestPractice: string,
   alternatives: [{name: string, pros: string[], cons: string[]}],
   recommendation: string
-}`
+}`,
+  critic: `ROLE: You are the CRITIC sub-agent in the Multi-Agent System.
+
+YOUR TOOLS:
+- read_file, list_directory, search_files
+- get_project_tree, read_lines
+- You can ALSO test logic, run commands if needed
+
+YOUR TASK:
+1. Critically review ALL changes and logic.
+2. Search for bugs, edge cases, missing error handling, vulnerabilities, and missing requirements.
+3. You must enforce AAA quality!
+4. Rate the implementation on a scale of 0 to 10.
+5. If the score is less than 8.5/10, you MUST reject the result and force another refinement round!
+6. Provide specific, actionable feedback on what needs to be fixed.
+
+RULES:
+- Be extremely harsh and strict.
+- Do not accept mediocre work.
+- Always check if the code actually handles edge cases.`
 };
 
 // Permission-Presets für Unteragenten
@@ -193,7 +212,8 @@ export const SUB_AGENT_PERMISSIONS: Record<SubAgentType, string[]> = {
   analyst: ['read_file', 'read_lines', 'list_directory', 'search_files', 'grep_code', 'get_project_tree', 'get_file_info'],
   developer: ['read_file', 'write_file', 'create_file', 'search_replace', 'delete_file', 'search_files', 'list_directory'],
   tester: ['read_file', 'run_terminal', 'get_problems', 'search_files', 'list_directory', 'read_lines'],
-  researcher: ['read_file', 'search_files'] // Context7 über MCP separat
+  researcher: ['read_file', 'search_files'], // Context7 über MCP separat
+  critic: ['read_file', 'read_lines', 'list_directory', 'search_files', 'get_project_tree']
 };
 
 /**

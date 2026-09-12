@@ -68,6 +68,7 @@ const AgentTaskCard = React.memo(({ task, index, editable, onUpdate, onRemove, o
   const [editDesc, setEditDesc] = useState<string>(task.description);
   const [thinkingExpanded, setThinkingExpanded] = useState<boolean>(false);
   const [toolsExpanded, setToolsExpanded] = useState<boolean>(false);
+  const [resultExpanded, setResultExpanded] = useState<boolean>(false);
   const pulseAnim = useRef(new Animated.Value(0.6)).current;
   const thinkingScrollRef = useRef<ScrollView>(null);
 
@@ -135,7 +136,7 @@ const AgentTaskCard = React.memo(({ task, index, editable, onUpdate, onRemove, o
   for (const msg of (task.subAgentMessages ?? [])) {
     if (msg?.role === 'assistant' && msg.toolCalls) {
       for (const tc of msg.toolCalls) {
-        if (tc && tc.name !== 'task_complete' && tc.name !== 'think') {
+        if (tc && tc.name !== 'task_complete' && tc.name !== 'think' && tc.name !== 'get_active_tools') {
           allToolCalls.push(tc);
         }
       }
@@ -147,7 +148,7 @@ const AgentTaskCard = React.memo(({ task, index, editable, onUpdate, onRemove, o
 
   const isRunningThinking = task.status === 'running' && isThinkingType;
   const isRunningWebSearch = task.status === 'running' && isWebSearchType;
-  const liveThinkingContent = isRunningThinking ? (task.thinkingContent || task.description || 'Denkt nach...') : null;
+  const liveThinkingContent = isRunningThinking ? (stripMarkdown(task.thinkingContent || task.description || 'Denkt nach...')) : null;
 
   const webSearchResults = useMemo((): { url: string; title: string; snippet: string }[] => {
     if (!isWebSearchType) return [];
@@ -311,7 +312,7 @@ const AgentTaskCard = React.memo(({ task, index, editable, onUpdate, onRemove, o
                   showsVerticalScrollIndicator
                 >
                   <Text style={styles.thinkingText}>
-                    {task.thinkingContent || task.description || 'Denkt nach...'}
+                    {stripMarkdown(task.thinkingContent || task.description || 'Denkt nach...')}
                   </Text>
                   {isRunningThinking && (
                     <Animated.View style={[styles.cursor, { opacity: pulseAnim }]} />
@@ -387,9 +388,27 @@ const AgentTaskCard = React.memo(({ task, index, editable, onUpdate, onRemove, o
           )}
 
           {task.result && task.status === 'completed' && !isThinkingType && (
-            <View style={styles.resultBox}>
-              <Text style={styles.resultLabel}>Ergebnis</Text>
-              <Text style={styles.resultText} numberOfLines={6}>{task.result}</Text>
+            <View style={styles.thinkingSection}>
+              <TouchableOpacity
+                style={styles.thinkingHeader}
+                onPress={() => setResultExpanded(p => !p)}
+                activeOpacity={0.7}
+              >
+                <Brain size={12} color={IDE.accent} />
+                <Text style={[styles.thinkingSectionTitle, { color: IDE.accent }]}>Ergebnis</Text>
+                {resultExpanded ? <ChevronDown size={12} color={IDE.muted} /> : <ChevronRight size={12} color={IDE.muted} />}
+              </TouchableOpacity>
+              {resultExpanded && (
+                <ScrollView
+                  style={styles.thinkingScroll}
+                  nestedScrollEnabled
+                  showsVerticalScrollIndicator
+                >
+                  <Text style={styles.thinkingText}>
+                    {stripMarkdown(task.result)}
+                  </Text>
+                </ScrollView>
+              )}
             </View>
           )}
 
@@ -837,3 +856,29 @@ const styles = StyleSheet.create({
     lineHeight: 14,
   },
 });
+
+function stripMarkdown(text: string): string {
+  if (!text) return '';
+  return text
+    // Remove code blocks and inline code
+    .replace(/```[\s\S]*?```/g, (m) => m.replace(/```\w*\n?/g, '').replace(/```/g, ''))
+    .replace(/`([^`]+)`/g, '$1')
+    // Remove headers
+    .replace(/#{1,6}\s+/g, '')
+    // Remove bold and italic
+    .replace(/\*\*([^*]+)\*\*/g, '$1')
+    .replace(/__([^_]+)__/g, '$1')
+    .replace(/\*([^*]+)\*/g, '$1')
+    .replace(/_([^_]+)_/g, '$1')
+    .replace(/~~([^~]+)~~/g, '$1')
+    // Remove lists and blockquotes
+    .replace(/^\s*[-*+]\s+/gm, '- ')
+    .replace(/^\s*>\s+/gm, '')
+    // Remove links and images
+    .replace(/!\[([^\]]*)\]\([^)]+\)/g, '$1')
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+    // Remove markdown table formatting (e.g. |---|)
+    .replace(/^\|?.*\|$/gm, (m) => m.replace(/\|/g, ' ').replace(/-{3,}/g, '').trim())
+    // Remove HTML tags
+    .replace(/<[^>]*>?/gm, '');
+}
