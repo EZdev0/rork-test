@@ -20,45 +20,45 @@ interface Props {
 }
 
 const STATUS_CONFIG: Record<AgentTaskStatus, { color: string; label: string }> = {
-  draft: { color: IDE.muted, label: 'Entwurf' },
-  pending: { color: IDE.warning, label: 'Wartend' },
-  running: { color: IDE.primary, label: 'Läuft...' },
-  completed: { color: IDE.accent, label: 'Fertig' },
-  error: { color: IDE.danger, label: 'Fehler' },
-  cancelled: { color: IDE.muted, label: 'Abgebrochen' },
+  draft: { color: IDE.muted, label: 'Draft' },
+  pending: { color: IDE.warning, label: 'Pending' },
+  running: { color: IDE.primary, label: 'Running...' },
+  completed: { color: IDE.accent, label: 'Done' },
+  error: { color: IDE.danger, label: 'Error' },
+  cancelled: { color: IDE.muted, label: 'Cancelled' },
 };
 
 const TYPE_CONFIG: Record<AgentTaskType, { icon: typeof Brain; color: string; label: string }> = {
-  task: { icon: Play, color: IDE.primary, label: 'Aufgabe' },
-  thinking: { icon: Brain, color: IDE.keyword, label: 'Analyse' },
+  task: { icon: Play, color: IDE.primary, label: 'Task' },
+  thinking: { icon: Brain, color: IDE.keyword, label: 'Analysis' },
   brainstorm: { icon: Lightbulb, color: IDE.warning, label: 'Brainstorm' },
-  question: { icon: Wrench, color: IDE.accent, label: 'Frage' },
-  web_search: { icon: Globe, color: '#2196F3', label: 'Web-Suche' },
-  sub_agent: { icon: Zap, color: IDE.accent, label: 'Unteragent' },
+  question: { icon: Wrench, color: IDE.accent, label: 'Question' },
+  web_search: { icon: Globe, color: '#2196F3', label: 'Web Search' },
+  sub_agent: { icon: Zap, color: IDE.accent, label: 'Sub-agent' },
 };
 
 const TOOL_LABELS: Record<string, string> = {
-  read_file: 'Datei lesen',
-  read_lines: 'Zeilen lesen',
-  write_file: 'Datei schreiben',
-  create_file: 'Datei erstellen',
-  edit_file: 'Datei bearbeiten',
-  delete_file: 'Datei löschen',
-  rename_file: 'Datei umbenennen',
-  list_directory: 'Verzeichnis auflisten',
-  search_files: 'Dateien durchsuchen',
-  find_replace: 'Suchen & Ersetzen',
-  create_directory: 'Ordner erstellen',
-  get_project_tree: 'Projektstruktur',
-  get_file_info: 'Datei-Info',
-  create_todo: 'Todo erstellen',
-  update_todo: 'Todo aktualisieren',
-  add_memo: 'Memo speichern',
-  web_search: 'Web-Suche',
-  web_fetch: 'Webseite laden',
-  think: 'Nachdenken',
-  task_complete: 'Aufgabe abgeschlossen',
-  verify_file: 'Datei überprüfen',
+  read_file: 'Read File',
+  read_lines: 'Read Lines',
+  write_file: 'Write File',
+  create_file: 'Create File',
+  edit_file: 'Edit File',
+  delete_file: 'Delete File',
+  rename_file: 'Rename File',
+  list_directory: 'List Directory',
+  search_files: 'Search Files',
+  find_replace: 'Find & Replace',
+  create_directory: 'Create Folder',
+  get_project_tree: 'Project Tree',
+  get_file_info: 'File Info',
+  create_todo: 'Create Todo',
+  update_todo: 'Update Todo',
+  add_memo: 'Save Memo',
+  web_search: 'Web Search',
+  web_fetch: 'Fetch Webpage',
+  think: 'Think',
+  task_complete: 'Task Complete',
+  verify_file: 'Verify File',
 };
 
 const AgentTaskCard = React.memo(({ task, index, editable, onUpdate, onRemove, onRetry }: Props) => {
@@ -70,6 +70,7 @@ const AgentTaskCard = React.memo(({ task, index, editable, onUpdate, onRemove, o
   const [toolsExpanded, setToolsExpanded] = useState<boolean>(false);
   const [resultExpanded, setResultExpanded] = useState<boolean>(false);
   const pulseAnim = useRef(new Animated.Value(0.6)).current;
+  const spinAnim = useRef(new Animated.Value(0)).current;
   const thinkingScrollRef = useRef<ScrollView>(null);
 
   const taskType = task.taskType || 'task';
@@ -80,20 +81,43 @@ const AgentTaskCard = React.memo(({ task, index, editable, onUpdate, onRemove, o
   const typeConfig = TYPE_CONFIG[taskType] ?? TYPE_CONFIG.task;
   const TypeIcon = typeConfig.icon;
 
+  const entryAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.timing(entryAnim, {
+      toValue: 1,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  }, []);
+
   useEffect(() => {
     if (task.status === 'running') {
-      const animation = Animated.loop(
+      const pulseAnimation = Animated.loop(
         Animated.sequence([
           Animated.timing(pulseAnim, { toValue: 1, duration: 600, useNativeDriver: false }),
           Animated.timing(pulseAnim, { toValue: 0.6, duration: 600, useNativeDriver: false }),
         ])
       );
-      animation.start();
-      return () => animation.stop();
+      const spinAnimation = Animated.loop(
+        Animated.timing(spinAnim, {
+          toValue: 1,
+          duration: 1200,
+          useNativeDriver: true,
+        })
+      );
+      pulseAnimation.start();
+      spinAnimation.start();
+      return () => {
+        pulseAnimation.stop();
+        spinAnimation.stop();
+        spinAnim.setValue(0);
+      };
     } else {
       pulseAnim.setValue(1);
+      spinAnim.setValue(0);
     }
-  }, [task.status, pulseAnim]);
+  }, [task.status, pulseAnim, spinAnim]);
 
   useEffect(() => {
     if (task.status === 'running' && (isThinkingType || isWebSearchType)) {
@@ -148,7 +172,7 @@ const AgentTaskCard = React.memo(({ task, index, editable, onUpdate, onRemove, o
 
   const isRunningThinking = task.status === 'running' && isThinkingType;
   const isRunningWebSearch = task.status === 'running' && isWebSearchType;
-  const liveThinkingContent = isRunningThinking ? (stripMarkdown(task.thinkingContent || task.description || 'Denkt nach...')) : null;
+  const liveThinkingContent = isRunningThinking ? (stripMarkdown(task.thinkingContent || task.description || 'Thinking...')) : null;
 
   const webSearchResults = useMemo((): { url: string; title: string; snippet: string }[] => {
     if (!isWebSearchType) return [];
@@ -165,13 +189,19 @@ const AgentTaskCard = React.memo(({ task, index, editable, onUpdate, onRemove, o
       }
       if (msg?.role === 'tool' && msg.toolName === 'web_fetch' && msg.content) {
         const snippet = msg.content.slice(0, 200);
-        results.push({ url: '', title: 'Webseite geladen', snippet });
+        results.push({ url: '', title: 'Webpage loaded', snippet });
       }
     }
     return results;
   }, [isWebSearchType, task.subAgentMessages]);
 
+  const spinRotate = spinAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '360deg']
+  });
+
   return (
+    <Animated.View style={[{ opacity: entryAnim, transform: [{ translateY: entryAnim.interpolate({ inputRange: [0, 1], outputRange: [8, 0] }) }] }]}>
     <View style={[
       styles.card,
       task.status === 'running' && styles.cardRunning,
@@ -197,21 +227,21 @@ const AgentTaskCard = React.memo(({ task, index, editable, onUpdate, onRemove, o
                 style={styles.editInput}
                 value={editTitle}
                 onChangeText={setEditTitle}
-                placeholder="Titel..."
+                placeholder="Title..."
                 placeholderTextColor={IDE.muted}
               />
               <TextInput
                 style={[styles.editInput, styles.editInputMulti]}
                 value={editDesc}
                 onChangeText={setEditDesc}
-                placeholder="Beschreibung..."
+                placeholder="Description..."
                 placeholderTextColor={IDE.muted}
                 multiline
               />
               <View style={styles.editActions}>
                 <TouchableOpacity onPress={handleSaveEdit} style={styles.editSaveBtn}>
                   <Check size={14} color="#fff" />
-                  <Text style={styles.editSaveBtnText}>Speichern</Text>
+                  <Text style={styles.editSaveBtnText}>Save</Text>
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => setEditing(false)} style={styles.editCancelBtn}>
                   <X size={14} color={IDE.muted} />
@@ -230,17 +260,27 @@ const AgentTaskCard = React.memo(({ task, index, editable, onUpdate, onRemove, o
               </View>
               <View style={styles.metaRow}>
                 <View style={[styles.statusPill, { backgroundColor: config.color + '20' }]}>
-                  <StatusIcon size={10} color={config.color} />
+                  {task.status === 'running' ? (
+                    <Animated.View style={{ transform: [{ rotate: spinRotate }] }}>
+                      <View style={{
+                        width: 10, height: 10, borderRadius: 5,
+                        borderWidth: 1.5, borderColor: config.color,
+                        borderTopColor: 'transparent',
+                      }} />
+                    </Animated.View>
+                  ) : (
+                    <StatusIcon size={10} color={config.color} />
+                  )}
                   <Text style={[styles.statusText, { color: config.color }]}>{config.label}</Text>
                 </View>
                 {toolCallCount > 0 && (
                   <Text style={styles.metaText}>{toolCallCount} Tools</Text>
                 )}
                 {totalFileActions > 0 && (
-                  <Text style={styles.metaText}>{totalFileActions} Dateien</Text>
+                  <Text style={styles.metaText}>{totalFileActions} Files</Text>
                 )}
                 {isWebSearchType && webSearchResults.length > 0 && (
-                  <Text style={[styles.metaText, { color: '#2196F3' }]}>{webSearchResults.length} Treffer</Text>
+                  <Text style={[styles.metaText, { color: '#2196F3' }]}>{webSearchResults.length} Matches</Text>
                 )}
               </View>
             </>
@@ -294,7 +334,7 @@ const AgentTaskCard = React.memo(({ task, index, editable, onUpdate, onRemove, o
               >
                 <Brain size={12} color={typeConfig.color} />
                 <Text style={[styles.thinkingSectionTitle, { color: typeConfig.color }]}>
-                  {isRunningThinking ? 'Denkt nach...' : taskType === 'thinking' ? 'Gedankengang' : 'Brainstorming-Ergebnis'}
+                  {isRunningThinking ? 'Thinking...' : taskType === 'thinking' ? 'Thought Process' : 'Brainstorm Result'}
                 </Text>
                 {isRunningThinking && (
                   <View style={styles.liveIndicator}>
@@ -312,7 +352,7 @@ const AgentTaskCard = React.memo(({ task, index, editable, onUpdate, onRemove, o
                   showsVerticalScrollIndicator
                 >
                   <Text style={styles.thinkingText}>
-                    {stripMarkdown(task.thinkingContent || task.description || 'Denkt nach...')}
+                    {stripMarkdown(task.thinkingContent || task.description || 'Thinking...')}
                   </Text>
                   {isRunningThinking && (
                     <Animated.View style={[styles.cursor, { opacity: pulseAnim }]} />
@@ -337,7 +377,7 @@ const AgentTaskCard = React.memo(({ task, index, editable, onUpdate, onRemove, o
             <View style={styles.fileSection}>
               <View style={styles.fileSectionHeader}>
                 <FilePlus size={12} color={IDE.accent} />
-                <Text style={[styles.fileSectionTitle, { color: IDE.accent }]}>Erstellt</Text>
+                <Text style={[styles.fileSectionTitle, { color: IDE.accent }]}>Created</Text>
               </View>
               {task.filesCreated.map(f => (
                 <Text key={f} style={styles.filePath}>{f}</Text>
@@ -349,7 +389,7 @@ const AgentTaskCard = React.memo(({ task, index, editable, onUpdate, onRemove, o
             <View style={styles.fileSection}>
               <View style={styles.fileSectionHeader}>
                 <FileText size={12} color={IDE.primary} />
-                <Text style={[styles.fileSectionTitle, { color: IDE.primary }]}>Geändert</Text>
+                <Text style={[styles.fileSectionTitle, { color: IDE.primary }]}>Modified</Text>
               </View>
               {task.filesModified.map(f => (
                 <Text key={f} style={styles.filePath}>{f}</Text>
@@ -361,7 +401,7 @@ const AgentTaskCard = React.memo(({ task, index, editable, onUpdate, onRemove, o
             <View style={styles.fileSection}>
               <View style={styles.fileSectionHeader}>
                 <FileX size={12} color={IDE.danger} />
-                <Text style={[styles.fileSectionTitle, { color: IDE.danger }]}>Gelöscht</Text>
+                <Text style={[styles.fileSectionTitle, { color: IDE.danger }]}>Deleted</Text>
               </View>
               {task.filesDeleted.map(f => (
                 <Text key={f} style={styles.filePath}>{f}</Text>
@@ -373,7 +413,7 @@ const AgentTaskCard = React.memo(({ task, index, editable, onUpdate, onRemove, o
             <View style={styles.webResultsSection}>
               <View style={styles.webResultsHeader}>
                 <Globe size={12} color="#2196F3" />
-                <Text style={styles.webResultsTitle}>{webSearchResults.length} Ergebnis{webSearchResults.length !== 1 ? 'se' : ''}</Text>
+                <Text style={styles.webResultsTitle}>{webSearchResults.length} Result{webSearchResults.length !== 1 ? 's' : ''}</Text>
               </View>
               {webSearchResults.slice(0, 5).map((wr: { url: string; title: string; snippet: string }, wi: number) => (
                 <View key={wi} style={styles.webResultItem}>
@@ -395,7 +435,7 @@ const AgentTaskCard = React.memo(({ task, index, editable, onUpdate, onRemove, o
                 activeOpacity={0.7}
               >
                 <Brain size={12} color={IDE.accent} />
-                <Text style={[styles.thinkingSectionTitle, { color: IDE.accent }]}>Ergebnis</Text>
+                <Text style={[styles.thinkingSectionTitle, { color: IDE.accent }]}>Result</Text>
                 {resultExpanded ? <ChevronDown size={12} color={IDE.muted} /> : <ChevronRight size={12} color={IDE.muted} />}
               </TouchableOpacity>
               {resultExpanded && (
@@ -421,7 +461,7 @@ const AgentTaskCard = React.memo(({ task, index, editable, onUpdate, onRemove, o
               >
                 <Wrench size={12} color={IDE.muted} />
                 <Text style={styles.toolCallsSectionTitle}>
-                  {toolCallCount} Tool{toolCallCount !== 1 ? 's' : ''} verwendet
+                  {toolCallCount} Tool{toolCallCount !== 1 ? 's' : ''} used
                 </Text>
                 <View style={styles.toolBadgesRow}>
                   {allToolCalls.filter(tc => tc.status === 'completed').length > 0 && (
@@ -450,13 +490,14 @@ const AgentTaskCard = React.memo(({ task, index, editable, onUpdate, onRemove, o
           {toolCallCount > 0 && task.status === 'running' && (
             <View style={styles.toolSummary}>
               <Text style={styles.toolSummaryText}>
-                {toolCallCount} Tool-Aufrufe · Läuft...
+                {toolCallCount} Tool calls · Running...
               </Text>
             </View>
           )}
         </View>
       )}
     </View>
+    </Animated.View>
   );
 });
 

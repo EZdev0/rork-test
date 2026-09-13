@@ -52,7 +52,7 @@ export default function ProjectsScreen() {
 
   const openFile = useCallback((node: FileNode, path: string) => {
     if (isBinaryFile(node.name)) {
-      Alert.alert('Binärdatei', 'Diese Datei kann nicht im Editor geöffnet werden.');
+      Alert.alert('Binary File', 'This file cannot be opened in the editor.');
       return;
     }
     setActiveFile(path);
@@ -69,7 +69,7 @@ export default function ProjectsScreen() {
 
   const handleCreateNewFile = useCallback(() => {
     if (!newFileName.trim()) {
-      Alert.alert('Fehler', 'Bitte gib einen Namen ein.');
+      Alert.alert('Error', 'Please enter a name.');
       return;
     }
     const fullPath = newFileBasePath
@@ -91,22 +91,22 @@ export default function ProjectsScreen() {
   const handleLongPress = useCallback((node: FileNode, path: string) => {
     const isDir = node.type === 'directory';
     const actions: { text: string; style?: 'cancel' | 'destructive'; onPress?: () => void }[] = [
-      { text: 'Abbrechen', style: 'cancel' },
+      { text: 'Cancel', style: 'cancel' },
     ];
 
     if (isDir) {
       actions.push({
-        text: '📄 Neue Datei hier',
+        text: '📄 New file here',
         onPress: () => openNewFileModal(path, false),
       });
       actions.push({
-        text: '📁 Neuer Ordner hier',
+        text: '📁 New folder here',
         onPress: () => openNewFileModal(path, true),
       });
     }
 
     actions.push({
-      text: '📋 Pfad kopieren',
+      text: '📋 Copy path',
       onPress: async () => {
         try {
           await Clipboard.setStringAsync(path);
@@ -117,10 +117,10 @@ export default function ProjectsScreen() {
     });
 
     actions.push({
-      text: '✏️ Umbenennen',
+      text: '✏️ Rename',
       onPress: () => {
         if (Alert.prompt) {
-          Alert.prompt('Umbenennen', 'Neuer Name:', (newName) => {
+          Alert.prompt('Rename', 'New name:', (newName) => {
             if (newName && newName.trim()) {
               const parts = path.split('/');
               parts[parts.length - 1] = newName.trim();
@@ -134,16 +134,16 @@ export default function ProjectsScreen() {
     });
 
     actions.push({
-      text: '🗑️ Löschen',
+      text: '🗑️ Delete',
       style: 'destructive',
       onPress: () => {
         Alert.alert(
-          'Löschen',
-          '"' + node.name + '" wirklich löschen?',
+          'Delete',
+          'Really delete "' + node.name + '"?',
           [
-            { text: 'Abbrechen', style: 'cancel' },
+            { text: 'Cancel', style: 'cancel' },
             {
-              text: 'Löschen',
+              text: 'Delete',
               style: 'destructive',
               onPress: () => {
                 deleteFile(path);
@@ -157,11 +157,11 @@ export default function ProjectsScreen() {
       },
     });
 
-    Alert.alert(node.name, isDir ? 'Ordner: ' + path : path, actions);
+    Alert.alert(node.name, isDir ? 'Folder: ' + path : path, actions);
   }, [deleteFile, activeFile, openNewFileModal, renameFile]);
 
   const handleRenameAlert = useCallback((node: FileNode, path: string) => {
-    Alert.alert('Umbenennen', 'Funktion auf diesem Gerät mit Alert.alert begrenzt. Nutze den Chat zum Umbenennen.', [
+    Alert.alert('Rename', 'Function limited on this device with Alert.alert. Use chat to rename.', [
       { text: 'OK' },
     ]);
   }, []);
@@ -184,7 +184,7 @@ export default function ProjectsScreen() {
       }
     } catch (e) {
       console.log('[Projects] Export error:', e);
-      Alert.alert('Export-Fehler', 'Beim Export ist ein Fehler aufgetreten.');
+      Alert.alert('Export Error', 'An error occurred during export.');
     } finally {
       setIsExporting(false);
     }
@@ -197,7 +197,7 @@ export default function ProjectsScreen() {
 
   const handleCreateProject = useCallback(() => {
     if (!newProjectName.trim()) {
-      Alert.alert('Fehler', 'Bitte gib einen Projektnamen ein.');
+      Alert.alert('Error', 'Please enter a project name.');
       return;
     }
     createProject(newProjectName.trim(), newProjectType);
@@ -235,15 +235,15 @@ export default function ProjectsScreen() {
     return (
       <View style={styles.emptyContainer}>
         <FolderOpen size={64} color={IDE.muted} />
-        <Text style={styles.emptyTitle}>Kein Projekt geöffnet</Text>
-        <Text style={styles.emptySubtitle}>Erstelle ein neues Projekt um loszulegen</Text>
+        <Text style={styles.emptyTitle}>No project opened</Text>
+        <Text style={styles.emptySubtitle}>Create a new project to get started</Text>
         <TouchableOpacity
           style={styles.createButton}
           onPress={() => setShowNewProject(true)}
           activeOpacity={0.7}
         >
           <Plus size={18} color="#fff" />
-          <Text style={styles.createButtonText}>Neues Projekt</Text>
+          <Text style={styles.createButtonText}>New Project</Text>
         </TouchableOpacity>
 
         <NewProjectModal
@@ -269,9 +269,9 @@ export default function ProjectsScreen() {
               style={[styles.projectTab, currentProject?.id === p.id && styles.activeProjectTab]}
               onPress={() => selectProject(p.id)}
               onLongPress={() => {
-                Alert.alert('Projekt löschen', 'Möchtest du "' + p.name + '" wirklich löschen? Alle Dateien werden gelöscht.', [
-                  { text: 'Abbrechen', style: 'cancel' },
-                  { text: 'Löschen', style: 'destructive', onPress: () => deleteProject(p.id) },
+                Alert.alert('Delete Project', 'Do you really want to delete "' + p.name + '"? All files will be deleted.', [
+                  { text: 'Cancel', style: 'cancel' },
+                  { text: 'Delete', style: 'destructive', onPress: () => deleteProject(p.id) },
                 ]);
               }}
               activeOpacity={0.7}
@@ -304,7 +304,7 @@ export default function ProjectsScreen() {
           <Search size={14} color={IDE.muted} />
           <TextInput
             style={styles.searchInput}
-            placeholder="Datei suchen..."
+            placeholder="Search file..."
             placeholderTextColor={IDE.muted}
             value={searchQuery}
             onChangeText={setSearchQuery}
@@ -325,7 +325,7 @@ export default function ProjectsScreen() {
           activeOpacity={0.7}
         >
           <FilePlus size={15} color={IDE.accent} />
-          <Text style={styles.actionBarBtnText}>Datei</Text>
+          <Text style={styles.actionBarBtnText}>File</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.actionBarBtn}
@@ -333,7 +333,7 @@ export default function ProjectsScreen() {
           activeOpacity={0.7}
         >
           <FolderPlus size={15} color={IDE.primary} />
-          <Text style={styles.actionBarBtnText}>Ordner</Text>
+          <Text style={styles.actionBarBtnText}>Folder</Text>
         </TouchableOpacity>
         <View style={styles.actionBarSpacer} />
         <TouchableOpacity
@@ -371,14 +371,14 @@ export default function ProjectsScreen() {
         keyboardShouldPersistTaps="handled"
         ListEmptyComponent={
           <View style={styles.emptyList}>
-            <Text style={styles.emptyListText}>Projekt ist leer. Erstelle Dateien oder Ordner.</Text>
+            <Text style={styles.emptyListText}>Project is empty. Create files or folders.</Text>
           </View>
         }
       />
 
       <View style={styles.statusBar}>
         <Text style={styles.statusText}>
-          {currentProject?.projectType || 'custom'} • {projectStats ? `${projectStats.files} Dateien, ${projectStats.dirs} Ordner` : `${files.length} Einträge`}
+          {currentProject?.projectType || 'custom'} • {projectStats ? `${projectStats.files} files, ${projectStats.dirs} folders` : `${files.length} items`}
         </Text>
         {projectStats && (
           <Text style={styles.statusText}>
@@ -434,19 +434,19 @@ function NewProjectModal({ visible, name, type, onChangeName, onChangeType, onCr
     <Modal visible={visible} transparent animationType="fade">
       <View style={modalStyles.overlay}>
         <View style={modalStyles.container}>
-          <Text style={modalStyles.title}>Neues Projekt</Text>
+          <Text style={modalStyles.title}>New Project</Text>
 
-          <Text style={modalStyles.label}>Projektname</Text>
+          <Text style={modalStyles.label}>Project name</Text>
           <TextInput
             style={modalStyles.input}
-            placeholder="MeinProjekt"
+            placeholder="MyProject"
             placeholderTextColor={IDE.muted}
             value={name}
             onChangeText={onChangeName}
             autoFocus
           />
 
-          <Text style={modalStyles.label}>Projekttyp</Text>
+          <Text style={modalStyles.label}>Project type</Text>
           <View style={modalStyles.typeGrid}>
             {PROJECT_TYPES.map(pt => (
               <TouchableOpacity
@@ -463,10 +463,10 @@ function NewProjectModal({ visible, name, type, onChangeName, onChangeType, onCr
 
           <View style={modalStyles.actions}>
             <TouchableOpacity onPress={onClose} style={modalStyles.cancelBtn}>
-              <Text style={modalStyles.cancelText}>Abbrechen</Text>
+              <Text style={modalStyles.cancelText}>Cancel</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={onCreate} style={modalStyles.createBtn}>
-              <Text style={modalStyles.createText}>Erstellen</Text>
+              <Text style={modalStyles.createText}>Create</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -491,7 +491,7 @@ function NewFileModal({ visible, name, isDir, basePath, content, onChangeName, o
       <View style={modalStyles.overlay}>
         <View style={modalStyles.container}>
           <Text style={modalStyles.title}>
-            {isDir ? '📁 Neuer Ordner' : '📄 Neue Datei'}
+            {isDir ? '📁 New Folder' : '📄 New File'}
           </Text>
 
           {basePath ? (
@@ -500,10 +500,10 @@ function NewFileModal({ visible, name, isDir, basePath, content, onChangeName, o
             </View>
           ) : null}
 
-          <Text style={modalStyles.label}>{isDir ? 'Ordnername' : 'Dateiname'}</Text>
+          <Text style={modalStyles.label}>{isDir ? 'Folder name' : 'File name'}</Text>
           <TextInput
             style={modalStyles.input}
-            placeholder={isDir ? 'neuer-ordner' : 'datei.kt'}
+            placeholder={isDir ? 'new-folder' : 'file.kt'}
             placeholderTextColor={IDE.muted}
             value={name}
             onChangeText={onChangeName}
@@ -514,10 +514,10 @@ function NewFileModal({ visible, name, isDir, basePath, content, onChangeName, o
 
           {!isDir && (
             <>
-              <Text style={modalStyles.label}>Inhalt (optional)</Text>
+              <Text style={modalStyles.label}>Content (optional)</Text>
               <TextInput
                 style={[modalStyles.input, nfStyles.contentInput]}
-                placeholder="// Dateiinhalt..."
+                placeholder="// File content..."
                 placeholderTextColor={IDE.muted}
                 value={content}
                 onChangeText={onChangeContent}
@@ -531,10 +531,10 @@ function NewFileModal({ visible, name, isDir, basePath, content, onChangeName, o
 
           <View style={modalStyles.actions}>
             <TouchableOpacity onPress={onClose} style={modalStyles.cancelBtn}>
-              <Text style={modalStyles.cancelText}>Abbrechen</Text>
+              <Text style={modalStyles.cancelText}>Cancel</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={onCreate} style={modalStyles.createBtn}>
-              <Text style={modalStyles.createText}>Erstellen</Text>
+              <Text style={modalStyles.createText}>Create</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -555,7 +555,7 @@ function ExportModal({ visible, projectName, stats, isExporting, onExport, onClo
     <Modal visible={visible} transparent animationType="fade">
       <View style={modalStyles.overlay}>
         <View style={modalStyles.container}>
-          <Text style={modalStyles.title}>Projekt exportieren</Text>
+          <Text style={modalStyles.title}>Export Project</Text>
 
           <View style={exportStyles.projectInfo}>
             <Download size={20} color={IDE.warning} />
@@ -563,13 +563,13 @@ function ExportModal({ visible, projectName, stats, isExporting, onExport, onClo
               <Text style={exportStyles.projectName}>{projectName}</Text>
               {stats && (
                 <Text style={exportStyles.projectStats}>
-                  {stats.files} Dateien · {stats.dirs} Ordner · {stats.totalChars > 1024 ? Math.round(stats.totalChars / 1024) + ' KB' : stats.totalChars + ' B'}
+                  {stats.files} files · {stats.dirs} folders · {stats.totalChars > 1024 ? Math.round(stats.totalChars / 1024) + ' KB' : stats.totalChars + ' B'}
                 </Text>
               )}
             </View>
           </View>
 
-          <Text style={exportStyles.formatLabel}>Format wählen</Text>
+          <Text style={exportStyles.formatLabel}>Choose format</Text>
 
           <TouchableOpacity
             style={[exportStyles.formatOption, exportStyles.formatOptionPrimary]}
@@ -582,14 +582,14 @@ function ExportModal({ visible, projectName, stats, isExporting, onExport, onClo
             </View>
             <View style={exportStyles.formatInfo}>
               <View style={exportStyles.formatTitleRow}>
-                <Text style={exportStyles.formatTitle}>ZIP-Archiv (.zip)</Text>
+                <Text style={exportStyles.formatTitle}>ZIP Archive (.zip)</Text>
                 <View style={exportStyles.recommendedBadge}>
                   <CheckCircle size={10} color={IDE.accent} />
-                  <Text style={exportStyles.recommendedText}>Empfohlen</Text>
+                  <Text style={exportStyles.recommendedText}>Recommended</Text>
                 </View>
               </View>
               <Text style={exportStyles.formatDesc}>
-                Echte Ordnerstruktur mit allen Dateien. Einfach entpacken und loslegen.
+                Real folder structure with all files. Just unzip and go.
               </Text>
             </View>
           </TouchableOpacity>
@@ -604,8 +604,8 @@ function ExportModal({ visible, projectName, stats, isExporting, onExport, onClo
               <FileJson size={18} color={IDE.primary} />
             </View>
             <View style={exportStyles.formatInfo}>
-              <Text style={exportStyles.formatTitle}>JSON-Export (.json)</Text>
-              <Text style={exportStyles.formatDesc}>Maschinenlesbares Format zum Re-Import.</Text>
+              <Text style={exportStyles.formatTitle}>JSON Export (.json)</Text>
+              <Text style={exportStyles.formatDesc}>Machine readable format for re-importing.</Text>
             </View>
           </TouchableOpacity>
 
@@ -619,21 +619,21 @@ function ExportModal({ visible, projectName, stats, isExporting, onExport, onClo
               <FileText size={18} color={IDE.accent} />
             </View>
             <View style={exportStyles.formatInfo}>
-              <Text style={exportStyles.formatTitle}>Text-Bundle (.txt)</Text>
-              <Text style={exportStyles.formatDesc}>Alle Dateien in einer Textdatei. Gut zum Lesen.</Text>
+              <Text style={exportStyles.formatTitle}>Text Bundle (.txt)</Text>
+              <Text style={exportStyles.formatDesc}>All files in one text file. Good for reading.</Text>
             </View>
           </TouchableOpacity>
 
           {isExporting && (
             <View style={exportStyles.loadingRow}>
               <ActivityIndicator size="small" color={IDE.primary} />
-              <Text style={exportStyles.loadingText}>Wird exportiert...</Text>
+              <Text style={exportStyles.loadingText}>Exporting...</Text>
             </View>
           )}
 
           <View style={modalStyles.actions}>
             <TouchableOpacity onPress={onClose} style={modalStyles.cancelBtn} disabled={isExporting}>
-              <Text style={modalStyles.cancelText}>Schließen</Text>
+              <Text style={modalStyles.cancelText}>Close</Text>
             </TouchableOpacity>
           </View>
         </View>

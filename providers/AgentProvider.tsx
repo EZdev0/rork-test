@@ -17,21 +17,21 @@ function buildFinalSummaryContext(
   filesDeleted: string[],
   hasErrors: boolean,
 ): string {
-  let ctx = 'Fasse das Ergebnis dieses Auftrags zusammen und erkläre dem Nutzer was erledigt wurde.\n\n';
-  ctx += '## Ursprünglicher Auftrag\n' + userRequest + '\n\n';
-  ctx += '## Ausgeführte Schritte\n';
+  let ctx = 'Summarize the result of this job and explain to the user what was done.\n\n';
+  ctx += '## Original request\n' + userRequest + '\n\n';
+  ctx += '## Executed steps\n';
   for (const t of tasks) {
     const status = t.status === 'completed' ? '✅' : t.status === 'error' ? '❌' : '⏭️';
     ctx += status + ' **' + t.title + '**';
     if (t.result) ctx += ': ' + t.result.slice(0, 200);
-    if (t.error) ctx += ' (Fehler: ' + t.error + ')';
+    if (t.error) ctx += ' (Error: ' + t.error + ')';
     ctx += '\n';
   }
-  if (filesCreated.length > 0) ctx += '\n**Erstellte Dateien:** ' + [...new Set(filesCreated)].join(', ') + '\n';
-  if (filesModified.length > 0) ctx += '**Geänderte Dateien:** ' + [...new Set(filesModified)].join(', ') + '\n';
-  if (filesDeleted.length > 0) ctx += '**Gelöschte Dateien:** ' + [...new Set(filesDeleted)].join(', ') + '\n';
-  if (hasErrors) ctx += '\nEs gab Fehler bei einigen Aufgaben. Erkläre was funktioniert hat und was nicht.\n';
-  ctx += '\nSchreibe eine hilfreiche Zusammenfassung. Erwähne welche Dateien erstellt/geändert wurden und was der nächste Schritt sein könnte.';
+  if (filesCreated.length > 0) ctx += '\n**Created files:** ' + [...new Set(filesCreated)].join(', ') + '\n';
+  if (filesModified.length > 0) ctx += '**Modified files:** ' + [...new Set(filesModified)].join(', ') + '\n';
+  if (filesDeleted.length > 0) ctx += '**Deleted files:** ' + [...new Set(filesDeleted)].join(', ') + '\n';
+  if (hasErrors) ctx += '\nThere were errors with some tasks. Explain what worked and what did not.\n';
+  ctx += '\nWrite a helpful summary. Mention which files were created/modified and what the next step could be.';
   return ctx;
 }
 
@@ -74,7 +74,7 @@ export const [AgentProvider, useAgent] = createContextHook(() => {
 
     if (perm === 'always') return { allowed: true };
     if (perm === 'removed') return { allowed: false, reason: 'TOOL_HIDDEN' };
-    if (perm === 'blocked') return { allowed: false, reason: 'TOOL_BLOCKED: Tool "' + toolName + '" ist vom Nutzer blockiert. Informiere den Nutzer, dass dieses Tool freigegeben werden muss.' };
+    if (perm === 'blocked') return { allowed: false, reason: 'TOOL_BLOCKED: Tool "' + toolName + '" is blocked by the user. Inform the user that this tool needs to be enabled.' };
 
     if (perm === 'ask') {
       return new Promise<{ allowed: boolean; reason?: string }>((resolve) => {
@@ -88,7 +88,7 @@ export const [AgentProvider, useAgent] = createContextHook(() => {
             setPendingToolApproval(null);
             resolve(approved
               ? { allowed: true }
-              : { allowed: false, reason: 'TOOL_REJECTED: Nutzer hat "' + toolName + '" abgelehnt.' }
+              : { allowed: false, reason: 'TOOL_REJECTED: User rejected "' + toolName + '".' }
             );
           },
           timestamp: Date.now(),
@@ -113,76 +113,75 @@ export const [AgentProvider, useAgent] = createContextHook(() => {
       const permCheck = await checkAgentToolPermission(name, args);
       if (!permCheck.allowed) {
         if (permCheck.reason === 'TOOL_HIDDEN') {
-          return { result: 'FEHLER: Unbekanntes Tool "' + name + '".' };
+          return { result: 'ERROR: Unknown tool "' + name + '".' };
         }
-        return { result: permCheck.reason || 'Tool nicht erlaubt.' };
+        return { result: permCheck.reason || 'Tool not allowed.' };
       }
     }
 
     try {
       switch (name) {
         case 'read_file': {
-          if (!args?.path) return { result: 'FEHLER: Kein Dateipfad angegeben.' };
+          if (!args?.path) return { result: 'ERROR: No file path provided.' };
           const content = getFileContent(args.path);
-          if (content === null) return { result: 'FEHLER: Datei "' + args.path + '" nicht gefunden.' };
+          if (content === null) return { result: 'ERROR: File "' + args.path + '" not found.' };
           return { result: content };
         }
         case 'read_lines': {
-          if (!args?.path) return { result: 'FEHLER: Kein Dateipfad angegeben.' };
+          if (!args?.path) return { result: 'ERROR: No file path provided.' };
           const content = getFileContent(args.path);
-          if (content === null) return { result: 'FEHLER: Datei "' + args.path + '" nicht gefunden.' };
+          if (content === null) return { result: 'ERROR: File "' + args.path + '" not found.' };
           const lines = content.split('\n');
           const start = Math.max(0, (args.start_line || 1) - 1);
           const end = Math.min(lines.length, args.end_line || lines.length);
           return { result: lines.slice(start, end).map((l: string, i: number) => (start + i + 1) + ': ' + l).join('\n') };
         }
         case 'write_file': {
-          if (!args?.path) return { result: 'FEHLER: Kein Dateipfad angegeben.' };
+          if (!args?.path) return { result: 'ERROR: No file path provided.' };
           const existed = getFileContent(args.path) !== null;
           updateFileContent(args.path, args.content ?? '');
           const lineCount = (args.content || '').split('\n').length;
           return {
-            result: 'Datei "' + args.path + '" geschrieben (' + lineCount + ' Zeilen).',
+            result: 'File "' + args.path + '" written (' + lineCount + ' lines).',
             fileAction: { type: existed ? 'modified' : 'created', path: args.path },
           };
         }
         case 'create_file': {
-          if (!args?.path) return { result: 'ERROR: Kein Dateipfad angegeben.' };
+          if (!args?.path) return { result: 'ERROR: No file path provided.' };
           createFile(args.path, args.content || '');
-          return { result: 'Datei "' + args.path + '" erstellt.', fileAction: { type: 'created', path: args.path } };
+          return { result: 'File "' + args.path + '" created.', fileAction: { type: 'created', path: args.path } };
         }
         case 'edit_file': {
-          if (!args?.path) return { result: 'ERROR: Kein Dateipfad angegeben.' };
-          if (!args?.old_text) return { result: 'ERROR: old_text ist leer.' };
+          if (!args?.path) return { result: 'ERROR: No file path provided.' };
+          if (!args?.old_text) return { result: 'ERROR: old_text is empty.' };
           const content = getFileContent(args.path);
-          if (content === null) return { result: 'ERROR: Datei "' + args.path + '" nicht gefunden. Bitte erst mit read_file lesen.' };
-          if (!content.includes(args.old_text)) return { result: 'ERROR: Text nicht gefunden in "' + args.path + '". Bitte erneut mit read_file lesen.' };
+          if (content === null) return { result: 'ERROR: File "' + args.path + '" not found. Please read with read_file first.' };
+          if (!content.includes(args.old_text)) return { result: 'ERROR: Text not found in "' + args.path + '". Please read the file again.' };
           const newContent = content.replace(args.old_text, args.new_text ?? '');
           updateFileContent(args.path, newContent);
-          return { result: 'Datei "' + args.path + '" bearbeitet.', fileAction: { type: 'modified', path: args.path } };
+          return { result: 'File "' + args.path + '" edited.', fileAction: { type: 'modified', path: args.path } };
         }
         case 'delete_file': {
-          if (!args?.path) return { result: 'ERROR: Kein Dateipfad angegeben.' };
+          if (!args?.path) return { result: 'ERROR: No file path provided.' };
           deleteFile(args.path);
-          return { result: 'Datei "' + args.path + '" gelöscht.', fileAction: { type: 'deleted', path: args.path } };
+          return { result: 'File "' + args.path + '" deleted.', fileAction: { type: 'deleted', path: args.path } };
         }
         case 'rename_file': {
-          if (!args?.old_path || !args?.new_path) return { result: 'ERROR: old_path und new_path sind erforderlich.' };
+          if (!args?.old_path || !args?.new_path) return { result: 'ERROR: old_path and new_path are required.' };
           renameFile(args.old_path, args.new_path);
-          return { result: 'Umbenannt: "' + args.old_path + '" → "' + args.new_path + '".', fileAction: { type: 'modified', path: args.new_path } };
+          return { result: 'File renamed to "' + args.new_path + '".', fileAction: { type: 'modified', path: args.new_path } };
         }
         case 'list_directory': {
           return { result: listDirectory(args?.path || '') };
         }
         case 'search_files': {
-          if (!args?.query) return { result: 'ERROR: Kein Suchbegriff angegeben.' };
+          if (!args?.query) return { result: 'ERROR: No search query provided.' };
           return { result: searchFilesInProject(args.query, args.path) };
         }
         case 'find_replace': {
-          if (!args?.path) return { result: 'ERROR: Kein Dateipfad angegeben.' };
-          if (args?.find === undefined || args?.find === null || args.find === '') return { result: 'ERROR: Suchtext (find) fehlt.' };
+          if (args?.find === undefined || args?.find === null || args.find === '') return { result: 'ERROR: Search text (find) is missing.' };
           const content = getFileContent(args.path);
-          if (content === null) return { result: 'ERROR: Datei "' + args.path + '" nicht gefunden.' };
+          if (content === null) return { result: 'ERROR: File "' + args.path + '" not found.' };
           let newContent: string;
           let count: number;
           if (args.all) {
@@ -193,45 +192,45 @@ export const [AgentProvider, useAgent] = createContextHook(() => {
             newContent = content.replace(args.find, args.replace ?? '');
           }
           updateFileContent(args.path, newContent);
-          return { result: count + ' Vorkommen in "' + args.path + '" ersetzt.', fileAction: { type: 'modified', path: args.path } };
+          return { result: count + ' occurrences replaced in "' + args.path + '".', fileAction: { type: 'modified', path: args.path } };
         }
         case 'create_directory': {
-          if (!args?.path) return { result: 'ERROR: Kein Pfad angegeben.' };
+          if (!args?.path) return { result: 'ERROR: No path provided.' };
           createDirectory(args.path);
-          return { result: 'Verzeichnis "' + args.path + '" erstellt.' };
+          return { result: 'Directory "' + args.path + '" created.' };
         }
         case 'get_project_tree': {
           return { result: getProjectTree() };
         }
         case 'get_file_info': {
-          if (!args?.path) return { result: 'ERROR: Kein Dateipfad angegeben.' };
+          if (!args?.path) return { result: 'ERROR: No file path provided.' };
           return { result: getFileInfo(args.path) };
         }
         case 'create_todo': {
-          if (!args?.text) return { result: 'ERROR: Todo-Text fehlt.' };
+          if (!args?.text) return { result: 'ERROR: Todo text is missing.' };
           const id = addTodo(args.text);
-          return { result: 'Todo erstellt (ID: ' + id + '): "' + args.text + '"' };
+          return { result: 'Todo created (ID: ' + id + '): "' + args.text + '"' };
         }
         case 'update_todo': {
-          if (!args?.id) return { result: 'ERROR: Todo-ID fehlt.' };
+          if (!args?.id) return { result: 'ERROR: Todo ID is missing.' };
           updateTodoItem(args.id, args.completed, args.text);
-          return { result: 'Todo "' + args.id + '" aktualisiert.' };
+          return { result: 'Todo "' + args.id + '" updated.' };
         }
         case 'add_memo': {
-          if (!args?.content) return { result: 'ERROR: Memo-Inhalt fehlt.' };
+          if (!args?.content) return { result: 'ERROR: Memo content is missing.' };
           addMemo(args.content);
-          return { result: 'Memo gespeichert: "' + args.content + '"' };
+          return { result: 'Memo saved: "' + args.content + '"' };
         }
         case 'think': {
-          return { result: 'Gedankengang verarbeitet.' };
+          return { result: 'Thought process recorded.' };
         }
         case 'read_identity_files': {
           let output = '';
-          output += '## SOUL.md\n' + (soulMd || '(leer)') + '\n\n';
-          output += '## AGENTS.md\n' + (agentMd || '(leer)') + '\n\n';
-          output += '## IDENTITY.md\n' + (identityMd || '(leer)') + '\n\n';
-          output += '## USER.md\n' + (userMd || '(leer)') + '\n\n';
-          output += '## MEMORY.md\n' + (memoryMd || '(leer)');
+          output += '## SOUL.md\n' + (soulMd || '(empty)') + '\n\n';
+          output += '## AGENTS.md\n' + (agentMd || '(empty)') + '\n\n';
+          output += '## IDENTITY.md\n' + (identityMd || '(empty)') + '\n\n';
+          output += '## USER.md\n' + (userMd || '(empty)') + '\n\n';
+          output += '## MEMORY.md\n' + (memoryMd || '(empty)');
           return { result: output };
         }
         case 'get_active_tools': {
@@ -239,32 +238,32 @@ export const [AgentProvider, useAgent] = createContextHook(() => {
           return { result: 'Available active tools: ' + activeTools.join(', ') };
         }
         case 'update_soul_md': {
-          if (!args?.content) return { result: 'ERROR: Kein Inhalt angegeben.' };
+          if (!args?.content) return { result: 'ERROR: No content provided.' };
           setSoulMd(args.content);
-          return { result: 'SOUL.md aktualisiert (' + args.content.split('\n').length + ' Zeilen).' };
+          return { result: 'SOUL.md updated (' + args.content.split('\n').length + ' lines).' };
         }
         case 'update_agents_md': {
-          if (!args?.content) return { result: 'ERROR: Kein Inhalt angegeben.' };
+          if (!args?.content) return { result: 'ERROR: No content provided.' };
           setAgentMd(args.content);
-          return { result: 'AGENTS.md aktualisiert (' + args.content.split('\n').length + ' Zeilen).' };
+          return { result: 'AGENTS.md updated (' + args.content.split('\n').length + ' lines).' };
         }
         case 'update_identity_md': {
-          if (!args?.content) return { result: 'FEHLER: Kein Inhalt angegeben.' };
+          if (!args?.content) return { result: 'ERROR: No content provided.' };
           setIdentityMd(args.content);
-          return { result: 'IDENTITY.md aktualisiert (' + args.content.split('\n').length + ' Zeilen).' };
+          return { result: 'IDENTITY.md updated (' + args.content.split('\n').length + ' lines).' };
         }
         case 'update_user_md': {
-          if (!args?.content) return { result: 'FEHLER: Kein Inhalt angegeben.' };
+          if (!args?.content) return { result: 'ERROR: No content provided.' };
           setUserMd(args.content);
-          return { result: 'USER.md aktualisiert (' + args.content.split('\n').length + ' Zeilen).' };
+          return { result: 'USER.md updated (' + args.content.split('\n').length + ' lines).' };
         }
         case 'update_memory_md': {
-          if (!args?.content) return { result: 'FEHLER: Kein Inhalt angegeben.' };
+          if (!args?.content) return { result: 'ERROR: No content provided.' };
           setMemoryMd(args.content);
-          return { result: 'MEMORY.md aktualisiert (' + args.content.split('\n').length + ' Zeilen).' };
+          return { result: 'MEMORY.md updated (' + args.content.split('\n').length + ' lines).' };
         }
         case 'web_search': {
-          if (!args?.query) return { result: 'FEHLER: Suchbegriff fehlt.' };
+          if (!args?.query) return { result: 'ERROR: Search term is missing.' };
           try {
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 8000);
@@ -280,21 +279,21 @@ export const [AgentProvider, useAgent] = createContextHook(() => {
             if (resp.ok) {
               const data = await resp.json();
               
-              // Abstract (Hauptergebnis)
+              // Abstract
               if (data?.Abstract) {
-                results += '**Zusammenfassung:**\n' + data.Abstract + '\n\n';
-                if (data?.AbstractURL) results += '_Quelle: ' + data.AbstractURL + '_\n\n';
+                results += '**Summary:**\n' + data.Abstract + '\n\n';
+                if (data?.AbstractURL) results += '_Source: ' + data.AbstractURL + '_\n\n';
               }
               
               // Related Topics
               if (data?.RelatedTopics && Array.isArray(data.RelatedTopics)) {
                 const topics = data.RelatedTopics.slice(0, 8);
                 if (topics.length > 0) {
-                  results += '**Gefundene Themen:**\n';
+                  results += '**Related Topics:**\n';
                   for (const t of topics) {
                     if (t?.Text) {
                       results += '• ' + t.Text + '\n';
-                      if (t?.FirstURL) results += '  _Quelle: ' + t.FirstURL + '_\n';
+                      if (t?.FirstURL) results += '  _Source: ' + t.FirstURL + '_\n';
                     }
                   }
                   results += '\n';
@@ -305,7 +304,7 @@ export const [AgentProvider, useAgent] = createContextHook(() => {
               if (data?.Results && Array.isArray(data.Results)) {
                 const res = data.Results.slice(0, 5);
                 if (res.length > 0) {
-                  results += '**Ergebnisse:**\n';
+                  results += '**Results:**\n';
                   for (const r of res) {
                     if (r?.Text && r?.FirstURL) {
                       results += '• ' + r.Text + '\n  _' + r.FirstURL + '_\n';
@@ -315,19 +314,19 @@ export const [AgentProvider, useAgent] = createContextHook(() => {
               }
             }
             
-            // Wenn keine Ergebnisse, hilfreiche Fallback-Nachricht
+            // Fallback message if no results
             if (!results.trim()) {
               console.log('[Web-Search] No results for:', args.query);
               return { 
-                result: 'ℹ️ Keine direkten Web-Ergebnisse für "' + args.query + '" gefunden.\n\n' +
-                        '**Mögliche Gründe:**\n' +
-                        '• Sehr spezifische oder technische Anfrage\n' +
-                        '• Begriff wird anders geschrieben\n' +
-                        '• Aktuelles Thema noch nicht indexiert\n\n' +
-                        '**Versuche:**\n' +
-                        '• Andere Formulierung der Suche\n' +
-                        '• Englisch statt Deutsch\n' +
-                        '• Allgemeinere Begriffe'
+                result: 'ℹ️ No direct web results found for "' + args.query + '".\n\n' +
+                        '**Possible reasons:**\n' +
+                        '• Highly specific or technical query\n' +
+                        '• Term spelled differently\n' +
+                        '• Current topic not yet indexed\n\n' +
+                        '**Try:**\n' +
+                        '• Different phrasing\n' +
+                        '• English instead of German\n' +
+                        '• Broader terms'
               };
             }
             
@@ -335,21 +334,21 @@ export const [AgentProvider, useAgent] = createContextHook(() => {
           } catch (e: any) {
             console.log('[Web-Search] Error:', e.message);
             return { 
-              result: '⚠️ Web-Suche derzeit nicht verfügbar (Netzwerkfehler).\n\n' +
-                      '**Beschreibe was du finden möchtest:**\n' +
-                      '• Welches Thema?\n' +
-                      '• Welche Informationen brauchst du?\n' +
-                      '• Gibt es alternative Quellen?'
+              result: '⚠️ Web search currently unavailable (Network error).\n\n' +
+                      '**Describe what you want to find:**\n' +
+                      '• Which topic?\n' +
+                      '• What information do you need?\n' +
+                      '• Are there alternative sources?'
             };
           }
         }
         case 'web_fetch': {
-          if (!args?.url) return { result: 'FEHLER: URL fehlt.' };
+          if (!args?.url) return { result: 'ERROR: URL is missing.' };
           try {
             const resp = await fetch(args.url, {
               headers: { 'Accept': 'text/html,text/plain,application/json' },
             });
-            if (!resp.ok) return { result: 'Fetch fehlgeschlagen (Status ' + resp.status + ').' };
+            if (!resp.ok) return { result: 'Fetch failed (Status ' + resp.status + ').' };
             const text = await resp.text();
             const maxLen = args.max_length || 5000;
             const cleaned = text.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
@@ -357,28 +356,28 @@ export const [AgentProvider, useAgent] = createContextHook(() => {
               .replace(/<[^>]+>/g, ' ')
               .replace(/\s+/g, ' ')
               .trim();
-            return { result: cleaned.length > maxLen ? cleaned.slice(0, maxLen) + '... (gekürzt)' : cleaned };
+            return { result: cleaned.length > maxLen ? cleaned.slice(0, maxLen) + '... (truncated)' : cleaned };
           } catch (e: any) {
-            return { result: 'FEHLER bei Web-Fetch: ' + (e?.message || 'Netzwerkfehler') };
+            return { result: 'ERROR during web fetch: ' + (e?.message || 'Network error') };
           }
         }
         case 'task_complete': {
-          return { result: 'AUFGABE_ABGESCHLOSSEN: ' + (args?.summary || 'Fertig') };
+          return { result: 'TASK_COMPLETED: ' + (args?.summary || 'Done') };
         }
         case 'verify_file': {
-          if (!args?.path) return { result: 'FEHLER: Kein Dateipfad angegeben.' };
+          if (!args?.path) return { result: 'ERROR: No file path provided.' };
           const content = getFileContent(args.path);
-          if (content === null) return { result: 'FEHLER: Datei "' + args.path + '" existiert nicht.' };
+          if (content === null) return { result: 'ERROR: File "' + args.path + '" does not exist.' };
           const lines = content.split('\n').length;
           const isEmpty = content.trim().length === 0;
-          return { result: 'Datei "' + args.path + '" existiert. Zeilen: ' + lines + '. Leer: ' + (isEmpty ? 'Ja' : 'Nein') + '.' };
+          return { result: 'File "' + args.path + '" exists. Lines: ' + lines + '. Empty: ' + (isEmpty ? 'Yes' : 'No') + '.' };
         }
         default:
-          return { result: 'FEHLER: Unbekanntes Tool "' + name + '".' };
+          return { result: 'ERROR: Unknown tool "' + name + '".' };
       }
     } catch (e: any) {
       console.log('[Agent] Tool error:', name, e);
-      return { result: 'FEHLER bei ' + name + ': ' + (e?.message || 'Unbekannter Fehler') };
+      return { result: 'ERROR in ' + name + ': ' + (e?.message || 'Unknown error') };
     }
   }, [getFileContent, updateFileContent, createFile, deleteFile, renameFile, createDirectory, searchFilesInProject, getProjectTree, listDirectory, getFileInfo, addTodo, updateTodoItem, addMemo, checkAgentToolPermission, agentMd, soulMd, identityMd, userMd, memoryMd, setAgentMd, setSoulMd, setIdentityMd, setUserMd, setMemoryMd]);
 
@@ -386,12 +385,12 @@ export const [AgentProvider, useAgent] = createContextHook(() => {
     setIsPlanning(true);
     try {
       const apiKey = getApiKey();
-      if (!apiKey) throw new Error('Kein API-Schlüssel konfiguriert.');
+      if (!apiKey) throw new Error('No API key configured.');
 
-      // PRÜFEN: SuperAgent + AgentMode -> Fragen-Phase (mit Null Safety)
+      // CHECK: SuperAgent + AgentMode -> Questions phase (with Null Safety)
       if (settings.betaSuperAgent && settings.agentMode) {
         console.log('[Agent] SuperAgent + AgentMode: Starting clarification phase');
-        // KI generiert zunächst Klärungsfragen
+        // AI generates clarification questions first
         const questionPrompt = 'You are an experienced project planner. Before creating a plan, ask CLARIFICATION QUESTIONS to fully understand the requirements.\n\n' +
           'User request: ' + userRequest + '\n\n' +
           'Ask 2-5 precise questions that will help you create the best plan.\n' +
@@ -419,9 +418,9 @@ export const [AgentProvider, useAgent] = createContextHook(() => {
             fallbackSettings,
           );
           
-          // Fragen extrahieren und speichern - mit Null Safety
+          // Extract and store questions
           const questionsText = typeof questionsResponse.content === 'string' ? questionsResponse.content : '';
-          if (!questionsText.trim()) throw new Error('Keine Fragen erhalten');
+          if (!questionsText.trim()) throw new Error('No questions received');
           
           const extractedQuestions = questionsText
             .split(/\n|\d+\.|[-*•]/)
@@ -437,13 +436,13 @@ export const [AgentProvider, useAgent] = createContextHook(() => {
             if (validQuestions.length > 0) {
               setClarificationQuestions(validQuestions);
               console.log('[Agent] Clarification questions:', validQuestions.map(q => q.question));
-              // Wir haben Fragen generiert, setzen aber mit der Planerstellung fort
-              // damit der Agent-Modus nicht blockiert (Null-Fehler Vermeidung)
+              // We generated questions, but continue with plan creation
+              // so agent mode is not blocked
             }
           }
         } catch (e) {
           console.log('[Agent] Error generating questions:', e);
-          // Fallback: Normaler Plan ohne Fragen
+          // Fallback: normal plan without questions
         }
       }
 
@@ -650,7 +649,7 @@ export const [AgentProvider, useAgent] = createContextHook(() => {
         console.log('[Agent] Web search task error:', e);
         updateTaskInPlan(planId, task.id, t => ({
           ...t, status: 'error', completedAt: Date.now(),
-          error: 'Web-Suche fehlgeschlagen: ' + (e?.message || 'Unbekannter Fehler'),
+          error: 'Web-Suche fehlgeschlagen: ' + (e?.message || 'Unknown error'),
         }));
       }
       return;
@@ -757,12 +756,12 @@ Investigate all options thoroughly.`;
 
     const subAgentTools = [...filteredBaseTools, {
       name: 'task_complete',
-      description: 'Rufe dieses Tool auf wenn die Aufgabe abgeschlossen ist. Gib eine Zusammenfassung an.',
-      parameters: { type: 'object', properties: { summary: { type: 'string', description: 'Zusammenfassung was erledigt wurde' } }, required: ['summary'] },
+      description: 'Call this tool when the task is completed. Provide a summary.',
+      parameters: { type: 'object', properties: { summary: { type: 'string', description: 'Summary of what was done' } }, required: ['summary'] },
     }, {
       name: 'verify_file',
-      description: 'Überprüfe ob eine Datei existiert und korrekt erstellt wurde.',
-      parameters: { type: 'object', properties: { path: { type: 'string', description: 'Dateipfad' } }, required: ['path'] },
+      description: 'Check if a file exists and was created correctly.',
+      parameters: { type: 'object', properties: { path: { type: 'string', description: 'File path' } }, required: ['path'] },
     }];
 
     const systemPrompt = buildSystemPrompt({
@@ -781,19 +780,19 @@ Investigate all options thoroughly.`;
       toolPermissions: settings.yoloMode ? undefined : settings.toolPermissions,
     });
 
-    const taskPrompt = systemPrompt + '\n\n## Aktuelle Unteraufgabe\n'
-      + 'Titel: ' + task.title + '\n'
-      + 'Beschreibung: ' + task.description + '\n\n'
-      + 'WICHTIG: Du bist ein Unteragent. Führe NUR diese spezifische Aufgabe aus.\n'
-      + 'Wenn du fertig bist, rufe das Tool "task_complete" auf mit einer Zusammenfassung.\n'
-      + 'Lies Dateien IMMER erst bevor du sie bearbeitest.\n'
-      + 'Nach dem Erstellen einer Datei, nutze verify_file um sicherzustellen dass sie korrekt angelegt wurde.\n'
-      + 'Wenn ein Tool fehlschlägt, versuche es zu korrigieren und erneut auszuführen.\n';
+    const taskPrompt = systemPrompt + '\n\n## Current Subtask\n'
+      + 'Title: ' + task.title + '\n'
+      + 'Description: ' + task.description + '\n\n'
+      + 'IMPORTANT: You are a sub-agent. ONLY execute this specific task.\n'
+      + 'When you are done, call the "task_complete" tool with a summary.\n'
+      + 'ALWAYS read files before editing them.\n'
+      + 'After creating a file, use verify_file to ensure it was created correctly.\n'
+      + 'If a tool fails, try to fix it and run it again.\n';
 
     let messages: ChatMessage[] = [{
       id: genId(),
       role: 'user',
-      content: 'Führe folgende Aufgabe aus:\n\nTitel: ' + task.title + '\nBeschreibung: ' + task.description,
+      content: 'Execute the following task:\n\nTitle: ' + task.title + '\nDescription: ' + task.description,
       timestamp: Date.now(),
     }];
 
@@ -922,7 +921,7 @@ Investigate all options thoroughly.`;
 
     let errorDetail: string | undefined;
     if (finalStatus === 'error') {
-      errorDetail = 'Maximale Iterationen erreicht.';
+      errorDetail = 'Maximum iterations reached.';
       if (hasToolErrors) {
         const failedTools = messages.filter(m => m.role === 'tool' && m.content?.startsWith('FEHLER')).map(m => m.toolName).filter(Boolean);
         errorDetail += ' Fehlgeschlagene Tools: ' + [...new Set(failedTools)].join(', ');
@@ -933,7 +932,7 @@ Investigate all options thoroughly.`;
       ...t,
       status: finalStatus,
       completedAt: Date.now(),
-      result: lastAssistant?.content || 'Aufgabe abgeschlossen.',
+      result: lastAssistant?.content || 'Task completed.',
       subAgentMessages: [...messages],
       filesCreated: [...filesCreated],
       filesModified: [...filesModified],
@@ -1009,7 +1008,7 @@ Investigate all options thoroughly.`;
         } catch (e: any) {
           console.log('[Agent] Task execution error:', e);
           updateTaskInPlan(planId, task.id, t => ({
-            ...t, status: 'error', error: e?.message || 'Unbekannter Fehler', completedAt: Date.now(),
+            ...t, status: 'error', error: e?.message || 'Unknown error', completedAt: Date.now(),
           }));
           hadFatalError = true;
           for (const remainingTask of tasksToRun) {

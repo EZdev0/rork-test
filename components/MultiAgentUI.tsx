@@ -2,7 +2,7 @@
  * Multi-Agenten UI Komponenten
  * 
  * - AgentDashboard: Hauptübersicht für Super-Agent Modus
- * - SubAgentCard: Karte für einzelnen Unteragenten
+ * - SubAgentCard: Karte für einzelnen Subagents
  * - ToolPermissionDialog: Berechtigungs-Dialog
  * - MemoSection: Überarbeitete Memo-Anzeige
  */
@@ -33,11 +33,11 @@ export const AgentDashboard: React.FC<AgentDashboardProps> = ({
 }) => {
   return (
     <View style={styles.dashboard}>
-      {/* Hauptagent Status */}
+      {/* Main Agent Status */}
       <View style={styles.mainAgentSection}>
         <View style={styles.sectionHeader}>
           <Ionicons name="pulse" size={24} color={IDE.primary} />
-          <Text style={styles.sectionTitle}>Hauptagent</Text>
+          <Text style={styles.sectionTitle}>Main Agent</Text>
           <View style={[styles.statusBadge, { backgroundColor: getStatusColor(mainAgentStatus) }]}>
             <Text style={styles.statusText}>{getStatusText(mainAgentStatus)}</Text>
           </View>
@@ -45,23 +45,23 @@ export const AgentDashboard: React.FC<AgentDashboardProps> = ({
         
         {currentTask && (
           <View style={styles.currentTask}>
-            <Text style={styles.taskLabel}>Aktuelle Aufgabe:</Text>
+            <Text style={styles.taskLabel}>Current Task:</Text>
             <Text style={styles.taskContent}>{currentTask}</Text>
           </View>
         )}
       </View>
 
-      {/* Unteragenten Übersicht */}
+      {/* Subagents Übersicht */}
       <View style={styles.subAgentsSection}>
         <View style={styles.sectionHeader}>
           <Ionicons name="people" size={24} color={IDE.text} />
-          <Text style={styles.sectionTitle}>Unteragenten</Text>
+          <Text style={styles.sectionTitle}>Subagents</Text>
           <View style={styles.countBadge}>
             <Text style={styles.countText}>{subAgents.length}</Text>
           </View>
         </View>
 
-        {/* Vorhandene Unteragenten */}
+        {/* Vorhandene Subagents */}
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.agentsScroll}>
           {subAgents.map(agent => (
             <SubAgentCard
@@ -77,7 +77,7 @@ export const AgentDashboard: React.FC<AgentDashboardProps> = ({
             onPress={() => showDeployMenu(onDeploySubAgent)}
           >
             <Ionicons name="add-circle" size={32} color={IDE.primary} />
-            <Text style={styles.deployText}>Agent einsetzen</Text>
+            <Text style={styles.deployText}>Deploy Agent</Text>
           </TouchableOpacity>
         </ScrollView>
       </View>
@@ -86,11 +86,11 @@ export const AgentDashboard: React.FC<AgentDashboardProps> = ({
       <View style={styles.coordinationSection}>
         <View style={styles.sectionHeader}>
           <Ionicons name="chatbubbles" size={24} color={IDE.text} />
-          <Text style={styles.sectionTitle}>Agenten-Koordination</Text>
+          <Text style={styles.sectionTitle}>Agent Coordination</Text>
         </View>
         <View style={styles.coordinationContent}>
           <Text style={styles.coordinationPlaceholder}>
-            Live-Kommunikation zwischen den Agenten wird hier angezeigt...
+            Live communication between agents will be displayed here...
           </Text>
         </View>
       </View>
@@ -138,14 +138,14 @@ export const SubAgentCard: React.FC<SubAgentCardProps> = ({ agent, onPress }) =>
       {agent.result && (
         <View style={styles.cardResult}>
           <Ionicons name="checkmark-circle" size={16} color={IDE.primary} />
-          <Text style={styles.resultText}>Abgeschlossen</Text>
+          <Text style={styles.resultText}>Completed</Text>
         </View>
       )}
 
       {agent.error && (
         <View style={styles.cardError}>
           <Ionicons name="alert-circle" size={16} color="#EF4444" />
-          <Text style={styles.errorText}>Fehler aufgetreten</Text>
+          <Text style={styles.errorText}>Error occurred</Text>
         </View>
       )}
     </TouchableOpacity>
@@ -199,7 +199,7 @@ export const ToolPermissionDialog: React.FC<ToolPermissionDialogProps> = ({
           </View>
 
           <View style={styles.argsContainer}>
-            <Text style={styles.argsLabel}>Argumente:</Text>
+            <Text style={styles.argsLabel}>Arguments:</Text>
             <ScrollView style={styles.argsScroll}>
               {Object.entries(args).map(([key, value]) => (
                 <View key={key} style={styles.argItem}>
@@ -212,31 +212,31 @@ export const ToolPermissionDialog: React.FC<ToolPermissionDialogProps> = ({
 
           <View style={[styles.riskBadge, { backgroundColor: getRiskColor(riskLevel) }]}>
             <Ionicons name="warning" size={16} color="#fff" />
-            <Text style={styles.riskText}>Risiko: {getRiskText(riskLevel)}</Text>
+            <Text style={styles.riskText}>Risk: {getRiskText(riskLevel)}</Text>
           </View>
         </View>
 
         <View style={styles.dialogActions}>
           <TouchableOpacity style={[styles.actionButton, styles.approveButton]} onPress={onApprove}>
             <Ionicons name="checkmark" size={20} color="#fff" />
-            <Text style={styles.actionButtonText}>Ausführen</Text>
+            <Text style={styles.actionButtonText}>Execute</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={[styles.actionButton, styles.rejectButton]} onPress={onReject}>
             <Ionicons name="close" size={20} color="#fff" />
-            <Text style={styles.actionButtonText}>Ablehnen</Text>
+            <Text style={styles.actionButtonText}>Reject</Text>
           </TouchableOpacity>
         </View>
 
         <View style={styles.dialogSecondaryActions}>
           <TouchableOpacity onPress={onAlwaysAllow} style={styles.secondaryButton}>
             <Ionicons name="time" size={16} color={IDE.primary} />
-            <Text style={styles.secondaryButtonText}>Immer erlauben</Text>
+            <Text style={styles.secondaryButtonText}>Always Allow</Text>
           </TouchableOpacity>
 
           <TouchableOpacity onPress={onLater} style={styles.secondaryButton}>
             <Ionicons name="pause" size={16} color={IDE.muted} />
-            <Text style={styles.secondaryButtonText}>Später</Text>
+            <Text style={styles.secondaryButtonText}>Later</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -261,7 +261,7 @@ export const MemoSection: React.FC<MemoSectionProps> = ({
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
 
-  const globalMemos = memos.filter(m => m.type === 'global');
+  const GlobalMemos = memos.filter(m => m.type === 'Global');
   const localMemos = memos.filter(m => m.type === 'local');
 
   return (
@@ -282,7 +282,7 @@ export const MemoSection: React.FC<MemoSectionProps> = ({
         <Ionicons name="search" size={18} color={IDE.muted} />
         <input
           type="text"
-          placeholder="Memos durchsuchen..."
+          placeholder="Search memos..."
           value={searchQuery}
           onChange={(e) => {
             setSearchQuery(e.target.value);
@@ -292,14 +292,14 @@ export const MemoSection: React.FC<MemoSectionProps> = ({
         />
       </View>
 
-      {/* Globale Memos */}
-      {globalMemos.length > 0 && (
+      {/* Global Memos */}
+      {GlobalMemos.length > 0 && (
         <View style={styles.memoGroup}>
           <View style={styles.memoGroupHeader}>
             <Ionicons name="globe" size={16} color={IDE.primary} />
-            <Text style={styles.memoGroupTitle}>Global ({globalMemos.length})</Text>
+            <Text style={styles.memoGroupTitle}>Global ({GlobalMemos.length})</Text>
           </View>
-          {globalMemos.slice(0, 5).map(memo => (
+          {GlobalMemos.slice(0, 5).map(memo => (
             <TouchableOpacity
               key={memo.id}
               style={styles.memoItem}
@@ -315,7 +315,7 @@ export const MemoSection: React.FC<MemoSectionProps> = ({
         </View>
       )}
 
-      {/* Lokale Memos */}
+      {/* Local Memos */}
       {localMemos.length > 0 && (
         <View style={styles.memoGroup}>
           <View style={styles.memoGroupHeader}>
@@ -341,7 +341,7 @@ export const MemoSection: React.FC<MemoSectionProps> = ({
       {memos.length === 0 && (
         <View style={styles.emptyState}>
           <Ionicons name="book-outline" size={48} color={IDE.muted} />
-          <Text style={styles.emptyText}>Keine Memos vorhanden</Text>
+          <Text style={styles.emptyText}>No memos found</Text>
           <Text style={styles.emptySubtext}>
             Die KI erstellt automatisch Memos bei wichtigen Erkenntnissen
           </Text>
@@ -364,10 +364,10 @@ function getStatusColor(status: string): string {
 
 function getStatusText(status: string): string {
   switch (status) {
-    case 'planning': return 'Plant...';
-    case 'executing': return 'Arbeitet';
-    case 'completed': return 'Fertig';
-    default: return 'Inaktiv';
+    case 'planning': return 'Planning...';
+    case 'executing': return 'Working';
+    case 'completed': return 'Done';
+    default: return 'Idle';
   }
 }
 
@@ -404,11 +404,11 @@ function getAgentStatusColor(status: SubAgent['status']): string {
 
 function getAgentStatusText(status: SubAgent['status']): string {
   switch (status) {
-    case 'working': return 'Arbeitet...';
-    case 'completed': return 'Abgeschlossen';
-    case 'error': return 'Fehler';
-    case 'waiting': return 'Wartend';
-    default: return 'Inaktiv';
+    case 'working': return 'Working...';
+    case 'completed': return 'Completed';
+    case 'error': return 'Error';
+    case 'waiting': return 'Waiting';
+    default: return 'Idle';
   }
 }
 

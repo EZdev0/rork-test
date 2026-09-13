@@ -23,42 +23,42 @@ interface ProviderMeta {
 
 const PROVIDER_INFO: Record<string, ProviderMeta> = {
   rork: {
-    desc: 'Kostenlose KI direkt in Studio IDE. Kein API-Schlüssel erforderlich.',
-    pricing: 'Komplett kostenlos',
+    desc: 'Free AI directly in Studio IDE. No API key required.',
+    pricing: 'Completely free',
   },
   groq: {
-    desc: 'Extrem schnelle Inferenz mit Groq Hardware. Kostenloser API-Schlüssel verfügbar.',
+    desc: 'Extremely fast inference with Groq Hardware. Free API key available.',
     endpoint: 'https://console.groq.com/keys',
     modelHint: 'llama-3.3-70b-versatile',
-    pricing: 'Kostenlos (mit Limits)',
+    pricing: 'Free (with limits)',
   },
   gemini: {
-    desc: 'Googles KI-Modelle mit großzügigem kostenlosen Kontingent.',
+    desc: 'Google AI models with generous free tier.',
     endpoint: 'https://aistudio.google.com/app/apikey',
     modelHint: 'gemini-2.0-flash',
-    pricing: 'Kostenlos (mit Limits)',
+    pricing: 'Free (with limits)',
   },
   openai: {
-    desc: 'GPT-4o und GPT-4o Mini von OpenAI.',
+    desc: 'GPT-4o and GPT-4o Mini by OpenAI.',
     endpoint: 'https://platform.openai.com/api-keys',
     modelHint: 'gpt-4o',
-    pricing: 'Kostenpflichtig',
+    pricing: 'Paid',
   },
   anthropic: {
-    desc: 'Claude Sonnet 4 und Claude 3.5 Haiku von Anthropic.',
+    desc: 'Claude Sonnet 4 and Claude 3.5 Haiku by Anthropic.',
     endpoint: 'https://console.anthropic.com/settings/keys',
     modelHint: 'claude-sonnet-4',
-    pricing: 'Kostenpflichtig',
+    pricing: 'Paid',
   },
   openrouter: {
-    desc: 'Zugang zu vielen Modellen über einen Schlüssel. Kostenlose und bezahlte Optionen.',
+    desc: 'Access to many models via one key. Free and paid options.',
     endpoint: 'https://openrouter.ai/keys',
-    modelHint: 'llama-3.3-70b (Gratis)',
-    pricing: 'Kostenlos + Bezahlt',
+    modelHint: 'llama-3.3-70b (Free)',
+    pricing: 'Free + Paid',
   },
   custom: {
-    desc: 'Eigener OpenAI-kompatibler Endpoint für lokale LLMs oder andere Dienste.',
-    pricing: 'Variabel',
+    desc: 'Custom OpenAI-compatible endpoint for local LLMs or other services.',
+    pricing: 'Variable',
   },
 };
 
@@ -77,7 +77,7 @@ const KEY_PLACEHOLDER: Record<string, string> = {
   openai: 'sk-...',
   anthropic: 'sk-ant-...',
   openrouter: 'sk-or-...',
-  custom: 'Dein API-Schlüssel',
+  custom: 'Your API key',
 };
 
 export default function SettingsScreen() {
@@ -175,7 +175,7 @@ export default function SettingsScreen() {
   const handleCopyEndpoint = useCallback(async (text: string) => {
     try {
       await Clipboard.setStringAsync(text);
-      Alert.alert('Kopiert', 'In die Zwischenablage kopiert.');
+      Alert.alert('Copied', 'Copied to clipboard.');
     } catch {
       // ignore
     }
@@ -211,7 +211,7 @@ export default function SettingsScreen() {
           onPress={() => setActiveSection('main')}
           activeOpacity={0.7}
         >
-          <Text style={[styles.sectionTabText, activeSection === 'main' && styles.sectionTabTextActive]}>Einstellungen</Text>
+          <Text style={[styles.sectionTabText, activeSection === 'main' && styles.sectionTabTextActive]}>Settings</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.sectionTab, activeSection === 'beta' && styles.sectionTabActive]}
@@ -227,9 +227,9 @@ export default function SettingsScreen() {
         <>
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>KI-ANBIETER</Text>
+              <Text style={styles.sectionTitle}>AI PROVIDER</Text>
               <View style={styles.providerCountBadge}>
-                <Text style={styles.providerCountText}>{configuredProviderCount} aktiv</Text>
+                <Text style={styles.providerCountText}>{configuredProviderCount} active</Text>
               </View>
             </View>
 
@@ -240,10 +240,10 @@ export default function SettingsScreen() {
                 </View>
                 <View style={styles.activeProviderInfo}>
                   <View style={styles.providerNameRow}>
-                    <Text style={styles.activeProviderName}>{currentProvider?.name ?? 'Unbekannt'}</Text>
+                    <Text style={styles.activeProviderName}>{currentProvider?.name ?? 'Unknown'}</Text>
                   </View>
                   <Text style={styles.activeProviderModel}>
-                    {currentModel?.name ?? 'Kein Modell'}
+                    {currentModel?.name ?? 'No Model'}
                   </Text>
                   {providerInfo?.pricing && (
                     <View style={[
@@ -264,7 +264,7 @@ export default function SettingsScreen() {
               {!needsApiKey && (
                 <View style={styles.freeNotice}>
                   <CircleCheck size={14} color={IDE.accent} />
-                  <Text style={styles.freeNoticeText}>Sofort nutzbar — kein Schlüssel nötig</Text>
+                  <Text style={styles.freeNoticeText}>Ready to use — no key needed</Text>
                 </View>
               )}
 
@@ -280,7 +280,7 @@ export default function SettingsScreen() {
                           updateSettings({ [currentKeyField]: v } as any);
                         }
                       }}
-                      placeholder={KEY_PLACEHOLDER[settings.selectedProvider] || 'API-Schlüssel'}
+                      placeholder={KEY_PLACEHOLDER[settings.selectedProvider] || 'API Key'}
                       placeholderTextColor={IDE.muted}
                       secureTextEntry={!showKeys[settings.selectedProvider]}
                       autoCapitalize="none"
@@ -302,12 +302,12 @@ export default function SettingsScreen() {
                     {currentKeyValue ? (
                       <View style={styles.keyConfigured}>
                         <CircleCheck size={12} color={IDE.accent} />
-                        <Text style={styles.keyConfiguredText}>Konfiguriert</Text>
+                        <Text style={styles.keyConfiguredText}>Configured</Text>
                       </View>
                     ) : (
                       <View style={styles.keyMissing}>
                         <Circle size={12} color={IDE.muted} />
-                        <Text style={styles.keyMissingText}>Nicht konfiguriert</Text>
+                        <Text style={styles.keyMissingText}>Not configured</Text>
                       </View>
                     )}
                     {providerInfo?.endpoint && (
@@ -317,7 +317,7 @@ export default function SettingsScreen() {
                         activeOpacity={0.7}
                       >
                         <ExternalLink size={11} color={IDE.primary} />
-                        <Text style={styles.getKeyBtnText}>Schlüssel holen</Text>
+                        <Text style={styles.getKeyBtnText}>Get Key</Text>
                       </TouchableOpacity>
                     )}
                   </View>
@@ -346,7 +346,7 @@ export default function SettingsScreen() {
                 activeOpacity={0.7}
               >
                 <Text style={styles.changeProviderBtnText}>
-                  {showProviderPicker ? 'Anbieter ausblenden' : 'Anbieter wechseln'}
+                  {showProviderPicker ? 'Hide Providers' : 'Change Provider'}
                 </Text>
                 {showProviderPicker ? (
                   <ChevronUp size={14} color={IDE.primary} />
@@ -361,7 +361,7 @@ export default function SettingsScreen() {
                 activeOpacity={0.7}
               >
                 <Zap size={13} color={IDE.accent} />
-                <Text style={styles.modelSelectText} numberOfLines={1}>{isLoadingModels ? 'Lade...' : (currentModel?.name ?? 'Modell')}</Text>
+                <Text style={styles.modelSelectText} numberOfLines={1}>{isLoadingModels ? 'Loading...' : (currentModel?.name ?? 'Model')}</Text>
                 {showModelPicker ? (
                   <ChevronUp size={14} color={IDE.muted} />
                 ) : (
@@ -397,7 +397,7 @@ export default function SettingsScreen() {
                               </Text>
                               {p.free && (
                                 <View style={styles.freePill}>
-                                  <Text style={styles.freePillText}>GRATIS</Text>
+                                  <Text style={styles.freePillText}>FREE</Text>
                                 </View>
                               )}
                             </View>
@@ -431,7 +431,7 @@ export default function SettingsScreen() {
                             </TouchableOpacity>
                           )}
                           {pInfo.modelHint && (
-                            <Text style={styles.providerInfoHint}>Empfohlen: {pInfo.modelHint}</Text>
+                            <Text style={styles.providerInfoHint}>Recommended: {pInfo.modelHint}</Text>
                           )}
                         </View>
                       )}
@@ -464,9 +464,9 @@ export default function SettingsScreen() {
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>WEITERE API-SCHLÜSSEL</Text>
+            <Text style={styles.sectionTitle}>ADDITIONAL API KEYS</Text>
             <Text style={styles.sectionSubtitle}>
-              Für Auto-Fallback bei Rate-Limits.
+              For auto-fallback on rate limits.
             </Text>
 
             {AI_PROVIDERS.filter(p => p.id !== 'rork' && p.id !== 'custom' && p.id !== settings.selectedProvider).map(p => {
@@ -478,7 +478,7 @@ export default function SettingsScreen() {
                   <View style={styles.extraKeyHeader}>
                     <View style={styles.extraKeyLeft}>
                       <Text style={styles.extraKeyName}>{(p.name ?? '').replace(' ★ Kostenlos', '')}</Text>
-                      {p.free && <View style={styles.freePillSm}><Text style={styles.freePillSmText}>GRATIS</Text></View>}
+                      {p.free && <View style={styles.freePillSm}><Text style={styles.freePillSmText}>FREE</Text></View>}
                     </View>
                     {keyValue ? (
                       <View style={styles.keyConfiguredSm}>
@@ -514,7 +514,7 @@ export default function SettingsScreen() {
                       activeOpacity={0.7}
                     >
                       <ExternalLink size={10} color={IDE.primary} />
-                      <Text style={styles.getKeyLinkSmText}>{p.free ? 'Kostenlosen Schlüssel holen' : 'Schlüssel holen'}</Text>
+                      <Text style={styles.getKeyLinkSmText}>{p.free ? 'Get free key' : 'Get key'}</Text>
                     </TouchableOpacity>
                   )}
                 </View>
@@ -551,7 +551,7 @@ export default function SettingsScreen() {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>EDITOR</Text>
             <View style={styles.settingRow}>
-              <Text style={styles.settingLabel}>Schriftgröße</Text>
+              <Text style={styles.settingLabel}>Font Size</Text>
               <View style={styles.stepper}>
                 <TouchableOpacity
                   style={styles.stepperBtn}
@@ -569,7 +569,7 @@ export default function SettingsScreen() {
               </View>
             </View>
             <View style={styles.settingRow}>
-              <Text style={styles.settingLabel}>Zeilennummern</Text>
+              <Text style={styles.settingLabel}>Line Numbers</Text>
               <Switch
                 value={settings.showLineNumbers}
                 onValueChange={(v) => updateSettings({ showLineNumbers: v })}
@@ -578,7 +578,7 @@ export default function SettingsScreen() {
               />
             </View>
             <View style={styles.settingRow}>
-              <Text style={styles.settingLabel}>Zeilenumbruch</Text>
+              <Text style={styles.settingLabel}>Word Wrap</Text>
               <Switch
                 value={settings.wordWrap}
                 onValueChange={(v) => updateSettings({ wordWrap: v })}
@@ -589,11 +589,11 @@ export default function SettingsScreen() {
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>VERHALTEN</Text>
+            <Text style={styles.sectionTitle}>BEHAVIOR</Text>
             <View style={styles.settingRow}>
               <View style={styles.settingLabelRow}>
                 <Zap size={14} color={IDE.warning} />
-                <Text style={styles.settingLabel}>YOLO-Modus</Text>
+                <Text style={styles.settingLabel}>YOLO Mode</Text>
               </View>
               <Switch
                 value={settings.yoloMode}
@@ -602,7 +602,7 @@ export default function SettingsScreen() {
                 thumbColor={settings.yoloMode ? IDE.warning : IDE.muted}
               />
             </View>
-            <Text style={styles.settingHint}>KI erstellt/bearbeitet Dateien ohne nachzufragen.</Text>
+            <Text style={styles.settingHint}>AI creates/edits files without asking.</Text>
 
             <View style={styles.settingRow}>
               <View style={styles.settingLabelRow}>
@@ -616,7 +616,7 @@ export default function SettingsScreen() {
                 thumbColor={settings.autoRetry ? IDE.primary : IDE.muted}
               />
             </View>
-            <Text style={styles.settingHint}>Automatisch bei Rate-Limits (429) wiederholen.</Text>
+            <Text style={styles.settingHint}>Automatically retry on rate limits (429).</Text>
 
             <View style={styles.settingRow}>
               <View style={styles.settingLabelRow}>
@@ -630,23 +630,23 @@ export default function SettingsScreen() {
                 thumbColor={settings.autoFallback ? IDE.accent : IDE.muted}
               />
             </View>
-            <Text style={styles.settingHint}>Bei Rate-Limit zu anderem Anbieter wechseln.</Text>
+            <Text style={styles.settingHint}>Switch to another provider on rate limit.</Text>
           </View>
         </>
       ) : (
         <>
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>BETA-FUNKTIONEN</Text>
+            <Text style={styles.sectionTitle}>BETA FEATURES</Text>
             <View style={styles.betaWarning}>
               <Text style={styles.betaWarningText}>
-                Beta-Funktionen können instabil sein und sich jederzeit ändern.
+                Beta features can be unstable and may change at any time.
               </Text>
             </View>
 
             <View style={styles.settingRow}>
               <View style={styles.settingLabelRow}>
                 <FlaskConical size={14} color={IDE.warning} />
-                <Text style={styles.settingLabel}>HTML-Vorschau</Text>
+                <Text style={styles.settingLabel}>HTML Preview</Text>
               </View>
               <Switch
                 value={settings.betaHtmlPreview}
@@ -655,12 +655,12 @@ export default function SettingsScreen() {
                 thumbColor={settings.betaHtmlPreview ? IDE.warning : IDE.muted}
               />
             </View>
-            <Text style={styles.settingHint}>HTML-Vorschau für .html Dateien im Editor.</Text>
+            <Text style={styles.settingHint}>HTML preview for .html files in the editor.</Text>
 
             <View style={styles.settingRow}>
               <View style={styles.settingLabelRow}>
                 <Globe size={14} color={IDE.warning} />
-                <Text style={styles.settingLabel}>Web-Suche</Text>
+                <Text style={styles.settingLabel}>Web Search</Text>
               </View>
               <Switch
                 value={settings.betaWebSearch}
@@ -669,12 +669,12 @@ export default function SettingsScreen() {
                 thumbColor={settings.betaWebSearch ? IDE.warning : IDE.muted}
               />
             </View>
-            <Text style={styles.settingHint}>KI kann im Web suchen (DuckDuckGo).</Text>
+            <Text style={styles.settingHint}>AI can search the web (DuckDuckGo).</Text>
 
             <View style={styles.settingRow}>
               <View style={styles.settingLabelRow}>
                 <Globe size={14} color={IDE.warning} />
-                <Text style={styles.settingLabel}>Web-Fetch</Text>
+                <Text style={styles.settingLabel}>Web Fetch</Text>
               </View>
               <Switch
                 value={settings.betaWebFetch}
@@ -683,12 +683,12 @@ export default function SettingsScreen() {
                 thumbColor={settings.betaWebFetch ? IDE.warning : IDE.muted}
               />
             </View>
-            <Text style={styles.settingHint}>KI kann Webseiten-Inhalte laden und lesen.</Text>
+            <Text style={styles.settingHint}>AI can load and read website content.</Text>
 
             <View style={styles.settingRow}>
               <View style={styles.settingLabelRow}>
                 <Star size={14} color={IDE.warning} />
-                <Text style={styles.settingLabel}>KI-Lernen</Text>
+                <Text style={styles.settingLabel}>AI Learning</Text>
               </View>
               <Switch
                 value={settings.betaAgentLearning}
@@ -698,25 +698,25 @@ export default function SettingsScreen() {
               />
             </View>
             <Text style={styles.settingHint}>
-              KI lernt über 5 Identitätsdateien: SOUL.md, AGENTS.md, IDENTITY.md, USER.md, MEMORY.md
+              AI learns via 5 identity files: SOUL.md, AGENTS.md, IDENTITY.md, USER.md, MEMORY.md
             </Text>
 
             {settings.betaAgentLearning && (
               <View style={styles.identityFilesSection}>
                 <View style={styles.identityFilesHeader}>
                   <Brain size={14} color={IDE.primary} />
-                  <Text style={styles.identityFilesTitle}>Identitätsdateien</Text>
+                  <Text style={styles.identityFilesTitle}>Identity Files</Text>
                 </View>
                 <Text style={styles.identityFilesDesc}>
-                  Diese Dateien definieren die Persönlichkeit und das Wissen deines KI-Agenten. Sie sind nie löschbar, nur editierbar.
+                  These files define your AI agent's personality and knowledge. They cannot be deleted, only edited.
                 </Text>
 
                 {([
-                  { key: 'soul', label: 'SOUL.md', desc: 'Persönlichkeit & Werte', value: soulMd, setter: setSoulMd },
-                  { key: 'agents', label: 'AGENTS.md', desc: 'Verhaltensregeln & Protokoll', value: agentMd, setter: setAgentMd },
-                  { key: 'identity', label: 'IDENTITY.md', desc: 'Name, Rolle & Präsentation', value: identityMd, setter: setIdentityMd },
-                  { key: 'user', label: 'USER.md', desc: 'Nutzer-Profil & Präferenzen', value: userMd, setter: setUserMd },
-                  { key: 'memory', label: 'MEMORY.md', desc: 'Langzeit-Gedächtnis', value: memoryMd, setter: setMemoryMd },
+                  { key: 'soul', label: 'SOUL.md', desc: 'Personality & Values', value: soulMd, setter: setSoulMd },
+                  { key: 'agents', label: 'AGENTS.md', desc: 'Rules & Protocol', value: agentMd, setter: setAgentMd },
+                  { key: 'identity', label: 'IDENTITY.md', desc: 'Name, Role & Presentation', value: identityMd, setter: setIdentityMd },
+                  { key: 'user', label: 'USER.md', desc: 'User Profile & Preferences', value: userMd, setter: setUserMd },
+                  { key: 'memory', label: 'MEMORY.md', desc: 'Long-term Memory', value: memoryMd, setter: setMemoryMd },
                 ] as const).map(file => (
                   <View key={file.key} style={styles.identityFileCard}>
                     <TouchableOpacity
@@ -741,7 +741,7 @@ export default function SettingsScreen() {
                       <View style={styles.identityFileRight}>
                         <View style={[styles.identityFileBadge, file.value ? styles.identityFileBadgeActive : styles.identityFileBadgeEmpty]}>
                           <Text style={[styles.identityFileBadgeText, file.value ? styles.identityFileBadgeTextActive : styles.identityFileBadgeTextEmpty]}>
-                            {file.value ? (file.value.split('\n').length + ' Zeilen') : 'Leer'}
+                            {file.value ? (file.value.split('\n').length + ' lines') : 'Empty'}
                           </Text>
                         </View>
                         {editingIdentityFile === file.key ? (
@@ -758,7 +758,7 @@ export default function SettingsScreen() {
                           style={styles.identityFileInput}
                           value={identityEditContent}
                           onChangeText={setIdentityEditContent}
-                          placeholder={'Inhalt für ' + file.label + ' eingeben...'}
+                          placeholder={'Enter content for ' + file.label + '...'}
                           placeholderTextColor={IDE.muted}
                           multiline
                           textAlignVertical="top"
@@ -771,7 +771,7 @@ export default function SettingsScreen() {
                             onPress={() => setEditingIdentityFile(null)}
                             activeOpacity={0.7}
                           >
-                            <Text style={styles.identityFileCancelText}>Abbrechen</Text>
+                            <Text style={styles.identityFileCancelText}>Cancel</Text>
                           </TouchableOpacity>
                           <TouchableOpacity
                             style={styles.identityFileSaveBtn}
@@ -782,7 +782,7 @@ export default function SettingsScreen() {
                             activeOpacity={0.7}
                           >
                             <Check size={13} color="#fff" />
-                            <Text style={styles.identityFileSaveText}>Speichern</Text>
+                            <Text style={styles.identityFileSaveText}>Save</Text>
                           </TouchableOpacity>
                         </View>
                       </View>
@@ -795,7 +795,7 @@ export default function SettingsScreen() {
             <View style={styles.settingRow}>
               <View style={styles.settingLabelRow}>
                 <Sparkles size={14} color={IDE.warning} />
-                <Text style={styles.settingLabel}>Super-Agent-Modus</Text>
+                <Text style={styles.settingLabel}>Super Agent Mode</Text>
               </View>
               <Switch
                 value={settings.betaSuperAgent}
@@ -805,13 +805,13 @@ export default function SettingsScreen() {
               />
             </View>
             <Text style={styles.settingHint}>
-              Hauptagent kann autonom Tasks erstellen und Unteragenten steuern.
+              Main agent can autonomously create tasks and control sub-agents.
             </Text>
 
             <View style={styles.settingRow}>
               <View style={styles.settingLabelRow}>
                 <Brain size={14} color={IDE.primary} />
-                <Text style={styles.settingLabel}>Agenten-Modus</Text>
+                <Text style={styles.settingLabel}>Agent Mode</Text>
               </View>
               <Switch
                 value={settings.agentMode}
@@ -821,19 +821,19 @@ export default function SettingsScreen() {
               />
             </View>
             <Text style={styles.settingHint}>
-              Zeige Todo-Grafik vor Ausführung. Zusammen mit Super-Agent: Interaktive Fragen-Phase.
+              Show todo graphics before execution. With Super Agent: interactive question phase.
             </Text>
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>TOOL-VERWALTUNG</Text>
+            <Text style={styles.sectionTitle}>TOOL MANAGEMENT</Text>
             <Text style={styles.sectionSubtitle}>
-              Verwalte Tool-Berechtigungen im Werkzeuge-Tab.
+              Manage tool permissions in the Tools tab.
             </Text>
             <View style={styles.toolNote}>
               <Info size={12} color={IDE.accent} />
               <Text style={styles.toolNoteText}>
-                Alle Anbieter unterstützen Tool-Aufrufe. Studio KI (Gratis) nutzt Tools automatisch.
+                All providers support tool calls. Studio AI (Free) uses tools automatically.
               </Text>
             </View>
           </View>
@@ -842,7 +842,7 @@ export default function SettingsScreen() {
 
       <View style={styles.footer}>
         <Text style={styles.footerText}>Studio IDE v1.4</Text>
-        <Text style={styles.footerSubtext}>Mobile Code-Editor mit KI-Assistent</Text>
+        <Text style={styles.footerSubtext}>Mobile Code Editor with AI Assistant</Text>
       </View>
     </ScrollView>
   );

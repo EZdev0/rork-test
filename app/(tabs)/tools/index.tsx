@@ -22,10 +22,10 @@ import {
 } from '@/types';
 
 const PERMISSION_OPTIONS: { value: ToolPermission; label: string; desc: string; color: string }[] = [
-  { value: 'always', label: 'Immer erlauben', desc: 'Automatisch ohne Nachfragen ausführen', color: IDE.accent },
-  { value: 'ask', label: 'Erst fragen', desc: 'Vor Ausführung um Erlaubnis bitten', color: IDE.warning },
-  { value: 'blocked', label: 'Blockiert', desc: 'Blockiert, KI wird informiert', color: IDE.danger },
-  { value: 'removed', label: 'Entfernt', desc: 'Komplett vor der KI versteckt', color: IDE.muted },
+  { value: 'always', label: 'Always allow', desc: 'Run automatically without asking', color: IDE.accent },
+  { value: 'ask', label: 'Ask first', desc: 'Ask for permission before execution', color: IDE.warning },
+  { value: 'blocked', label: 'Blocked', desc: 'Blocked, AI will be informed', color: IDE.danger },
+  { value: 'removed', label: 'Removed', desc: 'Completely hidden from AI', color: IDE.muted },
 ];
 
 function getPermissionIcon(perm: ToolPermission) {
@@ -95,18 +95,18 @@ export default function ToolsScreen() {
       setCompressSummary(summary);
       setShowCompress(true);
     } else {
-      Alert.alert('Hinweis', 'Zu wenige Nachrichten zum Komprimieren (min. 4).');
+      Alert.alert('Notice', 'Not enough messages to compress (min. 4).');
     }
   }, [compressChat]);
 
   const handleApplyCompress = useCallback(() => {
     const success = applyChatCompression(compressSummary);
     if (success === false) {
-      Alert.alert('Hinweis', 'Komprimierung abgebrochen: Die Zusammenfassung ist nicht kleiner als der aktuelle Chat.');
+      Alert.alert('Notice', 'Compression aborted: The summary is not smaller than the current chat.');
     } else {
       setShowCompress(false);
       setCompressSummary('');
-      Alert.alert('Erfolg', 'Chat wurde komprimiert.');
+      Alert.alert('Success', 'Chat has been compressed.');
     }
   }, [compressSummary, applyChatCompression]);
 
@@ -153,9 +153,9 @@ export default function ToolsScreen() {
 
   const tabs = [
     { id: 'tools' as const, label: 'Tools', icon: Wrench, badge: activeToolCount },
-    { id: 'plans' as const, label: 'Pläne', icon: Brain, badge: activePlans.length || undefined },
+    { id: 'plans' as const, label: 'Plans', icon: Brain, badge: activePlans.length || undefined },
     { id: 'memos' as const, label: 'Memos', icon: BookOpen, badge: undefined },
-    { id: 'search' as const, label: 'Suche', icon: Search, badge: undefined },
+    { id: 'search' as const, label: 'Search', icon: Search, badge: undefined },
     { id: 'chat' as const, label: 'Chat', icon: Zap, badge: undefined },
   ];
 
@@ -204,9 +204,9 @@ export default function ToolsScreen() {
         {activeTab === 'tools' && (
           <>
             <View style={styles.toolsHeader}>
-              <Text style={styles.toolsTitle}>Aktive Agenten</Text>
+              <Text style={styles.toolsTitle}>Active Agents</Text>
             </View>
-            <Text style={styles.toolsSubtitle}>Verfügbare spezialisierte KI-Unteragenten im System.</Text>
+            <Text style={styles.toolsSubtitle}>Available specialized AI sub-agents in the system.</Text>
             <View style={styles.categorySection}>
               {['analyst', 'developer', 'tester', 'researcher', 'critic'].map(agentName => (
                 <View key={agentName} style={styles.toolCard}>
@@ -215,7 +215,7 @@ export default function ToolsScreen() {
                   </View>
                   <View style={styles.toolCardContent}>
                     <Text style={styles.toolCardName}>{agentName.toUpperCase()} Agent</Text>
-                    <Text style={styles.toolCardDesc} numberOfLines={1}>Führt spezifische Aufgaben mit eigenen Tools aus.</Text>
+                    <Text style={styles.toolCardDesc} numberOfLines={1}>Executes specific tasks with its own tools.</Text>
                   </View>
                 </View>
               ))}
@@ -224,12 +224,12 @@ export default function ToolsScreen() {
             <View style={[styles.toolsHeader, { marginTop: 20 }]}>
               <Text style={styles.toolsTitle}>Tool Registry</Text>
               <View style={styles.toolsCountBadge}>
-                <Text style={styles.toolsCountText}>{activeToolCount} aktiv</Text>
+                <Text style={styles.toolsCountText}>{activeToolCount} active</Text>
               </View>
             </View>
             <Text style={styles.toolsSubtitle}>
-              Tippe auf ein Tool für Details und Berechtigungen.
-              {settings.yoloMode && ' YOLO-Modus überschreibt alle Berechtigungen.'}
+              Tap on a tool for details and permissions.
+              {settings.yoloMode && ' YOLO mode overrides all permissions.'}
             </Text>
 
             {TOOL_CATEGORIES.map(cat => {
@@ -306,7 +306,7 @@ export default function ToolsScreen() {
               <View style={styles.planSection}>
                 <View style={styles.planSectionHeader}>
                   <Play size={12} color={IDE.primary} />
-                  <Text style={styles.planSectionTitle}>Aktive Pläne</Text>
+                  <Text style={styles.planSectionTitle}>Active Plans</Text>
                 </View>
                 {activePlans.map(plan => (
                   <PlanCard key={plan.id} plan={plan} />
@@ -318,7 +318,7 @@ export default function ToolsScreen() {
               <View style={styles.planSection}>
                 <View style={styles.planSectionHeader}>
                   <CircleCheck size={12} color={IDE.accent} />
-                  <Text style={styles.planSectionTitle}>Abgeschlossene Pläne ({completedPlans.length})</Text>
+                  <Text style={styles.planSectionTitle}>Completed Plans ({completedPlans.length})</Text>
                 </View>
                 {completedPlans.map(plan => (
                   <PlanCard key={plan.id} plan={plan} />
@@ -329,8 +329,8 @@ export default function ToolsScreen() {
             {(plans ?? []).length === 0 && (
               <View style={styles.emptyBox}>
                 <Brain size={32} color={IDE.muted} />
-                <Text style={styles.emptyText}>Keine Agent-Pläne</Text>
-                <Text style={styles.emptyHint}>Nutze den Agent-Modus im Chat um Pläne zu erstellen.</Text>
+                <Text style={styles.emptyText}>No Agent Plans</Text>
+                <Text style={styles.emptyHint}>Use Agent Mode in chat to create plans.</Text>
               </View>
             )}
           </>
@@ -341,7 +341,7 @@ export default function ToolsScreen() {
             <View style={styles.inputRow}>
               <TextInput
                 style={[styles.textInput, { minHeight: 60 }]}
-                placeholder="Neue Notiz..."
+                placeholder="New note..."
                 placeholderTextColor={IDE.muted}
                 value={newMemoText}
                 onChangeText={setNewMemoText}
@@ -356,8 +356,8 @@ export default function ToolsScreen() {
             {memos.length === 0 ? (
               <View style={styles.emptyBox}>
                 <BookOpen size={32} color={IDE.muted} />
-                <Text style={styles.emptyText}>Keine Memos.</Text>
-                <Text style={styles.emptyHint}>Die KI speichert hier wichtige Erkenntnisse.</Text>
+                <Text style={styles.emptyText}>No memos.</Text>
+                <Text style={styles.emptyHint}>The AI saves important findings here.</Text>
               </View>
             ) : (
               memos.map(memo => (
@@ -365,7 +365,7 @@ export default function ToolsScreen() {
                   <Text style={styles.memoText}>{memo.content}</Text>
                   <View style={styles.memoFooter}>
                     <Text style={styles.memoDate}>
-                      {new Date(memo.createdAt).toLocaleString('de-DE')}
+                      {new Date(memo.createdAt).toLocaleString('en-US')}
                     </Text>
                     <TouchableOpacity
                       onPress={() => deleteMemo(memo.id)}
@@ -385,7 +385,7 @@ export default function ToolsScreen() {
             <View style={styles.inputRow}>
               <TextInput
                 style={styles.textInput}
-                placeholder="Text in Dateien suchen (grep)..."
+                placeholder="Search text in files (grep)..."
                 placeholderTextColor={IDE.muted}
                 value={searchQuery}
                 onChangeText={setSearchQuery}
@@ -398,7 +398,7 @@ export default function ToolsScreen() {
             </View>
 
             {!currentProject && (
-              <Text style={styles.emptyText}>Bitte zuerst ein Projekt öffnen.</Text>
+              <Text style={styles.emptyText}>Please open a project first.</Text>
             )}
 
             {searchResults ? (
@@ -413,7 +413,7 @@ export default function ToolsScreen() {
               <View style={styles.treeSection}>
                 <View style={styles.sectionHeader}>
                   <FolderTree size={14} color={IDE.muted} />
-                  <Text style={styles.sectionTitle}>Projektstruktur</Text>
+                  <Text style={styles.sectionTitle}>Project Structure</Text>
                 </View>
                 <View style={styles.treeBox}>
                   <ScrollView horizontal={false} nestedScrollEnabled>
@@ -428,9 +428,9 @@ export default function ToolsScreen() {
         {activeTab === 'chat' && (
           <>
             <View style={styles.chatSection}>
-              <Text style={styles.sectionTitle}>Chat-Verlauf</Text>
+              <Text style={styles.sectionTitle}>Chat History</Text>
               <Text style={styles.chatInfo}>
-                {messages.length} Nachrichten im aktuellen Chat
+                {messages.length} messages in current chat
               </Text>
 
               <TouchableOpacity
@@ -441,7 +441,7 @@ export default function ToolsScreen() {
               >
                 <Zap size={16} color={messages.length >= 4 ? IDE.warning : IDE.muted} />
                 <Text style={[styles.actionBtnText, messages.length < 4 && styles.actionBtnTextDisabled]}>
-                  Chat komprimieren
+                  Compress chat
                 </Text>
               </TouchableOpacity>
 
@@ -451,29 +451,29 @@ export default function ToolsScreen() {
                 activeOpacity={0.7}
               >
                 <Zap size={16} color={IDE.primary} />
-                <Text style={styles.actionBtnText}>Neuer Chat</Text>
+                <Text style={styles.actionBtnText}>New Chat</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
                 style={[styles.actionBtn, styles.dangerBtn]}
                 onPress={() => {
-                  Alert.alert('Chat leeren', 'Möchtest du den gesamten Chat-Verlauf löschen?', [
-                    { text: 'Abbrechen', style: 'cancel' },
-                    { text: 'Löschen', style: 'destructive', onPress: clearChat },
+                  Alert.alert('Clear Chat', 'Do you want to delete the entire chat history?', [
+                    { text: 'Cancel', style: 'cancel' },
+                    { text: 'Delete', style: 'destructive', onPress: clearChat },
                   ]);
                 }}
                 activeOpacity={0.7}
               >
                 <Trash2 size={16} color={IDE.danger} />
-                <Text style={[styles.actionBtnText, { color: IDE.danger }]}>Chat leeren</Text>
+                <Text style={[styles.actionBtnText, { color: IDE.danger }]}>Clear Chat</Text>
               </TouchableOpacity>
             </View>
 
             {showCompress && (
               <View style={styles.compressBox}>
-                <Text style={styles.compressTitle}>Zusammenfassung bearbeiten</Text>
+                <Text style={styles.compressTitle}>Edit Summary</Text>
                 <Text style={styles.compressHint}>
-                  Bearbeite die Zusammenfassung und bestätige. Alle alten Nachrichten werden durch diese ersetzt.
+                  Edit the summary and confirm. All old messages will be replaced by this.
                 </Text>
                 <TextInput
                   style={styles.compressInput}
@@ -487,10 +487,10 @@ export default function ToolsScreen() {
                     style={styles.compressCancelBtn}
                     onPress={() => setShowCompress(false)}
                   >
-                    <Text style={styles.compressCancelText}>Abbrechen</Text>
+                    <Text style={styles.compressCancelText}>Cancel</Text>
                   </TouchableOpacity>
                   <TouchableOpacity style={styles.compressApplyBtn} onPress={handleApplyCompress}>
-                    <Text style={styles.compressApplyText}>Anwenden</Text>
+                    <Text style={styles.compressApplyText}>Apply</Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -527,11 +527,11 @@ function PlanCard({ plan }: { plan: AgentPlan }) {
     : plan.status === 'executing' ? IDE.primary
     : IDE.warning;
 
-  const statusLabel = plan.status === 'completed' ? 'Abgeschlossen'
-    : plan.status === 'error' ? 'Fehler'
-    : plan.status === 'executing' ? 'Wird ausgeführt'
-    : plan.status === 'review' ? 'Überprüfung'
-    : 'Planung';
+  const statusLabel = plan.status === 'completed' ? 'Completed'
+    : plan.status === 'error' ? 'Error'
+    : plan.status === 'executing' ? 'Executing'
+    : plan.status === 'review' ? 'Review'
+    : 'Planning';
 
   return (
     <View style={planStyles.card}>
@@ -542,13 +542,13 @@ function PlanCard({ plan }: { plan: AgentPlan }) {
       >
         <View style={[planStyles.statusDot, { backgroundColor: statusColor }]} />
         <View style={planStyles.headerContent}>
-          <Text style={planStyles.title} numberOfLines={1}>{plan.userRequest || 'Agent-Plan'}</Text>
+          <Text style={planStyles.title} numberOfLines={1}>{plan.userRequest || 'Agent Plan'}</Text>
           <View style={planStyles.metaRow}>
             <View style={[planStyles.statusBadge, { backgroundColor: statusColor + '20' }]}>
               <Text style={[planStyles.statusText, { color: statusColor }]}>{statusLabel}</Text>
             </View>
             <Text style={planStyles.taskCount}>{completed}/{total} Tasks</Text>
-            {errors > 0 && <Text style={planStyles.errorCount}>{errors} Fehler</Text>}
+            {errors > 0 && <Text style={planStyles.errorCount}>{errors} Errors</Text>}
           </View>
         </View>
         {expanded ? <ChevronDown size={14} color={IDE.muted} /> : <ChevronRight size={14} color={IDE.muted} />}
@@ -570,14 +570,14 @@ function PlanCard({ plan }: { plan: AgentPlan }) {
 
           {plan.summary && (
             <View style={planStyles.summaryBox}>
-              <Text style={planStyles.summaryLabel}>Zusammenfassung</Text>
+              <Text style={planStyles.summaryLabel}>Summary</Text>
               <Text style={planStyles.summaryText}>{plan.summary}</Text>
             </View>
           )}
 
           <Text style={planStyles.dateText}>
-            Erstellt: {new Date(plan.createdAt).toLocaleString('de-DE')}
-            {plan.completedAt ? ' · Fertig: ' + new Date(plan.completedAt).toLocaleString('de-DE') : ''}
+            Created: {new Date(plan.createdAt).toLocaleString('en-US')}
+            {plan.completedAt ? ' · Finished: ' + new Date(plan.completedAt).toLocaleString('en-US') : ''}
           </Text>
         </View>
       )}
@@ -617,9 +617,9 @@ function PlanTaskRow({ task, index }: { task: AgentTask; index: number }) {
           <View style={planStyles.taskMeta}>
             <StatusIcon size={10} color={statusColor} />
             <Text style={[planStyles.taskStatus, { color: statusColor }]}>
-              {task.status === 'completed' ? 'Fertig' : task.status === 'error' ? 'Fehler' : task.status === 'running' ? 'Läuft' : task.status === 'pending' ? 'Wartend' : 'Entwurf'}
+              {task.status === 'completed' ? 'Done' : task.status === 'error' ? 'Error' : task.status === 'running' ? 'Running' : task.status === 'pending' ? 'Pending' : 'Draft'}
             </Text>
-            {fileCount > 0 && <Text style={planStyles.taskFileMeta}>{fileCount} Dateien</Text>}
+            {fileCount > 0 && <Text style={planStyles.taskFileMeta}>{fileCount} files</Text>}
           </View>
         </View>
         {expanded ? <ChevronDown size={12} color={IDE.muted} /> : <ChevronRight size={12} color={IDE.muted} />}
@@ -636,13 +636,13 @@ function PlanTaskRow({ task, index }: { task: AgentTask; index: number }) {
           )}
           {task.filesCreated?.length > 0 && (
             <View style={planStyles.fileList}>
-              <Text style={[planStyles.fileLabel, { color: IDE.accent }]}>Erstellt:</Text>
+              <Text style={[planStyles.fileLabel, { color: IDE.accent }]}>Created:</Text>
               {task.filesCreated.map(f => <Text key={f} style={planStyles.filePath}>{f}</Text>)}
             </View>
           )}
           {task.filesModified?.length > 0 && (
             <View style={planStyles.fileList}>
-              <Text style={[planStyles.fileLabel, { color: IDE.primary }]}>Geändert:</Text>
+              <Text style={[planStyles.fileLabel, { color: IDE.primary }]}>Modified:</Text>
               {task.filesModified.map(f => <Text key={f} style={planStyles.filePath}>{f}</Text>)}
             </View>
           )}
@@ -675,7 +675,7 @@ function ToolDetailModal({ tool, permission, onChangePermission, onClose, yoloMo
           <View style={tdStyles.header}>
             <Text style={tdStyles.toolName}>{tool.displayName}</Text>
             <TouchableOpacity onPress={onClose} activeOpacity={0.7}>
-              <Text style={tdStyles.doneBtn}>Fertig</Text>
+              <Text style={tdStyles.doneBtn}>Done</Text>
             </TouchableOpacity>
           </View>
 
@@ -685,14 +685,14 @@ function ToolDetailModal({ tool, permission, onChangePermission, onClose, yoloMo
               <Text style={tdStyles.infoValue}>{tool.name}</Text>
             </View>
             <View style={tdStyles.infoRow}>
-              <Text style={tdStyles.infoLabel}>Kategorie</Text>
+              <Text style={tdStyles.infoLabel}>Category</Text>
               <Text style={tdStyles.infoValue}>
                 {TOOL_CATEGORIES.find(c => c.id === tool.category)?.label ?? tool.category}
               </Text>
             </View>
 
             <View style={tdStyles.descSection}>
-              <Text style={tdStyles.descLabel}>Beschreibung</Text>
+              <Text style={tdStyles.descLabel}>Description</Text>
               <View style={tdStyles.descBox}>
                 <Text style={tdStyles.descText}>{tool.description}</Text>
               </View>
@@ -700,7 +700,7 @@ function ToolDetailModal({ tool, permission, onChangePermission, onClose, yoloMo
 
             {tool.parameters.length > 0 && (
               <View style={tdStyles.paramSection}>
-                <Text style={tdStyles.descLabel}>Parameter</Text>
+                <Text style={tdStyles.descLabel}>Parameters</Text>
                 {tool.parameters.map((p, i) => (
                   <View key={i} style={tdStyles.paramRow}>
                     <View style={tdStyles.paramIcon}>
@@ -717,18 +717,18 @@ function ToolDetailModal({ tool, permission, onChangePermission, onClose, yoloMo
 
             <View style={tdStyles.permSection}>
               <View style={tdStyles.permHeaderRow}>
-                <Text style={tdStyles.descLabel}>Berechtigung</Text>
+                <Text style={tdStyles.descLabel}>Permission</Text>
                 {yoloMode && (
                   <View style={tdStyles.yoloBadge}>
                     <Zap size={10} color={IDE.warning} />
-                    <Text style={tdStyles.yoloBadgeText}>YOLO überschreibt</Text>
+                    <Text style={tdStyles.yoloBadgeText}>YOLO overrides</Text>
                   </View>
                 )}
               </View>
               {yoloMode && (
                 <View style={tdStyles.yoloNotice}>
                   <Text style={tdStyles.yoloNoticeText}>
-                    YOLO-Modus ist aktiv. Alle Tools werden automatisch ohne Nachfragen ausgeführt. Deaktiviere YOLO in den Einstellungen um individuelle Berechtigungen zu nutzen.
+                    YOLO mode is active. All tools are executed automatically without asking. Disable YOLO in settings to use individual permissions.
                   </Text>
                 </View>
               )}

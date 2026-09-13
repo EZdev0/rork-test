@@ -25,7 +25,7 @@ export default function EditorScreen() {
   const inputRef = useRef<TextInput>(null);
 
   const fileName = useMemo(() => {
-    if (!path) return 'Unbekannt';
+    if (!path) return 'Unknown';
     return path.split('/').pop() || path;
   }, [path]);
 
@@ -63,12 +63,12 @@ export default function EditorScreen() {
   const handleToggleEdit = useCallback(() => {
     if (isEditing && hasChanges) {
       Alert.alert(
-        'Ungespeicherte Änderungen',
-        'Möchtest du die Änderungen speichern?',
+        'Unsaved Changes',
+        'Do you want to save the changes?',
         [
-          { text: 'Verwerfen', style: 'destructive', onPress: () => { setContent(originalContent); setIsEditing(false); } },
-          { text: 'Speichern', onPress: handleSave },
-          { text: 'Abbrechen', style: 'cancel' },
+          { text: 'Discard', style: 'destructive', onPress: () => { setContent(originalContent); setIsEditing(false); } },
+          { text: 'Save', onPress: handleSave },
+          { text: 'Cancel', style: 'cancel' },
         ]
       );
     } else {
@@ -197,10 +197,10 @@ export default function EditorScreen() {
 
         <View style={styles.statusBar}>
           <Text style={styles.statusText}>
-            Ln {lineCount}, {content.length} Zeichen
+            Ln {lineCount}, {content.length} chars
           </Text>
           <Text style={styles.statusText}>{language}</Text>
-          {hasChanges && <Text style={[styles.statusText, { color: IDE.warning }]}>● Geändert</Text>}
+          {hasChanges && <Text style={[styles.statusText, { color: IDE.warning }]}>● Modified</Text>}
           <Text style={styles.statusText}>UTF-8</Text>
         </View>
       </KeyboardAvoidingView>
@@ -298,5 +298,5 @@ const styles = StyleSheet.create({
     borderTopColor: IDE.border,
     gap: 12,
   },
-  statusText: { fontSize: 11, color: IDE.muted },
+  statusText: { fontSize: 10, color: IDE.muted, fontFamily: 'monospace' },
 });
