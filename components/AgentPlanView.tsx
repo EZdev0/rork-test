@@ -45,25 +45,25 @@ interface ClarificationQuestion {
 }
 
 const TOOL_LABELS: Record<string, string> = {
-  read_file: 'Datei lesen',
-  read_lines: 'Zeilen lesen',
-  write_file: 'Datei schreiben',
-  create_file: 'Datei erstellen',
-  edit_file: 'Datei bearbeiten',
-  delete_file: 'Datei löschen',
-  rename_file: 'Datei umbenennen',
-  list_directory: 'Verzeichnis auflisten',
-  search_files: 'Dateien durchsuchen',
-  find_replace: 'Suchen & Ersetzen',
-  create_directory: 'Ordner erstellen',
-  get_project_tree: 'Projektstruktur',
-  get_file_info: 'Datei-Info',
-  create_todo: 'Todo erstellen',
-  update_todo: 'Todo aktualisieren',
-  add_memo: 'Memo speichern',
-  web_search: 'Web-Suche',
-  web_fetch: 'Webseite laden',
-  verify_file: 'Datei überprüfen',
+  read_file: 'Read File',
+  read_lines: 'Read Lines',
+  write_file: 'Write File',
+  create_file: 'Create File',
+  edit_file: 'Edit File',
+  delete_file: 'Delete File',
+  rename_file: 'Rename File',
+  list_directory: 'List Directory',
+  search_files: 'Search Files',
+  find_replace: 'Find & Replace',
+  create_directory: 'Create Folder',
+  get_project_tree: 'Project Tree',
+  get_file_info: 'File Info',
+  create_todo: 'Create Todo',
+  update_todo: 'Update Todo',
+  add_memo: 'Add Memo',
+  web_search: 'Web Search',
+  web_fetch: 'Web Fetch',
+  verify_file: 'Verify File',
 };
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -144,8 +144,8 @@ const AgentPlanView = React.memo(({ plan, isExecuting, onExecute, onStop, onDism
   }, []);
 
   const handleAutoAddBrainstorm = useCallback(() => {
-    const autoTitle = 'Zwischenanalyse';
-    const autoDesc = 'Automatische Überprüfung des bisherigen Fortschritts und Validierung des Ansatzes.';
+    const autoTitle = 'Intermediate Analysis';
+    const autoDesc = 'Automatic review of the progress so far and validation of the approach.';
     onAddTask(autoTitle, autoDesc, 'brainstorm');
   }, [onAddTask]);
 
@@ -257,7 +257,7 @@ const AgentPlanView = React.memo(({ plan, isExecuting, onExecute, onStop, onDism
             </View>
             <View style={styles.planHeaderInfo}>
               <Text style={styles.planTitle} numberOfLines={1}>
-                {isRunning ? 'Agent arbeitet...' : isDone && stats.error === 0 ? 'Auftrag abgeschlossen' : isDone && stats.error > 0 ? ('Auftrag: ' + stats.error + ' Fehler, ' + stats.completed + ' erfolgreich') : 'Auftragsplan prüfen'}
+                {isRunning ? 'Agent working...' : isDone && stats.error === 0 ? 'Task completed' : isDone && stats.error > 0 ? ('Task: ' + stats.error + ' errors, ' + stats.completed + ' successful') : 'Review task plan'}
               </Text>
               <Text style={styles.planSubtitle} numberOfLines={1}>{plan?.userRequest ?? ''}</Text>
             </View>

@@ -51,102 +51,102 @@ export const [ChatProvider, useChat] = createContextHook(() => {
 
   const rorkTools = useMemo(() => ({
     read_file: createRorkTool({
-      description: 'Liest den Inhalt einer Datei. MUSS vor jeder Bearbeitung aufgerufen werden.',
-      zodSchema: z.object({ path: z.string().describe('Dateipfad relativ zum Projektstamm') }),
+      description: 'Reads the content of a file. MUST be called before any editing.',
+      zodSchema: z.object({ path: z.string().describe('File path relative to project root') }),
       execute: (input: { path: string }) => {
         console.log('[Rork] read_file:', input.path);
         const content = opsRef.current.getFileContent(input.path);
-        if (content === null) return 'FEHLER: Datei "' + input.path + '" nicht gefunden.';
+        if (content === null) return 'ERROR: File "' + input.path + '" not found.';
         return content;
       },
     }),
     write_file: createRorkTool({
-      description: 'Schreibt Inhalt in eine Datei (überschreibt). Datei muss vorher gelesen werden.',
-      zodSchema: z.object({ path: z.string(), content: z.string().describe('Neuer Dateiinhalt') }),
+      description: 'Writes content to a file (overwrites). File must be read first.',
+      zodSchema: z.object({ path: z.string(), content: z.string().describe('New file content') }),
       execute: (input: { path: string; content: string }) => {
         console.log('[Rork] write_file:', input.path);
         opsRef.current.updateFileContent(input.path, input.content);
-        return 'Datei "' + input.path + '" geschrieben (' + input.content.split('\n').length + ' Zeilen).';
+        return 'File "' + input.path + '" written (' + input.content.split('\n').length + ' lines).';
       },
     }),
     create_file: createRorkTool({
-      description: 'Erstellt eine neue Datei. Ordner werden automatisch erstellt.',
-      zodSchema: z.object({ path: z.string(), content: z.string().describe('Dateiinhalt') }),
+      description: 'Creates a new file. Directories are created automatically.',
+      zodSchema: z.object({ path: z.string(), content: z.string().describe('File content') }),
       execute: (input: { path: string; content: string }) => {
         console.log('[Rork] create_file:', input.path);
         opsRef.current.createFile(input.path, input.content);
-        return 'Datei "' + input.path + '" erstellt.';
+        return 'File "' + input.path + '" created.';
       },
     }),
     edit_file: createRorkTool({
-      description: 'Bearbeitet eine Datei durch Ersetzen von Text. Datei MUSS vorher mit read_file gelesen werden. old_text muss exakt übereinstimmen.',
-      zodSchema: z.object({ path: z.string(), old_text: z.string().describe('Exakter Text der ersetzt werden soll'), new_text: z.string().describe('Neuer Text') }),
+      description: 'Edits a file by replacing text. File MUST be read with read_file first. old_text must match exactly.',
+      zodSchema: z.object({ path: z.string(), old_text: z.string().describe('Exact text to be replaced'), new_text: z.string().describe('New text') }),
       execute: (input: { path: string; old_text: string; new_text: string }) => {
         console.log('[Rork] edit_file:', input.path);
         const content = opsRef.current.getFileContent(input.path);
-        if (content === null) return 'FEHLER: Datei nicht gefunden. Bitte erst mit read_file lesen.';
-        if (!content.includes(input.old_text)) return 'FEHLER: Text nicht gefunden in "' + input.path + '". Bitte Datei erneut mit read_file lesen.';
+        if (content === null) return 'ERROR: File not found. Please read with read_file first.';
+        if (!content.includes(input.old_text)) return 'ERROR: Text not found in "' + input.path + '". Please read the file again.';
         opsRef.current.updateFileContent(input.path, content.replace(input.old_text, input.new_text));
-        return 'Datei "' + input.path + '" bearbeitet.';
+        return 'File "' + input.path + '" edited.';
       },
     }),
     delete_file: createRorkTool({
-      description: 'Löscht eine Datei oder einen leeren Ordner.',
+      description: 'Deletes a file or an empty directory.',
       zodSchema: z.object({ path: z.string() }),
       execute: (input: { path: string }) => {
         console.log('[Rork] delete_file:', input.path);
         opsRef.current.deleteFile(input.path);
-        return 'Datei "' + input.path + '" gelöscht.';
+        return 'File "' + input.path + '" deleted.';
       },
     }),
     rename_file: createRorkTool({
-      description: 'Benennt eine Datei oder Ordner um.',
+      description: 'Renames a file or directory.',
       zodSchema: z.object({ old_path: z.string(), new_path: z.string() }),
       execute: (input: { old_path: string; new_path: string }) => {
         console.log('[Rork] rename_file:', input.old_path, '->', input.new_path);
         opsRef.current.renameFile(input.old_path, input.new_path);
-        return 'Umbenannt: "' + input.old_path + '" → "' + input.new_path + '".';
+        return 'Renamed: "' + input.old_path + '" -> "' + input.new_path + '".';
       },
     }),
     list_directory: createRorkTool({
-      description: 'Listet alle Dateien und Ordner in einem Verzeichnis auf.',
-      zodSchema: z.object({ path: z.string().describe('Pfad (leer für Wurzelverzeichnis)') }),
+      description: 'Lists all files and directories in a directory.',
+      zodSchema: z.object({ path: z.string().describe('Path (empty for root directory)') }),
       execute: (input: { path: string }) => {
         console.log('[Rork] list_directory:', input.path);
         return opsRef.current.listDirectory(input.path || '');
       },
     }),
     search_files: createRorkTool({
-      description: 'Durchsucht alle Dateien nach Text (grep). Gibt Dateiname, Zeile und Kontext zurück.',
-      zodSchema: z.object({ query: z.string().describe('Suchbegriff oder Regex'), path: z.string().optional().describe('Optionaler Pfad') }),
+      description: 'Searches all files for text (grep). Returns filename, line, and context.',
+      zodSchema: z.object({ query: z.string().describe('Search term or Regex'), path: z.string().optional().describe('Optional path') }),
       execute: (input: { query: string; path?: string }) => {
         console.log('[Rork] search_files:', input.query);
         return opsRef.current.searchFilesInProject(input.query, input.path);
       },
     }),
     find_replace: createRorkTool({
-      description: 'Sucht und ersetzt Text in einer Datei.',
+      description: 'Finds and replaces text in a file.',
       zodSchema: z.object({ path: z.string(), find: z.string(), replace: z.string() }),
       execute: (input: { path: string; find: string; replace: string }) => {
         console.log('[Rork] find_replace:', input.path);
         const content = opsRef.current.getFileContent(input.path);
-        if (content === null) return 'FEHLER: Datei nicht gefunden.';
+        if (content === null) return 'ERROR: File not found.';
         const count = content.split(input.find).length - 1;
         opsRef.current.updateFileContent(input.path, content.split(input.find).join(input.replace));
-        return count + ' Vorkommen in "' + input.path + '" ersetzt.';
+        return count + ' occurrences replaced in "' + input.path + '".';
       },
     }),
     create_directory: createRorkTool({
-      description: 'Erstellt einen neuen Ordner.',
+      description: 'Creates a new directory.',
       zodSchema: z.object({ path: z.string() }),
       execute: (input: { path: string }) => {
         console.log('[Rork] create_directory:', input.path);
         opsRef.current.createDirectory(input.path);
-        return 'Verzeichnis "' + input.path + '" erstellt.';
+        return 'Directory "' + input.path + '" created.';
       },
     }),
     get_project_tree: createRorkTool({
-      description: 'Gibt die gesamte Projektstruktur als Baumdarstellung zurück.',
+      description: 'Returns the entire project structure as a tree representation.',
       zodSchema: z.object({}),
       execute: () => {
         console.log('[Rork] get_project_tree');
@@ -154,7 +154,7 @@ export const [ChatProvider, useChat] = createContextHook(() => {
       },
     }),
     get_file_info: createRorkTool({
-      description: 'Gibt Informationen über eine Datei zurück (Zeilen, Zeichen, Sprache).',
+      description: 'Returns information about a file (lines, chars, language).',
       zodSchema: z.object({ path: z.string() }),
       execute: (input: { path: string }) => {
         console.log('[Rork] get_file_info:', input.path);
@@ -162,8 +162,8 @@ export const [ChatProvider, useChat] = createContextHook(() => {
       },
     }),
     create_todo: createRorkTool({
-      description: 'Erstellt einen neuen Todo-Eintrag im Projektplan.',
-      zodSchema: z.object({ text: z.string().describe('Todo-Text') }),
+      description: 'Creates a new todo entry in the project plan.',
+      zodSchema: z.object({ text: z.string().describe('Todo text') }),
       execute: (input: { text: string }) => {
         console.log('[Rork] create_todo:', input.text);
         const id = opsRef.current.addTodo(input.text);
@@ -171,94 +171,94 @@ export const [ChatProvider, useChat] = createContextHook(() => {
       },
     }),
     update_todo: createRorkTool({
-      description: 'Aktualisiert einen Todo-Eintrag.',
+      description: 'Updates a todo entry.',
       zodSchema: z.object({ id: z.string(), completed: z.boolean().optional(), text: z.string().optional() }),
       execute: (input: { id: string; completed?: boolean; text?: string }) => {
         console.log('[Rork] update_todo:', input.id);
         opsRef.current.updateTodoItem(input.id, input.completed, input.text);
-        return 'Todo "' + input.id + '" aktualisiert.';
+        return 'Todo "' + input.id + '" updated.';
       },
     }),
     add_memo: createRorkTool({
-      description: 'Speichert eine wichtige Notiz im Projektgedächtnis.',
+      description: 'Saves an important note in the project memory.',
       zodSchema: z.object({ content: z.string() }),
       execute: (input: { content: string }) => {
         console.log('[Rork] add_memo:', input.content);
         opsRef.current.addMemo(input.content);
-        return 'Memo gespeichert.';
+        return 'Memo saved.';
       },
     }),
     think: createRorkTool({
-      description: 'Nutze dieses Tool um über ein komplexes Problem nachzudenken. Dein Gedankengang wird dem Benutzer angezeigt.',
-      zodSchema: z.object({ thought: z.string().describe('Dein detaillierter Gedankengang') }),
+      description: 'Use this tool to think about a complex problem. Your thought process will be shown to the user.',
+      zodSchema: z.object({ thought: z.string().describe('Your detailed thought process') }),
       execute: (input: { thought: string }) => {
         console.log('[Rork] think:', input.thought.slice(0, 80));
-        return 'Gedankengang verarbeitet.';
+        return 'Thought process recorded.';
       },
     }),
     web_search: createRorkTool({
-      description: 'Führt eine DuckDuckGo Instant Answer Suche aus (liefert meist nur für Wikipedia-bekannte Begriffe kurze Abstrakts, ist keine vollständige Websuche).',
-      zodSchema: z.object({ query: z.string().describe('Suchbegriff') }),
+      description: 'Performs a DuckDuckGo Instant Answer search (usually only returns short abstracts for Wikipedia-known terms, not a full web search).',
+      zodSchema: z.object({ query: z.string().describe('Search term') }),
       execute: async (input: { query: string }) => {
         console.log('[Rork] web_search:', input.query);
         const s = settingsRef.current;
-        if (!s.yoloMode && !s.betaWebSearch) return 'FEHLER: Web-Suche ist nicht aktiviert. Bitte in den Beta-Einstellungen aktivieren.';
+        if (!s.yoloMode && !s.betaWebSearch) return 'ERROR: Web search is not enabled. Please enable it in the Beta settings.';
         const perm = s.yoloMode ? 'always' : (s.toolPermissions?.['web_search'] || 'ask');
-        if (perm === 'blocked') return 'FEHLER: Web-Suche ist vom Nutzer blockiert.';
-        if (perm === 'removed') return 'FEHLER: Unbekanntes Tool.';
+        if (perm === 'blocked') return 'ERROR: Web search is blocked by the user.';
+        if (perm === 'removed') return 'ERROR: Unknown Tool.';
         try {
           const resp = await fetch('https://api.duckduckgo.com/?q=' + encodeURIComponent(input.query) + '&format=json&no_redirect=1&no_html=1');
-          if (!resp.ok) return 'Web-Suche fehlgeschlagen (Status ' + resp.status + ').';
+          if (!resp.ok) return 'Web search failed (Status ' + resp.status + ').';
           const data = await resp.json();
           let results = '';
-          if (data?.Abstract) results += 'Zusammenfassung: ' + data.Abstract + '\n\n';
+          if (data?.Abstract) results += 'Summary: ' + data.Abstract + '\n\n';
           if (data?.RelatedTopics) {
             for (const t of (data.RelatedTopics || []).slice(0, 8)) {
               if (t?.Text) results += '• ' + t.Text + '\n';
               if (t?.FirstURL) results += '  URL: ' + t.FirstURL + '\n';
             }
           }
-          return results || 'Keine Ergebnisse gefunden für: ' + input.query;
+          return results || 'No results found for: ' + input.query;
         } catch (e: any) {
-          return 'FEHLER bei Web-Suche: ' + (e?.message || 'Netzwerkfehler');
+          return 'ERROR during web search: ' + (e?.message || 'Network error');
         }
       },
     }),
 
       sub_agent: createRorkTool({
-        description: 'Delegiert Aufgabe an einen spezialisierten Unteragenten (Analyst, Developer, Tester, Researcher).',
-        zodSchema: z.object({ role: z.string().describe('Rolle des Unteragenten'), task: z.string().describe('Aufgabenbeschreibung') }),
+        description: 'Delegates task to a specialized sub-agent (Analyst, Developer, Tester, Researcher).',
+        zodSchema: z.object({ role: z.string().describe('Role of the sub-agent'), task: z.string().describe('Task description') }),
         execute: async (input: { role: string, task: string }) => {
-          return 'FEHLER: Sub-Agenten können im direkten Chat nicht gestartet werden. Bitte nutze den Planer.';
+          return 'ERROR: Sub-agents cannot be started in direct chat. Please use the planner.';
         }
       }),
 
       propose_agent_mode: createRorkTool({
-        description: 'Schlägt dem Nutzer vor, in den Agenten-Modus zu wechseln, weil die Aufgabe zu komplex für den direkten Chat ist.',
-        zodSchema: z.object({ reason: z.string().describe('Begründung') }),
+        description: 'Proposes to the user to switch to agent mode because the task is too complex for direct chat.',
+        zodSchema: z.object({ reason: z.string().describe('Reason') }),
         execute: async (input: { reason: string }) => {
-          return 'Tipp: Klicke auf den Button "Erstellen!", um den Planer für diese komplexe Aufgabe zu nutzen: ' + input.reason;
+          return 'Tip: Click the "Create!" button to use the planner for this complex task: ' + input.reason;
         }
       }),
       web_fetch: createRorkTool({
-      description: 'Lädt den Inhalt einer Webseite herunter und gibt den Text zurück (ohne HTML-Tags).',
-      zodSchema: z.object({ url: z.string().describe('URL der Webseite'), max_length: z.number().optional().describe('Maximale Zeichenanzahl (Standard: 5000)') }),
+      description: 'Downloads the content of a webpage and returns the text (without HTML tags).',
+      zodSchema: z.object({ url: z.string().describe('URL of the webpage'), max_length: z.number().optional().describe('Maximum characters (default: 5000)') }),
       execute: async (input: { url: string; max_length?: number }) => {
         console.log('[Rork] web_fetch:', input.url);
         const s = settingsRef.current;
-        if (!s.yoloMode && !s.betaWebFetch) return 'FEHLER: Web-Fetch ist nicht aktiviert. Bitte in den Beta-Einstellungen aktivieren.';
+        if (!s.yoloMode && !s.betaWebFetch) return 'ERROR: Web fetch is not enabled. Please enable it in the Beta settings.';
         const perm = s.yoloMode ? 'always' : (s.toolPermissions?.['web_fetch'] || 'ask');
-        if (perm === 'blocked') return 'FEHLER: Web-Fetch ist vom Nutzer blockiert.';
-        if (perm === 'removed') return 'FEHLER: Unbekanntes Tool.';
+        if (perm === 'blocked') return 'ERROR: Web fetch is blocked by the user.';
+        if (perm === 'removed') return 'ERROR: Unknown Tool.';
         try {
           const resp = await fetch(input.url, { headers: { 'Accept': 'text/html,text/plain,application/json' } });
-          if (!resp.ok) return 'Fetch fehlgeschlagen (Status ' + resp.status + ').';
+          if (!resp.ok) return 'Fetch failed (Status ' + resp.status + ').';
           const text = await resp.text();
           const maxLen = input.max_length || 5000;
           const cleaned = text.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '').replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
-          return cleaned.length > maxLen ? cleaned.slice(0, maxLen) + '... (gekürzt)' : cleaned;
+          return cleaned.length > maxLen ? cleaned.slice(0, maxLen) + '... (truncated)' : cleaned;
         } catch (e: any) {
-          return 'FEHLER bei Web-Fetch: ' + (e?.message || 'Netzwerkfehler');
+          return 'ERROR during web fetch: ' + (e?.message || 'Network error');
         }
       },
     }),
@@ -303,7 +303,7 @@ export const [ChatProvider, useChat] = createContextHook(() => {
       console.log('[Chat] Rork agent error:', rorkAgent.error);
       const errMsg = typeof rorkAgent.error === 'string' ? rorkAgent.error : (rorkAgent.error as any)?.message || 'Studio KI Fehler';
       if (errMsg.toLowerCase().includes('network error') || errMsg.toLowerCase().includes('fetch')) {
-        setError('CORS/Netzwerk-Fehler: Der Browser blockiert die Verbindung zu Studio KI. Bitte wechsle in den Einstellungen zu einem anderen Anbieter (z.B. Groq, Gemini) oder nutze die native App.');
+        setError('CORS/Network error: The browser is blocking the connection to Studio AI. Using internal proxy route.');
       } else {
         setError(errMsg);
       }
@@ -364,7 +364,7 @@ export const [ChatProvider, useChat] = createContextHook(() => {
             result = typeof output === 'string' ? output : JSON.stringify(output ?? '');
             status = 'completed';
           } else if (state === 'output-error') {
-            result = 'FEHLER: ' + (typeof errorText === 'string' ? errorText : 'Unbekannt');
+            result = 'ERROR: ' + (typeof errorText === 'string' ? errorText : 'Unbekannt');
             status = 'error';
           }
 
@@ -467,7 +467,7 @@ export const [ChatProvider, useChat] = createContextHook(() => {
       const permCheck = await checkToolPermission(name, args);
       if (!permCheck.allowed) {
         if (permCheck.reason === 'TOOL_HIDDEN') {
-          return { result: 'FEHLER: Unbekanntes Tool "' + name + '". Verfügbare Tools: ' + TOOL_REGISTRY.filter(t => {
+          return { result: 'ERROR: Unknown tool "' + name + '". Verfügbare Tools: ' + TOOL_REGISTRY.filter(t => {
             const p = settingsRef.current.toolPermissions?.[t.name];
             return p !== 'removed';
           }).map(t => t.name).join(', ') };
@@ -479,131 +479,131 @@ export const [ChatProvider, useChat] = createContextHook(() => {
     try {
       switch (name) {
         case 'read_file': {
-          if (!args?.path) return { result: 'FEHLER: Kein Dateipfad angegeben.' };
+          if (!args?.path) return { result: 'ERROR: No file path provided.' };
           const content = getFileContent(args.path);
-          if (content === null) return { result: 'FEHLER: Datei "' + args.path + '" nicht gefunden.' };
+          if (content === null) return { result: 'ERROR: File "' + args.path + '" nicht gefunden.' };
           return { result: content };
         }
         case 'read_lines': {
-          if (!args?.path) return { result: 'FEHLER: Kein Dateipfad angegeben.' };
+          if (!args?.path) return { result: 'ERROR: No file path provided.' };
           const content = getFileContent(args.path);
-          if (content === null) return { result: 'FEHLER: Datei "' + args.path + '" nicht gefunden.' };
+          if (content === null) return { result: 'ERROR: File "' + args.path + '" nicht gefunden.' };
           const lines = content.split('\n');
           const start = Math.max(0, (args.start_line || 1) - 1);
           const end = Math.min(lines.length, args.end_line || lines.length);
           return { result: lines.slice(start, end).map((l: string, i: number) => (start + i + 1) + ': ' + l).join('\n') };
         }
         case 'write_file': {
-          if (!args?.path) return { result: 'FEHLER: Kein Dateipfad angegeben.' };
+          if (!args?.path) return { result: 'ERROR: No file path provided.' };
           updateFileContent(args.path, args.content ?? '');
           return { result: 'Datei "' + args.path + '" geschrieben (' + (args.content || '').split('\n').length + ' Zeilen).' };
         }
         case 'create_file': {
-          if (!args?.path) return { result: 'FEHLER: Kein Dateipfad angegeben.' };
+          if (!args?.path) return { result: 'ERROR: No file path provided.' };
           createFile(args.path, args.content || '');
-          return { result: 'Datei "' + args.path + '" erstellt.' };
+          return { result: 'File "' + args.path + '" created.' };
         }
         case 'edit_file': {
-          if (!args?.path) return { result: 'FEHLER: Kein Dateipfad angegeben.' };
-          if (!args?.old_text) return { result: 'FEHLER: old_text ist leer.' };
+          if (!args?.path) return { result: 'ERROR: No file path provided.' };
+          if (!args?.old_text) return { result: 'ERROR: old_text is empty.' };
           const content = getFileContent(args.path);
-          if (content === null) return { result: 'FEHLER: Datei "' + args.path + '" nicht gefunden. Bitte erst mit read_file lesen.' };
-          if (!content.includes(args.old_text)) return { result: 'FEHLER: Text nicht gefunden in "' + args.path + '". Bitte Datei erneut mit read_file lesen.' };
+          if (content === null) return { result: 'ERROR: File "' + args.path + '" not found. Please read with read_file first.' };
+          if (!content.includes(args.old_text)) return { result: 'ERROR: Text not found in "' + args.path + '". Please read the file again.' };
           updateFileContent(args.path, content.replace(args.old_text, args.new_text ?? ''));
-          return { result: 'Datei "' + args.path + '" bearbeitet.' };
+          return { result: 'File "' + args.path + '" edited.' };
         }
         case 'delete_file': {
-          if (!args?.path) return { result: 'FEHLER: Kein Dateipfad angegeben.' };
+          if (!args?.path) return { result: 'ERROR: No file path provided.' };
           deleteFile(args.path);
-          return { result: 'Datei "' + args.path + '" gelöscht.' };
+          return { result: 'File "' + args.path + '" deleted.' };
         }
         case 'rename_file': {
-          if (!args?.old_path || !args?.new_path) return { result: 'FEHLER: old_path und new_path sind erforderlich.' };
+          if (!args?.old_path || !args?.new_path) return { result: 'ERROR: old_path and new_path are required.' };
           renameFile(args.old_path, args.new_path);
-          return { result: 'Umbenannt: "' + args.old_path + '" → "' + args.new_path + '".' };
+          return { result: 'Renamed: "' + args.old_path + '" -> "' + args.new_path + '".' };
         }
         case 'list_directory':
           return { result: listDirectory(args?.path || '') };
         case 'search_files': {
-          if (!args?.query) return { result: 'FEHLER: Kein Suchbegriff angegeben.' };
+          if (!args?.query) return { result: 'ERROR: No search term provided.' };
           return { result: searchFilesInProject(args.query, args.path) };
         }
         case 'find_replace': {
-          if (!args?.path) return { result: 'FEHLER: Kein Dateipfad angegeben.' };
-          if (!args?.find) return { result: 'FEHLER: Suchtext fehlt.' };
+          if (!args?.path) return { result: 'ERROR: No file path provided.' };
+          if (!args?.find) return { result: 'ERROR: Search text is missing.' };
           const content = getFileContent(args.path);
-          if (content === null) return { result: 'FEHLER: Datei nicht gefunden.' };
+          if (content === null) return { result: 'ERROR: File not found.' };
           const count = content.split(args.find).length - 1;
           updateFileContent(args.path, args.all ? content.split(args.find).join(args.replace ?? '') : content.replace(args.find, args.replace ?? ''));
-          return { result: count + ' Vorkommen in "' + args.path + '" ersetzt.' };
+          return { result: count + ' occurrences replaced in "' + args.path + '".' };
         }
         case 'create_directory': {
-          if (!args?.path) return { result: 'FEHLER: Kein Pfad angegeben.' };
+          if (!args?.path) return { result: 'ERROR: No path provided.' };
           createDirectory(args.path);
-          return { result: 'Verzeichnis "' + args.path + '" erstellt.' };
+          return { result: 'Directory "' + args.path + '" created.' };
         }
         case 'get_project_tree':
           return { result: getProjectTree() };
         case 'get_file_info': {
-          if (!args?.path) return { result: 'FEHLER: Kein Dateipfad angegeben.' };
+          if (!args?.path) return { result: 'ERROR: No file path provided.' };
           return { result: getFileInfo(args.path) };
         }
         case 'create_todo': {
-          if (!args?.text) return { result: 'FEHLER: Todo-Text fehlt.' };
+          if (!args?.text) return { result: 'ERROR: Todo text is missing.' };
           const id = addTodo(args.text);
-          return { result: 'Todo erstellt (ID: ' + id + ')', inlineTodos: [{ id, text: args.text, completed: false }] };
+          return { result: 'Todo created (ID: ' + id + ')', inlineTodos: [{ id, text: args.text, completed: false }] };
         }
         case 'update_todo': {
-          if (!args?.id) return { result: 'FEHLER: Todo-ID fehlt.' };
+          if (!args?.id) return { result: 'ERROR: Todo ID is missing.' };
           updateTodoItem(args.id, args.completed, args.text);
-          return { result: 'Todo "' + args.id + '" aktualisiert.' };
+          return { result: 'Todo "' + args.id + '" updated.' };
         }
         case 'add_memo': {
-          if (!args?.content) return { result: 'FEHLER: Memo-Inhalt fehlt.' };
+          if (!args?.content) return { result: 'ERROR: Memo content is missing.' };
           addMemo(args.content);
-          return { result: 'Memo gespeichert.' };
+          return { result: 'Memo saved.' };
         }
         case 'think':
-          return { result: 'Gedankengang verarbeitet.' };
+          return { result: 'Thought process recorded.' };
         case 'read_identity_files': {
           let output = '';
-          output += '## SOUL.md\n' + (soulMd || '(leer)') + '\n\n';
-          output += '## AGENTS.md\n' + (agentMd || '(leer)') + '\n\n';
-          output += '## IDENTITY.md\n' + (identityMd || '(leer)') + '\n\n';
-          output += '## USER.md\n' + (userMd || '(leer)') + '\n\n';
-          output += '## MEMORY.md\n' + (memoryMd || '(leer)');
+          output += '## SOUL.md\n' + (soulMd || '(empty)') + '\n\n';
+          output += '## AGENTS.md\n' + (agentMd || '(empty)') + '\n\n';
+          output += '## IDENTITY.md\n' + (identityMd || '(empty)') + '\n\n';
+          output += '## USER.md\n' + (userMd || '(empty)') + '\n\n';
+          output += '## MEMORY.md\n' + (memoryMd || '(empty)');
           return { result: output };
         }
         case 'update_soul_md': {
-          if (!args?.content) return { result: 'FEHLER: Kein Inhalt angegeben.' };
+          if (!args?.content) return { result: 'ERROR: No content provided.' };
           setSoulMd(args.content);
-          return { result: 'SOUL.md aktualisiert (' + args.content.split('\n').length + ' Zeilen).' };
+          return { result: 'SOUL.md updated (' + args.content.split('\n').length + ' lines).' };
         }
         case 'update_agents_md': {
-          if (!args?.content) return { result: 'FEHLER: Kein Inhalt angegeben.' };
+          if (!args?.content) return { result: 'ERROR: No content provided.' };
           setAgentMd(args.content);
-          return { result: 'AGENTS.md aktualisiert (' + args.content.split('\n').length + ' Zeilen).' };
+          return { result: 'AGENTS.md updated (' + args.content.split('\n').length + ' lines).' };
         }
         case 'update_identity_md': {
-          if (!args?.content) return { result: 'FEHLER: Kein Inhalt angegeben.' };
+          if (!args?.content) return { result: 'ERROR: No content provided.' };
           setIdentityMd(args.content);
-          return { result: 'IDENTITY.md aktualisiert (' + args.content.split('\n').length + ' Zeilen).' };
+          return { result: 'IDENTITY.md updated (' + args.content.split('\n').length + ' lines).' };
         }
         case 'update_user_md': {
-          if (!args?.content) return { result: 'FEHLER: Kein Inhalt angegeben.' };
+          if (!args?.content) return { result: 'ERROR: No content provided.' };
           setUserMd(args.content);
-          return { result: 'USER.md aktualisiert (' + args.content.split('\n').length + ' Zeilen).' };
+          return { result: 'USER.md updated (' + args.content.split('\n').length + ' lines).' };
         }
         case 'update_memory_md': {
-          if (!args?.content) return { result: 'FEHLER: Kein Inhalt angegeben.' };
+          if (!args?.content) return { result: 'ERROR: No content provided.' };
           setMemoryMd(args.content);
-          return { result: 'MEMORY.md aktualisiert (' + args.content.split('\n').length + ' Zeilen).' };
+          return { result: 'MEMORY.md updated (' + args.content.split('\n').length + ' lines).' };
         }
         case 'web_search': {
-          if (!args?.query) return { result: 'FEHLER: Suchbegriff fehlt.' };
+          if (!args?.query) return { result: 'ERROR: Search term is missing.' };
           try {
             const resp = await fetch('https://api.duckduckgo.com/?q=' + encodeURIComponent(args.query) + '&format=json&no_redirect=1&no_html=1');
-            if (!resp.ok) return { result: 'Web-Suche fehlgeschlagen.' };
+            if (!resp.ok) return { result: 'Web search failed.' };
             const data = await resp.json();
             let results = '';
             if (data?.Abstract) results += data.Abstract + '\n\n';
@@ -612,30 +612,30 @@ export const [ChatProvider, useChat] = createContextHook(() => {
                 if (t?.Text) results += '• ' + t.Text + '\n';
               }
             }
-            return { result: results || 'Keine Ergebnisse für: ' + args.query };
+            return { result: results || 'No results for: ' + args.query };
           } catch (e: any) {
-            return { result: 'FEHLER: ' + (e?.message || 'Netzwerkfehler') };
+            return { result: 'ERROR: ' + (e?.message || 'Network error') };
           }
         }
         case 'web_fetch': {
-          if (!args?.url) return { result: 'FEHLER: URL fehlt.' };
+          if (!args?.url) return { result: 'ERROR: URL is missing.' };
           try {
             const resp = await fetch(args.url);
-            if (!resp.ok) return { result: 'Fetch fehlgeschlagen (' + resp.status + ').' };
+            if (!resp.ok) return { result: 'Fetch failed (' + resp.status + ').' };
             const text = await resp.text();
             const maxLen = args.max_length || 5000;
             const cleaned = text.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '').replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
             return { result: cleaned.length > maxLen ? cleaned.slice(0, maxLen) + '...' : cleaned };
           } catch (e: any) {
-            return { result: 'FEHLER: ' + (e?.message || 'Netzwerkfehler') };
+            return { result: 'ERROR: ' + (e?.message || 'Network error') };
           }
         }
         default:
-          return { result: 'FEHLER: Unbekanntes Tool "' + name + '".' };
+          return { result: 'ERROR: Unknown tool "' + name + '".' };
       }
     } catch (e: any) {
       console.log('[Chat] Tool error:', name, e);
-      return { result: 'FEHLER bei ' + name + ': ' + (e?.message || 'Unbekannt') };
+      return { result: 'ERROR in ' + name + ': ' + (e?.message || 'Unknown') };
     }
   }, [getFileContent, updateFileContent, createFile, deleteFile, renameFile, createDirectory, searchFilesInProject, getProjectTree, listDirectory, getFileInfo, addTodo, updateTodoItem, addMemo, checkToolPermission, agentMd, soulMd, identityMd, userMd, memoryMd, setAgentMd, setSoulMd, setIdentityMd, setUserMd, setMemoryMd]);
 
@@ -661,12 +661,12 @@ export const [ChatProvider, useChat] = createContextHook(() => {
           fullMsg += 'You have the "web_search" tool available! Use it for web research and current information.\n';
         }
         if (settings.betaWebFetch || settings.yoloMode) {
-          fullMsg += 'Du hast das Tool "web_fetch" verfügbar! Nutze es um Webseiten-Inhalte zu laden.\n';
+          fullMsg += 'You have the "web_fetch" tool available! Use it to fetch webpage content.\n';
         }
         if (settings.yoloMode) {
-          fullMsg += 'YOLO-Modus: Erstelle/bearbeite Dateien OHNE Nachfragen.\n';
+          fullMsg += 'YOLO-Mode: Create/edit files WITHOUT asking.\n';
         }
-        fullMsg += '\nProjektstruktur:\n' + getProjectTree() + '\n';
+        fullMsg += '\nProject tree:\n' + getProjectTree() + '\n';
         fullMsg += '---\n';
         rorkContextSentRef.current = true;
       }
@@ -685,7 +685,7 @@ export const [ChatProvider, useChat] = createContextHook(() => {
         rorkAgent.sendMessage(fullMsg);
       } catch (e: any) {
         console.log('[Chat] Rork send error:', e);
-        setError(e?.message?.includes('Network Error') ? 'Netzwerk/CORS-Fehler: Der Rork API Endpunkt verweigert den Zugriff im Web-Browser.' : e?.message || 'Fehler beim Senden');
+        setError(e?.message?.includes('Network Error') ? 'Network/CORS error: The Rork API endpoint denied access in the web browser.' : e?.message || 'Send error');
         setRorkLoading(false);
       }
       return;
@@ -700,16 +700,16 @@ export const [ChatProvider, useChat] = createContextHook(() => {
     setManualMessages(newMessages);
     setManualLoading(true);
     setIsThinking(true);
-    setThinkingPhase('Analysiere Anfrage...');
+    setThinkingPhase('Analyzing request...');
 
     try {
       const apiKey = getApiKey();
       if (!apiKey) {
-        throw new Error('Kein API-Schlüssel. Gehe zu Einstellungen oder wähle "Studio KI" (kostenlos).');
+        throw new Error('No API key. Go to Settings or select "Studio KI" (free).');
       }
 
       const mentionedFiles = attachedFiles.map(path => ({
-        path, content: getFileContent(path) || '(nicht gefunden)',
+        path, content: getFileContent(path) || '(not found)',
       }));
 
       const systemPrompt = buildSystemPrompt({
@@ -750,7 +750,7 @@ export const [ChatProvider, useChat] = createContextHook(() => {
 
       while (iterations < maxIterations && !abortRef.current) {
         iterations++;
-        setThinkingPhase(iterations === 1 ? 'KI denkt nach...' : 'Verarbeite Tool-Ergebnisse...');
+        setThinkingPhase(iterations === 1 ? 'AI is thinking...' : 'Processing tool results...');
 
         const response = await callAI(
           settings.selectedProvider as AIProviderType, apiKey, settings.selectedModel,
@@ -759,7 +759,7 @@ export const [ChatProvider, useChat] = createContextHook(() => {
         );
 
         if (response.usedFallback) {
-          setLastFallbackInfo('Automatisch gewechselt zu ' + (response.fallbackProvider || 'Fallback'));
+          setLastFallbackInfo('Automatically switched to ' + (response.fallbackProvider || 'Fallback'));
         }
 
         setIsThinking(false);
@@ -795,7 +795,7 @@ export const [ChatProvider, useChat] = createContextHook(() => {
         conversationHistory = [...conversationHistory, assistantMsg];
         setManualMessages([...conversationHistory]);
 
-        setThinkingPhase('Führe Tools aus...');
+        setThinkingPhase('Executing tools...');
 
         const toolResultMessages: ChatMessage[] = [];
         for (const tc of toolCalls) {
@@ -805,7 +805,7 @@ export const [ChatProvider, useChat] = createContextHook(() => {
 
           const { result, inlineTodos } = await executeManualTool(tc.name, tc.arguments);
           tc.result = result;
-          tc.status = result.startsWith('FEHLER') ? 'error' : 'completed';
+          tc.status = result.startsWith('ERROR') ? 'error' : 'completed';
           if (inlineTodos) collectedTodos = [...collectedTodos, ...inlineTodos];
 
           toolResultMessages.push({
@@ -819,15 +819,15 @@ export const [ChatProvider, useChat] = createContextHook(() => {
 
       if (iterations >= maxIterations) {
         setManualMessages(prev => [...prev, {
-          id: genId(), role: 'assistant', content: 'Maximale Iterationen erreicht.', timestamp: Date.now(),
+          id: genId(), role: 'assistant', content: 'Maximum iterations reached.', timestamp: Date.now(),
         }]);
       }
     } catch (e: any) {
       console.log('[Chat] Error:', e);
       setManualMessages(prev => [...prev, {
-        id: genId(), role: 'assistant', content: '❌ ' + (e?.message || 'Unbekannter Fehler'), timestamp: Date.now(),
+        id: genId(), role: 'assistant', content: '❌ ' + (e?.message || 'Unknown error'), timestamp: Date.now(),
       }]);
-      setError(e?.message || 'Fehler');
+      setError(e?.message || 'Error');
     } finally {
       setManualLoading(false);
       setIsThinking(false);
@@ -878,9 +878,9 @@ export const [ChatProvider, useChat] = createContextHook(() => {
     const transcript = currentMsgs
       .filter(m => m.role !== 'tool')
       .map(m => {
-        const prefix = m.role === 'user' ? 'Benutzer' : 'KI';
+        const prefix = m.role === 'user' ? 'User' : 'AI';
         const toolInfo = m.toolCalls?.length
-          ? ' [Tools: ' + m.toolCalls.map(t => t.name + (t.status === 'error' ? '(FEHLER)' : '')).join(', ') + ']' : '';
+          ? ' [Tools: ' + m.toolCalls.map(t => t.name + (t.status === 'error' ? '(ERROR)' : '')).join(', ') + ']' : '';
         return prefix + ': ' + (m.content || '').slice(0, 300) + toolInfo;
       })
       .join('\n');
@@ -889,10 +889,10 @@ export const [ChatProvider, useChat] = createContextHook(() => {
     try {
       const apiKey = getApiKey();
       if (apiKey || settings.selectedProvider === 'rork') {
-        const compressPrompt = 'Fasse die folgende Konversation in max. 500 Worten zusammen. '
-          + 'Behalte: Alle wichtigen Entscheidungen, erstellte/geänderte Dateien, offene Aufgaben, Nutzerpräferenzen. '
-          + 'Entferne: Wiederholungen, Tool-Details, Zwischenschritte. '
-          + 'Antworte NUR mit der Zusammenfassung, kein anderer Text.\n\n'
+        const compressPrompt = 'Summarize the following conversation in max. 500 words. '
+          + 'Keep: All important decisions, created/changed files, open tasks, user preferences. '
+          + 'Remove: Repetitions, tool details, intermediate steps. '
+          + 'Reply ONLY with the summary, no other text.\n\n'
           + transcript.slice(0, 8000);
 
         const compressMsg: ChatMessage[] = [{
@@ -906,7 +906,7 @@ export const [ChatProvider, useChat] = createContextHook(() => {
           settings.selectedModel,
           compressMsg,
           [],
-          'Du bist ein Zusammenfassungs-Assistent. Fasse Konversationen präzise zusammen. Antworte auf Deutsch.',
+          'You are a summarization assistant. Summarize conversations precisely. Reply in English.',
           settings.customEndpoint || undefined,
           fallbackSettings,
         );
@@ -946,7 +946,7 @@ export const [ChatProvider, useChat] = createContextHook(() => {
     };
 
     if (isRorkProvider) {
-      rorkAgent.sendMessage('[Zusammenfassung der bisherigen Konversation]\n\n' + summary);
+      rorkAgent.sendMessage('[Summary of the conversation so far]\n\n' + summary);
     } else {
       setManualMessages([summaryMsg]);
     }

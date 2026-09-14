@@ -469,7 +469,7 @@ export default function ChatScreen() {
               activeOpacity={0.7}
             >
               <FileText size={16} color={IDE.primary} />
-              <Text style={styles.attachMenuText}>Datei anhängen</Text>
+              <Text style={styles.attachMenuText}>Attach file</Text>
             </TouchableOpacity>
             <View style={styles.attachMenuDivider} />
             <TouchableOpacity
@@ -479,11 +479,11 @@ export default function ChatScreen() {
             >
               <Brain size={16} color={agentMode ? IDE.accent : IDE.muted} />
               <Text style={[styles.attachMenuText, agentMode && { color: IDE.accent }]}>
-                {agentMode ? 'Agent-Modus deaktivieren' : 'Agent-Modus (Planung)'}
+                {agentMode ? 'Disable Agent Mode' : 'Agent Mode (Planning)'}
               </Text>
               {agentMode && (
                 <View style={styles.attachMenuActiveBadge}>
-                  <Text style={styles.attachMenuActiveBadgeText}>AN</Text>
+                  <Text style={styles.attachMenuActiveBadgeText}>ON</Text>
                 </View>
               )}
             </TouchableOpacity>
@@ -536,7 +536,7 @@ export default function ChatScreen() {
         <View style={styles.approvalBanner}>
           <View style={styles.approvalHeader}>
             <ShieldAlert size={16} color={IDE.warning} />
-            <Text style={styles.approvalTitle}>Tool-Genehmigung erforderlich</Text>
+            <Text style={styles.approvalTitle}>Tool Approval Required</Text>
           </View>
           <View style={styles.approvalBody}>
             <Text style={styles.approvalToolName}>
@@ -556,7 +556,7 @@ export default function ChatScreen() {
               activeOpacity={0.7}
             >
               <Ban size={14} color={IDE.danger} />
-              <Text style={styles.approvalRejectText}>Ablehnen</Text>
+              <Text style={styles.approvalRejectText}>Reject</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.approvalAcceptBtn}
@@ -567,7 +567,7 @@ export default function ChatScreen() {
               activeOpacity={0.7}
             >
               <Check size={14} color="#fff" />
-              <Text style={styles.approvalAcceptText}>Erlauben</Text>
+              <Text style={styles.approvalAcceptText}>Allow</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -577,7 +577,7 @@ export default function ChatScreen() {
         <View style={styles.loadingBar}>
           <ActivityIndicator size="small" color={isPlanning ? IDE.accent : IDE.primary} />
           <Text style={styles.loadingText}>
-            {isPlanning ? 'Hauptagent plant Aufgaben...' : settings?.selectedProvider === 'rork' ? 'Studio KI verarbeitet...' : 'KI verarbeitet...'}
+            {isPlanning ? 'Main agent planning tasks...' : settings?.selectedProvider === 'rork' ? 'Studio AI processing...' : 'AI processing...'}
           </Text>
         </View>
       )}
@@ -600,7 +600,7 @@ export default function ChatScreen() {
 
         <TextInput
           style={styles.input}
-          placeholder={agentMode ? 'Auftrag an den Agenten...' : 'Nachricht schreiben... (@Datei)'}
+          placeholder={agentMode ? 'Describe goal... (@ for files)' : 'Ask AI... (@ for files)'}
           placeholderTextColor={IDE.muted}
           value={input}
           onChangeText={handleInputChange}
@@ -644,7 +644,7 @@ export default function ChatScreen() {
           />
           <View style={fpStyles.container}>
             <View style={fpStyles.header}>
-              <Text style={fpStyles.title}>Datei anhängen (@)</Text>
+              <Text style={fpStyles.title}>Attach file (@)</Text>
               <TouchableOpacity onPress={() => { setShowFilePicker(false); setFileSearch(''); }}>
                 <X size={20} color={IDE.muted} />
               </TouchableOpacity>
@@ -652,7 +652,7 @@ export default function ChatScreen() {
             <View style={fpStyles.searchBar}>
               <TextInput
                 style={fpStyles.searchInput}
-                placeholder="Datei suchen..."
+                placeholder="Search file..."
                 placeholderTextColor={IDE.muted}
                 value={fileSearch}
                 onChangeText={setFileSearch}
@@ -675,7 +675,7 @@ export default function ChatScreen() {
               style={fpStyles.list}
               keyboardShouldPersistTaps="handled"
               ListEmptyComponent={
-                <Text style={fpStyles.emptyText}>Keine Dateien gefunden</Text>
+                <Text style={fpStyles.emptyText}>No files found</Text>
               }
             />
           </View>

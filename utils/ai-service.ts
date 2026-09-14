@@ -130,133 +130,133 @@ export function parsePlanFromAI(content: string): { title: string; description: 
 export const TOOL_DEFINITIONS: ToolDefinition[] = [
   {
     name: 'read_file',
-    description: 'Liest den kompletten Inhalt einer Datei. MUSS vor jeder Bearbeitung aufgerufen werden.',
-    parameters: { type: 'object', properties: { path: { type: 'string', description: 'Dateipfad relativ zum Projektstamm' } }, required: ['path'] },
+    description: 'Reads the complete content of a file. MUST be called before any editing.',
+    parameters: { type: 'object', properties: { path: { type: 'string', description: 'File path relative to project root' } }, required: ['path'] },
   },
   {
     name: 'read_lines',
-    description: 'Liest bestimmte Zeilen einer Datei.',
-    parameters: { type: 'object', properties: { path: { type: 'string' }, start_line: { type: 'number', description: 'Startzeile (1-basiert)' }, end_line: { type: 'number', description: 'Endzeile (1-basiert)' } }, required: ['path', 'start_line', 'end_line'] },
+    description: 'Reads specific lines from a file.',
+    parameters: { type: 'object', properties: { path: { type: 'string' }, start_line: { type: 'number', description: 'Start line (1-based)' }, end_line: { type: 'number', description: 'End line (1-based)' } }, required: ['path', 'start_line', 'end_line'] },
   },
   {
     name: 'write_file',
-    description: 'Schreibt Inhalt in eine Datei (überschreibt komplett). Datei muss vorher mit read_file gelesen werden.',
-    parameters: { type: 'object', properties: { path: { type: 'string' }, content: { type: 'string', description: 'Neuer Dateiinhalt' } }, required: ['path', 'content'] },
+    description: 'Writes content to a file (overwrites completely). File must be read with read_file first.',
+    parameters: { type: 'object', properties: { path: { type: 'string' }, content: { type: 'string', description: 'New file content' } }, required: ['path', 'content'] },
   },
   {
     name: 'create_file',
-    description: 'Erstellt eine neue Datei. Fehlende Ordner werden automatisch erstellt.',
-    parameters: { type: 'object', properties: { path: { type: 'string' }, content: { type: 'string', description: 'Dateiinhalt' } }, required: ['path', 'content'] },
+    description: 'Creates a new file. Missing folders will be created automatically.',
+    parameters: { type: 'object', properties: { path: { type: 'string' }, content: { type: 'string', description: 'File content' } }, required: ['path', 'content'] },
   },
   {
     name: 'edit_file',
-    description: 'Bearbeitet eine Datei durch Ersetzen von Text. Datei MUSS vorher mit read_file gelesen werden. old_text muss exakt übereinstimmen.',
-    parameters: { type: 'object', properties: { path: { type: 'string' }, old_text: { type: 'string', description: 'Exakter Text der ersetzt werden soll' }, new_text: { type: 'string', description: 'Neuer Text' } }, required: ['path', 'old_text', 'new_text'] },
+    description: 'Edits a file by replacing text. File MUST be read with read_file first. old_text must match exactly.',
+    parameters: { type: 'object', properties: { path: { type: 'string' }, old_text: { type: 'string', description: 'Exact text to be replaced' }, new_text: { type: 'string', description: 'New text' } }, required: ['path', 'old_text', 'new_text'] },
   },
   {
     name: 'delete_file',
-    description: 'Löscht eine Datei oder einen leeren Ordner.',
+    description: 'Deletes a file or an empty directory.',
     parameters: { type: 'object', properties: { path: { type: 'string' } }, required: ['path'] },
   },
   {
     name: 'rename_file',
-    description: 'Benennt eine Datei oder einen Ordner um.',
+    description: 'Renames a file or directory.',
     parameters: { type: 'object', properties: { old_path: { type: 'string' }, new_path: { type: 'string' } }, required: ['old_path', 'new_path'] },
   },
   {
     name: 'list_directory',
-    description: 'Listet alle Dateien und Ordner in einem Verzeichnis auf.',
-    parameters: { type: 'object', properties: { path: { type: 'string', description: 'Pfad (leer für Wurzelverzeichnis)' } }, required: ['path'] },
+    description: 'Lists all files and directories in a directory.',
+    parameters: { type: 'object', properties: { path: { type: 'string', description: 'Path (empty for root directory)' } }, required: ['path'] },
   },
   {
     name: 'search_files',
-    description: 'Durchsucht alle Dateien nach einem Text (grep-ähnlich). Gibt Dateiname, Zeile und Kontext zurück. Unterstützt reguläre Ausdrücke.',
-    parameters: { type: 'object', properties: { query: { type: 'string', description: 'Suchbegriff oder regulärer Ausdruck' }, path: { type: 'string', description: 'Optionaler Pfad zum Einschränken der Suche' } }, required: ['query'] },
+    description: 'Searches all files for a text (grep-like). Returns filename, line, and context. Supports regular expressions.',
+    parameters: { type: 'object', properties: { query: { type: 'string', description: 'Search term or regular expression' }, path: { type: 'string', description: 'Optional path to restrict search' } }, required: ['query'] },
   },
   {
     name: 'find_replace',
-    description: 'Sucht und ersetzt Text in einer Datei.',
-    parameters: { type: 'object', properties: { path: { type: 'string' }, find: { type: 'string' }, replace: { type: 'string' }, all: { type: 'boolean', description: 'Alle Vorkommen ersetzen (Standard: false)' } }, required: ['path', 'find', 'replace'] },
+    description: 'Finds and replaces text in a file.',
+    parameters: { type: 'object', properties: { path: { type: 'string' }, find: { type: 'string' }, replace: { type: 'string' }, all: { type: 'boolean', description: 'Replace all occurrences (default: false)' } }, required: ['path', 'find', 'replace'] },
   },
   {
     name: 'create_directory',
-    description: 'Erstellt einen neuen Ordner (einschließlich Unterordner).',
+    description: 'Creates a new directory (including subdirectories).',
     parameters: { type: 'object', properties: { path: { type: 'string' } }, required: ['path'] },
   },
   {
     name: 'get_project_tree',
-    description: 'Gibt die gesamte Projektstruktur als Baumdarstellung zurück.',
+    description: 'Returns the entire project structure as a tree representation.',
     parameters: { type: 'object', properties: {}, required: [] },
   },
   {
     name: 'get_file_info',
-    description: 'Gibt Informationen über eine Datei zurück (Zeilenanzahl, Zeichenanzahl, Sprache).',
+    description: 'Returns information about a file (line count, character count, language).',
     parameters: { type: 'object', properties: { path: { type: 'string' } }, required: ['path'] },
   },
   {
     name: 'create_todo',
-    description: 'Erstellt einen neuen Todo-Eintrag im Projektplan.',
+    description: 'Creates a new todo entry in the project plan.',
     parameters: { type: 'object', properties: { text: { type: 'string' } }, required: ['text'] },
   },
   {
     name: 'update_todo',
-    description: 'Aktualisiert einen Todo-Eintrag (Status oder Text).',
+    description: 'Updates a todo entry (status or text).',
     parameters: { type: 'object', properties: { id: { type: 'string' }, completed: { type: 'boolean' }, text: { type: 'string' } }, required: ['id'] },
   },
   {
     name: 'add_memo',
-    description: 'Speichert eine wichtige Erkenntnis oder Notiz im Projektgedächtnis. Nutze dies für Dinge die du dir merken solltest.',
+    description: 'Saves an important finding or note in the project memory. Use this for things you should remember.',
     parameters: { type: 'object', properties: { content: { type: 'string' } }, required: ['content'] },
   },
   {
     name: 'think',
-    description: 'Nutze dieses Tool um über ein komplexes Problem nachzudenken. Dein Gedankengang wird dem Benutzer als einklappbarer Block angezeigt. Nutze dies bei schwierigen Aufgaben.',
-    parameters: { type: 'object', properties: { thought: { type: 'string', description: 'Dein detaillierter Gedankengang' } }, required: ['thought'] },
+    description: 'Use this tool to think about a complex problem. Your thought process will be shown to the user as a collapsible block. Use this for difficult tasks.',
+    parameters: { type: 'object', properties: { thought: { type: 'string', description: 'Your detailed thought process' } }, required: ['thought'] },
   },
   {
     name: 'web_search',
-    description: 'Durchsucht das Web nach Informationen. Nutze dies für Recherche, aktuelle Informationen oder Dokumentation.',
-    parameters: { type: 'object', properties: { query: { type: 'string', description: 'Suchbegriff' } }, required: ['query'] },
+    description: 'Searches the web for information. Use this for research, current information, or documentation.',
+    parameters: { type: 'object', properties: { query: { type: 'string', description: 'Search term' } }, required: ['query'] },
   },
   {
     name: 'web_fetch',
-    description: 'Lädt den Inhalt einer Webseite herunter und gibt den Text zurück (ohne HTML-Tags).',
-    parameters: { type: 'object', properties: { url: { type: 'string', description: 'URL der Webseite' }, max_length: { type: 'number', description: 'Maximale Zeichenanzahl (Standard: 5000)' } }, required: ['url'] },
+    description: 'Downloads the content of a webpage and returns the text (without HTML tags).',
+    parameters: { type: 'object', properties: { url: { type: 'string', description: 'URL of the webpage' }, max_length: { type: 'number', description: 'Maximum number of characters (default: 5000)' } }, required: ['url'] },
   },
   {
     name: 'propose_agent_mode',
-    description: 'Schlägt dem Nutzer vor, in den Agenten-Modus zu wechseln, weil die Aufgabe zu komplex für den direkten Chat ist.',
-    parameters: { type: 'object', properties: { reason: { type: 'string', description: 'Begründung, warum der Agenten-Modus besser wäre' } }, required: ['reason'] },
+    description: 'Proposes to the user to switch to agent mode because the task is too complex for direct chat.',
+    parameters: { type: 'object', properties: { reason: { type: 'string', description: 'Reason why agent mode would be better' } }, required: ['reason'] },
   },
   {
     name: 'read_identity_files',
-    description: 'Liest alle Identitätsdateien (SOUL.md, AGENTS.md, IDENTITY.md, USER.md, MEMORY.md) und gibt deren Inhalt zurück.',
+    description: 'Reads all identity files (SOUL.md, AGENTS.md, IDENTITY.md, USER.md, MEMORY.md) and returns their content.',
     parameters: { type: 'object', properties: {}, required: [] },
   },
   {
     name: 'update_soul_md',
-    description: 'Aktualisiert SOUL.md — die Persönlichkeit, Werte und Verhaltensphilosophie des Agenten. Nutze dies um deine Persönlichkeit zu verfeinern.',
-    parameters: { type: 'object', properties: { content: { type: 'string', description: 'Neuer vollständiger Inhalt für SOUL.md' } }, required: ['content'] },
+    description: 'Updates SOUL.md — the personality, values, and behavioral philosophy of the agent. Use this to refine your personality.',
+    parameters: { type: 'object', properties: { content: { type: 'string', description: 'New complete content for SOUL.md' } }, required: ['content'] },
   },
   {
     name: 'update_agents_md',
-    description: 'Aktualisiert AGENTS.md — Verhaltensregeln, Reasoning-Protokoll und Tool-Nutzungs-Richtlinien. Nutze dies um Arbeitsweise zu optimieren.',
-    parameters: { type: 'object', properties: { content: { type: 'string', description: 'Neuer vollständiger Inhalt für AGENTS.md' } }, required: ['content'] },
+    description: 'Updates AGENTS.md — behavioral rules, reasoning protocol, and tool usage guidelines. Use this to optimize workflow.',
+    parameters: { type: 'object', properties: { content: { type: 'string', description: 'New complete content for AGENTS.md' } }, required: ['content'] },
   },
   {
     name: 'update_identity_md',
-    description: 'Aktualisiert IDENTITY.md — Name, Rolle und Präsentation des Agenten nach außen.',
-    parameters: { type: 'object', properties: { content: { type: 'string', description: 'Neuer vollständiger Inhalt für IDENTITY.md' } }, required: ['content'] },
+    description: 'Updates IDENTITY.md — name, role, and outward presentation of the agent.',
+    parameters: { type: 'object', properties: { content: { type: 'string', description: 'New complete content for IDENTITY.md' } }, required: ['content'] },
   },
   {
     name: 'update_user_md',
-    description: 'Aktualisiert USER.md — Profil des Nutzers, Präferenzen, Kommunikationsstil und bekannte Projekte. Nutze dies um den Nutzer besser zu verstehen.',
-    parameters: { type: 'object', properties: { content: { type: 'string', description: 'Neuer vollständiger Inhalt für USER.md' } }, required: ['content'] },
+    description: 'Updates USER.md — user profile, preferences, communication style, and known projects. Use this to better understand the user.',
+    parameters: { type: 'object', properties: { content: { type: 'string', description: 'New complete content for USER.md' } }, required: ['content'] },
   },
   {
     name: 'update_memory_md',
-    description: 'Aktualisiert MEMORY.md — Langzeit-Gedächtnis mit Entscheidungen, gelernten Präferenzen und vergangenen Fehlern. Session-übergreifend persistent.',
-    parameters: { type: 'object', properties: { content: { type: 'string', description: 'Neuer vollständiger Inhalt für MEMORY.md' } }, required: ['content'] },
+    description: 'Updates MEMORY.md — long-term memory with decisions, learned preferences, and past errors. Persistent across sessions.',
+    parameters: { type: 'object', properties: { content: { type: 'string', description: 'New complete content for MEMORY.md' } }, required: ['content'] },
   },
   {
     name: 'get_active_tools',
@@ -601,7 +601,7 @@ async function callOpenAI(apiKey: string, model: string, messages: ChatMessage[]
   });
 
   if (!response.ok) {
-    const errorText = await response.text().catch(() => 'Unbekannter Fehler');
+    const errorText = await response.text().catch(() => 'Unknown error');
     console.log('[AI] OpenAI-compatible error:', response.status, errorText);
     throw new AIError(response.status, 'Fehler (' + response.status + '): ' + errorText.slice(0, 300));
   }
@@ -654,9 +654,9 @@ async function callOpenRouter(apiKey: string, model: string, messages: ChatMessa
   });
 
   if (!response.ok) {
-    const errorText = await response.text().catch(() => 'Unbekannter Fehler');
+    const errorText = await response.text().catch(() => 'Unknown error');
     console.log('[AI] OpenRouter error:', response.status, errorText);
-    throw new AIError(response.status, 'OpenRouter Fehler (' + response.status + '): ' + errorText.slice(0, 300));
+    throw new AIError(response.status, 'OpenRouter error (' + response.status + '): ' + errorText.slice(0, 300));
   }
 
   const data = await response.json();
@@ -707,9 +707,9 @@ async function callAnthropic(apiKey: string, model: string, messages: ChatMessag
   });
 
   if (!response.ok) {
-    const errorText = await response.text().catch(() => 'Unbekannter Fehler');
+    const errorText = await response.text().catch(() => 'Unknown error');
     console.log('[AI] Anthropic error:', response.status, errorText);
-    throw new AIError(response.status, 'Anthropic Fehler (' + response.status + '): ' + errorText.slice(0, 300));
+    throw new AIError(response.status, 'Anthropic error (' + response.status + '): ' + errorText.slice(0, 300));
   }
 
   const data = await response.json();
@@ -762,9 +762,9 @@ async function callGemini(apiKey: string, model: string, messages: ChatMessage[]
   });
 
   if (!response.ok) {
-    const errorText = await response.text().catch(() => 'Unbekannter Fehler');
+    const errorText = await response.text().catch(() => 'Unknown error');
     console.log('[AI] Gemini error:', response.status, errorText);
-    throw new AIError(response.status, 'Gemini Fehler (' + response.status + '): ' + errorText.slice(0, 300));
+    throw new AIError(response.status, 'Gemini error (' + response.status + '): ' + errorText.slice(0, 300));
   }
 
   const data = await response.json();
@@ -1008,7 +1008,7 @@ async function callRork(
     return { content: text, toolCalls: [] };
   } catch (e: any) {
     console.log('[AI] Rork error:', e);
-    throw new Error('Studio KI Fehler: ' + (e?.message || 'Unbekannter Fehler'));
+    throw new Error('Studio AI error: ' + (e?.message || 'Unknown error'));
   }
 }
 
@@ -1038,7 +1038,7 @@ async function callProviderDirect(
     case 'custom':
       return await callOpenAI(apiKey, model, messages, tools, systemPrompt, signal, customEndpoint);
     default:
-      throw new Error('Unbekannter Anbieter: ' + provider);
+      throw new Error('Unknown provider: ' + provider);
   }
 }
 

@@ -45,7 +45,7 @@ const ThinkingBlock = React.memo(({ thinking, isLive, phase }: Props) => {
 
   const toggle = useCallback(() => setExpanded(p => !p), []);
 
-  const rawContent = thinking || phase || (isLive ? 'Denkt nach...' : 'Keine Gedanken aufgezeichnet.');
+  const rawContent = thinking || phase || (isLive ? 'Thinking...' : 'No thoughts recorded.');
   const displayContent = stripMarkdown(rawContent);
   const hasContent = !!displayContent && displayContent.length > 0;
   const lineCount = displayContent ? displayContent.split('\n').length : 0;
@@ -57,10 +57,10 @@ const ThinkingBlock = React.memo(({ thinking, isLive, phase }: Props) => {
           <Brain size={14} color={IDE.keyword} />
         </Animated.View>
         <Text style={styles.label} numberOfLines={1}>
-          {isLive ? (phase || 'Denkt nach...') : 'Erweitertes Denken'}
+          {isLive ? (phase || 'Thinking...') : 'Extended Thinking'}
         </Text>
         {!isLive && lineCount > 0 ? (
-          <Text style={styles.lengthBadge}>{lineCount} Zeilen</Text>
+          <Text style={styles.lengthBadge}>{lineCount} lines</Text>
         ) : null}
         {isLive && (
           <View style={styles.liveBadge}>
