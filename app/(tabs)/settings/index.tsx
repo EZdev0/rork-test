@@ -8,7 +8,7 @@ import {
   Minus, Plus, Zap, Globe, Shield, RefreshCw, FlaskConical,
   Info, Check, Sparkles, Star, Copy, CircleCheck, Circle,
   Brain, FileText,
-} from 'lucide-react-native';
+ Heart } from 'lucide-react-native';
 import * as Clipboard from 'expo-clipboard';
 import { IDE } from '@/constants/colors';
 import { useApp } from '@/providers/AppProvider';
@@ -824,6 +824,25 @@ export default function SettingsScreen() {
               Show todo graphics before execution. With Super Agent: interactive question phase.
             </Text>
           </View>
+
+          <View style={styles.section}>
+            <View style={styles.settingRow}>
+              <View style={styles.settingLabelRow}>
+                <Heart size={14} color={IDE.primary} />
+                <Text style={styles.settingLabel}>Hide Sponsor Message</Text>
+              </View>
+              <Switch
+                value={settings.hideSponsor}
+                onValueChange={(v) => updateSettings({ hideSponsor: v })}
+                trackColor={{ false: IDE.border, true: IDE.primary + '60' }}
+                thumbColor={settings.hideSponsor ? IDE.primary : IDE.muted}
+              />
+            </View>
+            <Text style={styles.settingHint}>
+              Hide the occasional sponsor message in the chat.
+            </Text>
+          </View>
+
 
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>TOOL MANAGEMENT</Text>
