@@ -261,7 +261,7 @@ export const MemoSection: React.FC<MemoSectionProps> = ({
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
 
-  const GlobalMemos = memos.filter(m => m.type === 'Global');
+  const GlobalMemos = memos.filter(m => m.type === 'global');
   const localMemos = memos.filter(m => m.type === 'local');
 
   return (

@@ -81,6 +81,7 @@ export interface AppSettings {
   betaAgentLearning: boolean;
   betaSuperAgent: boolean;
   agentMode: boolean;
+  hideSponsor: boolean;
   toolPermissions: Record<string, ToolPermission>;
 }
 
@@ -309,6 +310,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   betaAgentLearning: false,
   betaSuperAgent: false,
   agentMode: false,
+  hideSponsor: false,
   toolPermissions: {},
 };
 
