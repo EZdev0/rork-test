@@ -12,6 +12,7 @@ import {
 import * as Clipboard from 'expo-clipboard';
 import { IDE } from '@/constants/colors';
 import { useApp } from '@/providers/AppProvider';
+import SponsorBanner from '@/components/SponsorBanner';
 import { AI_PROVIDERS, PERSONAS } from '@/types';
 
 interface ProviderMeta {
@@ -198,7 +199,9 @@ export default function SettingsScreen() {
   }, [settings]);
 
   return (
-    <ScrollView
+    <View style={{ flex: 1, backgroundColor: IDE.bg }}>
+      <SponsorBanner style={{ marginHorizontal: 16, marginTop: 16, marginBottom: 0 }} />
+      <ScrollView
       style={styles.container}
       contentContainerStyle={styles.content}
       keyboardShouldPersistTaps="handled"
@@ -864,6 +867,7 @@ export default function SettingsScreen() {
         <Text style={styles.footerSubtext}>Mobile Code Editor with AI Assistant</Text>
       </View>
     </ScrollView>
+    </View>
   );
 }
 
