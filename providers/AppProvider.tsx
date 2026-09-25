@@ -131,6 +131,7 @@ export const [AppProvider, useApp] = createContextHook(() => {
       geminiKey: settings.geminiKey || '',
       groqKey: settings.groqKey || '',
       openrouterKey: settings.openrouterKey || '',
+      nvidiaKey: settings.nvidiaKey || '',
       customKey: settings.customKey || '',
     };
   }, [settings]);

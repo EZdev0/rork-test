@@ -64,6 +64,7 @@ export interface AppSettings {
   geminiKey: string;
   groqKey: string;
   openrouterKey: string;
+  nvidiaKey: string;
   customEndpoint: string;
   customKey: string;
   selectedProvider: string;
@@ -151,7 +152,7 @@ export interface AgentPlan {
   dismissed?: boolean;
 }
 
-export type AIProviderType = 'rork' | 'openai' | 'anthropic' | 'gemini' | 'groq' | 'openrouter' | 'custom';
+export type AIProviderType = 'rork' | 'openai' | 'anthropic' | 'gemini' | 'groq' | 'openrouter' | 'nvidia' | 'custom';
 
 export interface AIProviderConfig {
   id: AIProviderType;
@@ -206,6 +207,15 @@ export const AI_PROVIDERS: AIProviderConfig[] = [
     models: [
       { id: 'claude-sonnet-4-20250514', name: 'Claude Sonnet 4' },
       { id: 'claude-3-5-haiku-20241022', name: 'Claude 3.5 Haiku' },
+    ],
+  },
+  {
+    id: 'nvidia',
+    name: 'NVIDIA NIM',
+    keyHint: 'build.nvidia.com',
+    models: [
+      { id: 'meta/llama-3.1-405b-instruct', name: 'Llama 3.1 405B' },
+      { id: 'meta/llama-3.1-70b-instruct', name: 'Llama 3.1 70B' },
     ],
   },
   {
@@ -293,6 +303,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   geminiKey: '',
   groqKey: '',
   openrouterKey: '',
+  nvidiaKey: '',
   customEndpoint: '',
   customKey: '',
   selectedProvider: 'rork',

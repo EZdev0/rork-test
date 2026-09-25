@@ -51,6 +51,11 @@ const PROVIDER_INFO: Record<string, ProviderMeta> = {
     modelHint: 'claude-sonnet-4',
     pricing: 'Paid',
   },
+  nvidia: {
+    desc: 'High performance inference via NVIDIA NIM.',
+    endpoint: 'https://build.nvidia.com/explore/discover',
+    modelHint: 'Llama models running on NVIDIA infra.',
+  },
   openrouter: {
     desc: 'Access to many models via one key. Free and paid options.',
     endpoint: 'https://openrouter.ai/keys',
@@ -69,6 +74,7 @@ const KEY_MAP: Record<string, string> = {
   openai: 'openaiKey',
   anthropic: 'anthropicKey',
   openrouter: 'openrouterKey',
+  nvidia: 'nvidiaKey',
   custom: 'customKey',
 };
 
@@ -194,6 +200,7 @@ export default function SettingsScreen() {
     if (settings.openaiKey) count++;
     if (settings.anthropicKey) count++;
     if (settings.openrouterKey) count++;
+    if (settings.nvidiaKey) count++;
     if (settings.customKey && settings.customEndpoint) count++;
     return count;
   }, [settings]);

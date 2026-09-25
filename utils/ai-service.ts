@@ -1035,6 +1035,9 @@ async function callProviderDirect(
       return await callOpenAI(apiKey, model, messages, tools, systemPrompt, signal, 'https://api.groq.com/openai');
     case 'openrouter':
       return await callOpenRouter(apiKey, model, messages, tools, systemPrompt, signal);
+    case 'nvidia':
+      const isWeb = typeof window !== 'undefined';
+      return await callOpenAI(apiKey, model, messages, tools, systemPrompt, signal, isWeb ? '/api/nvidia' : 'https://integrate.api.nvidia.com');
     case 'custom':
       return await callOpenAI(apiKey, model, messages, tools, systemPrompt, signal, customEndpoint);
     default:
