@@ -28,7 +28,7 @@ export const [ChatProvider, useChat] = createContextHook(() => {
   manualMessagesRef.current = manualMessages;
   const rorkContextSentRef = useRef<boolean>(false);
 
-  const { settings, getApiKey, getFallbackSettings, todos, memos, addTodo, updateTodoItem, addMemo, agentMd, setAgentMd, soulMd, setSoulMd, identityMd, setIdentityMd, userMd, setUserMd, memoryMd, setMemoryMd, getToolPermission } = useApp();
+  const { triggerSponsorInteraction, settings, getApiKey, getFallbackSettings, todos, memos, addTodo, updateTodoItem, addMemo, agentMd, setAgentMd, soulMd, setSoulMd, identityMd, setIdentityMd, userMd, setUserMd, memoryMd, setMemoryMd, getToolPermission } = useApp();
   const settingsRef = useRef(settings);
   settingsRef.current = settings;
   const {
@@ -642,6 +642,7 @@ export const [ChatProvider, useChat] = createContextHook(() => {
   const sendMessage = useCallback(async (userText: string, attachedFiles: string[] = []) => {
     if (!userText.trim() && attachedFiles.length === 0) return;
 
+    triggerSponsorInteraction();
     setError(null);
     setLastFallbackInfo(null);
 

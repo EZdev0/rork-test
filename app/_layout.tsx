@@ -17,6 +17,7 @@ import { ProjectProvider } from '@/providers/ProjectProvider';
 import { ChatProvider } from '@/providers/ChatProvider';
 import { AgentProvider } from '@/providers/AgentProvider';
 import { IDE } from '@/constants/colors';
+import { SponsorOverlay } from '@/components/SponsorBanner';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -53,6 +54,7 @@ export default function RootLayout() {
               <AgentProvider>
                 <StatusBar style="light" />
                 <RootLayoutNav />
+                <SponsorOverlay />
               </AgentProvider>
             </ChatProvider>
           </ProjectProvider>
