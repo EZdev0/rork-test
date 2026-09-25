@@ -1,7 +1,7 @@
 import React from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, Modal, TouchableOpacity, StyleSheet } from 'react-native';
 import { WebView } from 'react-native-webview';
-import { Heart } from 'lucide-react-native';
+import { Heart, X } from 'lucide-react-native';
 import { IDE } from '@/constants/colors';
 import { useApp } from '@/providers/AppProvider';
 
@@ -32,3 +32,95 @@ export default function SponsorBanner({ style }: { style?: any }) {
     </View>
   );
 }
+
+export function SponsorOverlay() {
+  const { showSponsorModal, closeSponsorModal } = useApp();
+
+  return (
+    <Modal visible={showSponsorModal} transparent animationType="fade">
+      <View style={styles.overlay}>
+        <View style={styles.container}>
+          <TouchableOpacity style={styles.closeButton} onPress={closeSponsorModal} activeOpacity={0.7}>
+            <X size={20} color={IDE.muted} />
+          </TouchableOpacity>
+          <View style={styles.header}>
+            <Heart size={28} color={IDE.primary} style={{ marginRight: 12 }} />
+            <Text style={styles.title}>Unterstütze EZdev!</Text>
+          </View>
+          <Text style={styles.bodyText}>
+            Wir stecken viel Zeit und Liebe in die Entwicklung von Studio IDE. Damit wir das Projekt weiterhin kostenlos und open-source anbieten können, sind wir auf eure Unterstützung angewiesen!
+          </Text>
+          <Text style={styles.bodyText}>
+            Jeder noch so kleine Beitrag hilft uns, Serverkosten zu decken und neue KI-Modelle zu integrieren. Schau doch mal bei unserem Sponsor-Programm vorbei oder schreibe uns für Feedback an EZdev-info@proton.me.
+          </Text>
+          <Text style={styles.bodyTextSmall}>
+            Du kannst dieses Popup jederzeit in den Einstellungen deaktivieren.
+          </Text>
+          <View style={styles.buttonContainer}>
+            <WebView
+              source={{ uri: 'https://github.com/sponsors/EZdev0/button' }}
+              style={{ height: 32, width: 114, backgroundColor: 'transparent' }}
+              scrollEnabled={false}
+            />
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
+const styles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  container: {
+    backgroundColor: IDE.surface,
+    borderRadius: 16,
+    padding: 24,
+    width: '100%',
+    maxWidth: 400,
+    borderWidth: 1,
+    borderColor: IDE.border,
+    position: 'relative',
+  },
+  closeButton: {
+    position: 'absolute',
+    top: 16,
+    right: 16,
+    zIndex: 10,
+    padding: 4,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  title: {
+    color: IDE.text,
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  bodyText: {
+    color: IDE.textSecondary,
+    fontSize: 15,
+    lineHeight: 22,
+    marginBottom: 16,
+  },
+  bodyTextSmall: {
+    color: IDE.muted,
+    fontSize: 12,
+    lineHeight: 16,
+    marginBottom: 24,
+  },
+  buttonContainer: {
+    height: 32,
+    width: 114,
+    overflow: 'hidden',
+    borderRadius: 6,
+    alignSelf: 'center',
+  }
+});
