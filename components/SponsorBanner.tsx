@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, Modal, TouchableOpacity, StyleSheet } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { Heart, X } from 'lucide-react-native';
@@ -35,13 +35,41 @@ export default function SponsorBanner({ style }: { style?: any }) {
 
 export function SponsorOverlay() {
   const { showSponsorModal, closeSponsorModal } = useApp();
+  const [countdown, setCountdown] = useState(5);
+
+  useEffect(() => {
+    if (showSponsorModal) {
+      setCountdown(5);
+      const interval = setInterval(() => {
+        setCountdown((prev) => {
+          if (prev <= 1) {
+            clearInterval(interval);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+      return () => clearInterval(interval);
+    }
+  }, [showSponsorModal]);
 
   return (
     <Modal visible={showSponsorModal} transparent animationType="fade">
       <View style={styles.overlay}>
         <View style={styles.container}>
-          <TouchableOpacity style={styles.closeButton} onPress={closeSponsorModal} activeOpacity={0.7}>
-            <X size={20} color={IDE.muted} />
+          <TouchableOpacity
+            style={[styles.closeButton, countdown > 0 && { opacity: 0.5 }]}
+            onPress={() => {
+              if (countdown === 0) closeSponsorModal();
+            }}
+            activeOpacity={0.7}
+            disabled={countdown > 0}
+          >
+            {countdown > 0 ? (
+              <Text style={{ color: IDE.muted, fontSize: 12, fontWeight: '600' }}>In {countdown}s</Text>
+            ) : (
+              <X size={20} color={IDE.muted} />
+            )}
           </TouchableOpacity>
           <View style={styles.header}>
             <Heart size={28} color={IDE.primary} style={{ marginRight: 12 }} />
