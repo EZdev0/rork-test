@@ -123,7 +123,7 @@ export function parsePlanFromAI(content: string): { title: string; description: 
   if (tasks.length > 25) {
     console.log('[Planner] Plan exceeds 25 tasks, truncating from', tasks.length, 'to 25');
   }
-  
+
   return tasks.slice(0, 25);
 }
 
@@ -562,24 +562,13 @@ async function callOpenAI(apiKey: string, model: string, messages: ChatMessage[]
   let url = 'https://api.openai.com/v1/chat/completions';
   if (endpoint) {
     let cleanEndpoint = endpoint.trim();
-    if (cleanEndpoint.startsWith('ttps://')) cleanEndpoint = 'https://' + cleanEndpoint.substring(7);
-    else if (cleanEndpoint.startsWith('ttp://')) cleanEndpoint = 'http://' + cleanEndpoint.substring(6);
-
     if (!cleanEndpoint.startsWith('http://') && !cleanEndpoint.startsWith('https://')) {
-      if (cleanEndpoint.startsWith('/')) {
-        // Relative URL
-      } else {
-        cleanEndpoint = 'https://' + cleanEndpoint;
-      }
+      cleanEndpoint = 'https://' + cleanEndpoint;
     }
     if (cleanEndpoint.endsWith('/v1/chat/completions')) {
       url = cleanEndpoint;
     } else {
-      if (cleanEndpoint.startsWith('/')) {
-        url = cleanEndpoint.replace(/\/$/, '') + '/v1/chat/completions';
-      } else {
-        url = cleanEndpoint.replace(/\/$/, '') + '/v1/chat/completions';
-      }
+      url = cleanEndpoint.replace(/\/$/, '') + '/v1/chat/completions';
     }
   }
   const formattedMessages = formatMessagesForOpenAI(messages, systemPrompt);
