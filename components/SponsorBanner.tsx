@@ -20,7 +20,7 @@ export default function SponsorBanner({ style }: { style?: any }) {
       </View>
       <Text style={{ color: IDE.muted, fontSize: 13, marginBottom: 8, lineHeight: 18 }}>
         Eine kleine Unterstützung würde sehr gut tun! Schau doch mal bei unserem Sponsor-Programm vorbei oder kontaktiere uns unter EZdev-info@proton.me für Feedback und Ideen.
-        Du kannst diese Nachricht in den Einstellungen verstecken, aber wir würden uns freuen, wenn du uns wenigstens einmal schreibst oder folgst!
+        You can hide this message in the settings, but we would be happy if you wrote to us or followed us at least once!
       </Text>
       <View style={{ height: 32, width: 114, overflow: 'hidden', borderRadius: 6 }}>
         <WebView
@@ -76,13 +76,13 @@ export function SponsorOverlay() {
             <Text style={styles.title}>Unterstütze EZdev!</Text>
           </View>
           <Text style={styles.bodyText}>
-            Wir stecken viel Zeit und Liebe in die Entwicklung von Studio IDE. Damit wir das Projekt weiterhin kostenlos und open-source anbieten können, sind wir auf eure Unterstützung angewiesen!
+            We put a lot of time and love into the development of Studio IDE. In order to continue offering the project free of charge and open-source, we rely on your support!
           </Text>
           <Text style={styles.bodyText}>
-            Jeder noch so kleine Beitrag hilft uns, Serverkosten zu decken und neue KI-Modelle zu integrieren. Schau doch mal bei unserem Sponsor-Programm vorbei oder schreibe uns für Feedback an EZdev-info@proton.me.
+            Every contribution, no matter how small, helps us to cover server costs and integrate new AI models. Take a look at our sponsor program or write to us for feedback at EZdev-info@proton.me.
           </Text>
           <Text style={styles.bodyTextSmall}>
-            Du kannst dieses Popup jederzeit in den Einstellungen deaktivieren.
+            You can disable this popup at any time in the settings.
           </Text>
           <View style={styles.buttonContainer}>
             <WebView
