@@ -178,7 +178,7 @@ const ChatBubble = React.memo(({ message }: Props) => {
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
             <Copy size={12} color={IDE.muted} />
-            <Text style={styles.copyMsgText}>Kopieren</Text>
+            <Text style={styles.copyMsgText}>Copy</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -379,7 +379,7 @@ const CodeBlock = React.memo(({ code, language }: { code: string; language: stri
         <Text style={cbStyles.lang}>{language}</Text>
         <TouchableOpacity onPress={handleCopy} style={cbStyles.copyBtn} activeOpacity={0.6}>
           <Copy size={12} color={IDE.muted} />
-          <Text style={cbStyles.copyText}>Kopieren</Text>
+          <Text style={cbStyles.copyText}>Copy</Text>
         </TouchableOpacity>
       </View>
       <ScrollView horizontal showsHorizontalScrollIndicator={Platform.OS === 'web'} style={cbStyles.codeScroll}>
